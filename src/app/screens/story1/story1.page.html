@@ -1,0 +1,88 @@
+<ion-content
+  scrollY="false"
+  [style.--background]="'linear-gradient(to right,'+selectedColors[0] +','+ selectedColors[1] +')' "
+>
+  <div class="column" style="justify-content: space-between; height: 100%">
+    <div
+      class="rowAlignCenter"
+      style="justify-content: space-between; margin: 20px"
+      [style.margin-top]="platform.is('ios')?'60px':'20px'"
+    >
+      <ion-icon
+        (click)="goBack()"
+        name="close"
+        color="whiteColor"
+        style="font-size: 28px"
+      >
+      </ion-icon>
+      <ion-text
+        *ngIf="!isDone"
+        (click)="isDone=true"
+        class="whiteColor14SemiBold"
+      >
+        Done
+      </ion-text>
+      <div *ngIf="isDone" class="rowAlignCenter">
+        <ion-img
+          src="../../../assets/images/icons/editStory.png"
+          style="width: 16px; height: 16px; object-fit: contain"
+        >
+        </ion-img>
+        <ion-img
+          src="../../../assets/images/icons/text.png"
+          style="width: 17px; height: 17px; object-fit: contain; margin: 0 15px"
+        >
+        </ion-img>
+        <ion-img
+          src="../../../assets/images/icons/sticker.png"
+          style="width: 15px; height: 15px; object-fit: contain"
+        >
+        </ion-img>
+      </div>
+    </div>
+
+    <div class="center" style="flex: 1; overflow: scroll">
+      <ion-textarea
+        mode="ios"
+        [(ngModel)]="story"
+        name="story"
+        autoGrow="true"
+        class="whiteColor20ExtraBold center"
+        style="text-align: center"
+      >
+      </ion-textarea>
+    </div>
+
+    <div
+      *ngIf="!isDone"
+      class="center"
+      style="margin-bottom: 40px; margin-top: 20px"
+    >
+      <div class="horizontalScroll row" style="padding: 0 15px">
+        <div *ngFor="let item of colorsList" style="display: inline-block">
+          <div
+            (click)="selectedColors=item.colors"
+            class="center colorCircle"
+            [style.background]="'linear-gradient(to right,'+item.colors[0] +','+ item.colors[1] +')' "
+          >
+            <ion-icon
+              *ngIf="selectedColors===item.colors"
+              name="checkmark"
+              color="whiteColor"
+              style="font-size: 22px"
+            >
+            </ion-icon>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      (click)="goTo('/bottom-tab-bar/home')"
+      *ngIf="isDone"
+      class="shareStoryButton"
+    >
+      <ion-text class="primaryColor16SemiBold"> Share Story </ion-text>
+    </div>
+  </div>
+</ion-content>

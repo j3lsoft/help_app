@@ -1,0 +1,20 @@
+.divider {
+  background-color: var(--extraLightGrayColor);
+  height: 1px;
+  margin: 10px 0;
+}
+
+.circleImage {
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  object-fit: cover;
+  overflow: hidden;
+}
+
+.unblockButton {
+  background-color: var(--whiteColor);
+  border-radius: 5px;
+  border: 1.2px solid var(--primaryColor);
+  padding: 4px 18px;
+}

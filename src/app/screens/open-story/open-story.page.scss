@@ -1,0 +1,16 @@
+.textField {
+  --background: var(--whiteColor);
+  --placeholder-color: var(--grayColor);
+  --placeholder-opacity: 1;
+  --border-radius: 30px;
+  --padding-start: 20px;
+  --padding-end: 20px;
+}
+
+.circleImage {
+  width: 35px;
+  height: 35px;
+  border-radius: 17.5px;
+  overflow: hidden;
+  object-fit: cover;
+}

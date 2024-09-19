@@ -1,0 +1,63 @@
+.header {
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background-color: var(--whiteColor);
+}
+
+.circle60 {
+  width: 60px;
+  height: 60px;
+  border-radius: 30px;
+  overflow: hidden;
+}
+
+.profileImageCircle {
+  width: 52px;
+  height: 52px;
+  border-radius: 26px;
+  overflow: hidden;
+  object-fit: cover;
+}
+
+.circle50Image {
+  width: 50px;
+  height: 50px;
+  border-radius: 25px;
+  object-fit: cover;
+  overflow: hidden;
+}
+
+.postDetail {
+  background-color: var(--whiteColor);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.followUnfollowButton {
+  padding: 8px 5px;
+  border-radius: 10px;
+  margin-top: 14px;
+  border: 1.5px solid var(--primaryColor);
+}
+
+.suggestionWrapper {
+  width: 140px;
+  margin: 0 5px;
+  display: inline-block;
+  border-radius: 5px;
+  padding: 10px;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  background-color: var(--whiteColor);
+  margin-top: 2px;
+}
+
+.circle60Image {
+  width: 60px;
+  height: 60px;
+  border-radius: 30px;
+  overflow: hidden;
+  object-fit: cover;
+}

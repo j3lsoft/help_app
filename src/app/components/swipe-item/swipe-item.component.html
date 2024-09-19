@@ -1,0 +1,164 @@
+<div class="wrapper" #wrapper></div>
+<ion-item mode="ios" lines="none" color="whiteColor">
+  <div class="itemWrapper">
+    <div *ngIf="noti.type === 'following'" class="rowAlignCenter">
+      <ion-img [src]="noti.userProfilePic" class="userImage"> </ion-img>
+      <div class="column" style="flex: 1; margin-left: 10px">
+        <ion-text class="blackColor14SemiBold">
+          {{ noti.userName }} started following you
+        </ion-text>
+        <ion-text class="grayColor12Regular" style="margin-top: 2px">
+          {{ noti.notificationTime }}
+        </ion-text>
+      </div>
+    </div>
+
+    <div *ngIf="noti.type === 'likeMorePhotos'" class="row">
+      <ion-img [src]="noti.userProfilePic" class="userImage"> </ion-img>
+      <div class="column" style="flex: 1">
+        <ion-text class="blackColor14SemiBold" style="margin-left: 10px">
+          {{ noti.userName }} liked {{ noti.likedPohotos.length }} photos
+        </ion-text>
+        <div class="row" style="margin: 5px 0; margin-left: 5px">
+          <div
+            *ngFor="
+              let i of noti.likedPohotos.length >= 4
+                ? noti.likedPohotos.slice(0, 4)
+                : noti.likedPohotos
+            "
+          >
+            <ion-img
+              [src]="i.photo"
+              class="likePhotos"
+              [style.width]="
+                noti.likedPohotos.length >= 4
+                  ? width / 6.5 + 'px'
+                  : width / 5.0 + 'px'
+              "
+              [style.height]="
+                noti.likedPohotos.length >= 4
+                  ? width / 6.5 + 'px'
+                  : width / 5.0 + 'px'
+              "
+            >
+            </ion-img>
+          </div>
+        </div>
+        <ion-text class="grayColor12Regular" style="margin-left: 10px">
+          {{ noti.notificationTime }}
+        </ion-text>
+      </div>
+    </div>
+
+    <div
+      *ngIf="noti.type === 'likeOnePhoto'"
+      class="rowAlignCenter"
+      style="justify-content: space-between"
+    >
+      <ion-img [src]="noti.userProfilePic" class="userImage"> </ion-img>
+      <div class="column" style="flex: 1; margin-left: 10px">
+        <ion-text class="blackColor14SemiBold">
+          {{ noti.userName }} liked your photo
+        </ion-text>
+        <ion-text class="grayColor12Regular">
+          {{ noti.notificationTime }}
+        </ion-text>
+      </div>
+      <ion-img (click)="goTo('user-posts')" [src]="noti.likedPhoto" class="image60"> </ion-img>
+    </div>
+
+    <div
+      *ngIf="noti.type === 'mention'"
+      class="row"
+      style="justify-content: space-between"
+    >
+      <ion-img [src]="noti.userProfilePic" class="userImage"> </ion-img>
+      <div class="column" style="flex: 1; margin: 0 10px">
+        <ion-text class="blackColor14Bold">
+          {{ noti.userName }}
+          <ion-text class="blackColor14SemiBold">
+            mentioned you in a commented :
+          </ion-text>
+          <ion-text class="blueColor14SemiBold">
+            {{ noti.mantionUserName }}
+          </ion-text>
+          <ion-text class="blackColor14SemiBold">
+            {{ noti.comment }}
+          </ion-text>
+        </ion-text>
+        <ion-text class="grayColor12Regular">
+          {{ noti.notificationTime }}
+        </ion-text>
+      </div>
+      <ion-img (click)="goTo('comments')" [src]="noti.mentionPhoto" class="image60"> </ion-img>
+    </div>
+
+    <div
+      *ngIf="noti.type === 'likeByMore'"
+      class="row"
+      style="justify-content: space-between"
+    >
+      <div class="row" style="flex: 1">
+        <div style="width: 50px">
+          <div style="position: relative">
+            <ion-img
+              class="imageCommon"
+              [src]="noti.userProfilePics[0].userProfilePic"
+              style="width: 38px; height: 38px; border-radius: 19px"
+            >
+            </ion-img>
+            <ion-img
+              class="imageCommon positionImage"
+              [src]="noti.userProfilePics[1].userProfilePic"
+            >
+            </ion-img>
+          </div>
+        </div>
+        <div class="column" style="flex: 1; margin: 0 10px">
+          <ion-text class="blackColor14SemiBold">
+            {{ noti.userProfileNames[0] }} , {{ noti.userProfileNames[1] }} and
+            {{ noti.userProfileNames.length - 2 }} others liked your photo
+          </ion-text>
+          <ion-text class="grayColor12Regular">
+            {{ noti.notificationTime }}
+          </ion-text>
+        </div>
+      </div>
+      <ion-img (click)="goTo('user-posts')" [src]="noti.likedPhoto" class="image60"> </ion-img>
+    </div>
+
+    <div
+      *ngIf="noti.type === 'seeOldPost'"
+      class="row"
+      style="justify-content: space-between"
+    >
+      <div class="row" style="flex: 1">
+        <div class="center historyWrapper">
+          <span
+            class="material-icons"
+            style="font-size: 25px; color: var(--primaryColor)"
+          >
+            history
+          </span>
+        </div>
+        <div class="column" style="flex: 1; margin: 0 10px">
+          <ion-text class="blackColor14SemiBold">
+            See your post from {{ noti.postTime }} {{ noti.seeTime }}
+          </ion-text>
+          <ion-text class="grayColor12Regular">
+            {{ noti.notificationTime }}
+          </ion-text>
+        </div>
+      </div>
+      <ion-img (click)="goTo('user-posts')" [src]="noti.post" class="image60"> </ion-img>
+    </div>
+
+    <div
+      style="
+        background-color: var(--extraLightGrayColor);
+        height: 1px;
+        margin-top: 10px;
+      "
+    ></div>
+  </div>
+</ion-item>

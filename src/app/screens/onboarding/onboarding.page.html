@@ -1,0 +1,70 @@
+<ion-content color="secondaryColor">
+  <div class="contentCenter">
+    <div>
+      <swiper-container
+        #swiper
+        (swiperslidechange)="slideChangeCall();"
+        [autoplay]="{autoplay:true,disableOnInteraction:false,delay:2800}"
+      >
+        <swiper-slide *ngFor="let item of onboardingScreenList">
+          <div
+            class="column"
+            style="margin: 0 20px; display: flex; justify-content: flex-end"
+            [style.height]="(screenHeight-70)+'px'"
+          >
+            <div class="center" style="height: 100%; margin-top: 40px">
+              <img
+                [src]="item.onboardingImage"
+                style="width: 90%; height: 250px; object-fit: contain"
+              />
+            </div>
+            <div>
+              <ion-text
+                class="whiteColor20SemiBold ellipseText"
+                style="
+                  -webkit-line-clamp: 1;
+                  text-align: center;
+                  margin-bottom: 15px;
+                "
+              >
+                {{item.onboardingTitle}}
+              </ion-text>
+              <ion-text
+                class="whiteColor14Regular ellipseText"
+                style="
+                  -webkit-line-clamp: 3;
+                  text-align: center;
+                  margin-bottom: 20px;
+                "
+              >
+                {{item.onboardingDescription}}
+              </ion-text>
+            </div>
+          </div>
+        </swiper-slide>
+      </swiper-container>
+    </div>
+    <div class="rowAlignCenter" style="align-self: center">
+      <div
+        *ngFor="let item of onboardingScreenList;let i=index"
+        style="margin: 0 8px"
+        [style.width]="i===currentIndex?'25px':'8px'"
+        [style.height]="i===currentIndex?'8px':'8px'"
+        [style.border-radius]="i===currentIndex?'5px':'3px'"
+        [style.background]="i===currentIndex?'var(--primaryColor)':'var(--whiteColor)'"
+      ></div>
+    </div>
+    <div
+      class="rowAlignCenter margin20"
+      style="justify-content: space-between"
+      [style.margin-bottom]="platform.is('ios')?'30px':'20px'"
+    >
+      <ion-text (click)="goTo('/auth/sign-in')" class="whiteColor16Bold">
+        {{currentIndex===2?' ':'Skip'}}
+      </ion-text>
+      <ion-text (click)="handleButtonPress()" class="primaryColor16Bold">
+        {{currentIndex===2?'Login': 'Next'}}
+      </ion-text>
+    </div>
+  </div>
+</ion-content>

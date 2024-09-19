@@ -1,0 +1,83 @@
+<ion-header mode="ios" [translucent]="false">
+  <ion-toolbar
+    class="ion-no-padding"
+    color="whiteColor"
+    style="box-shadow: 0 2px 3px rgba(0, 0, 0, 0.15)"
+  >
+    <div
+      class="rowAlignCenter"
+      style="justify-content: space-between; padding: 15px"
+    >
+      <div
+        class="rowAlignCenter"
+        style="background-color: var(--whiteColor); flex: 1"
+      >
+        <ion-icon
+          (click)="goTo('/bottom-tab-bar/home')"
+          name="close"
+          color="blackColor"
+          style="font-size: 28px"
+        ></ion-icon>
+        <ion-text
+          class="blackColor20SemiBold"
+          style="flex: 1; margin-left: 10px"
+        >
+          New Post
+        </ion-text>
+      </div>
+      <ion-icon
+        name="arrow-forward-outline"
+        color="blackColor"
+        style="font-size: 20px"
+        (click)="goToPostFilter()"
+      ></ion-icon>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content scrollY="false">
+  <ion-img
+    [src]="selectedImage"
+    style="height: 300px; object-fit: cover"
+    class="margin20"
+  >
+  </ion-img>
+
+  <div class="row margin20">
+    <div id="openMenu" class="rowAlignCenter">
+      <ion-text class="blackColor16SemiBold"> {{selectedOption}} </ion-text>
+      <ion-icon
+        name="caret-down-outline"
+        color="blackColor"
+        style="margin-left: 10px; font-size: 15px"
+      ></ion-icon>
+    </div>
+  </div>
+
+  <ion-content style="--padding-bottom: 390px">
+    <div class="postWrapper">
+      <div *ngFor="let item of photosList" style="margin-bottom: -5px">
+        <img
+          (click)="selectedImage=item.photo"
+          [src]="item.photo"
+          class="postImage"
+        />
+      </div>
+    </div>
+  </ion-content>
+
+  <ion-popover trigger="openMenu" mode="md">
+    <ng-template>
+      <div style="margin: 10px">
+        <div *ngFor="let item of photoOptions" style="margin: 8px 5px">
+          <ion-text
+            (click)="selectedOption=item;popCtrl.dismiss()"
+            class="blackColor16SemiBold"
+          >
+            {{item}}
+          </ion-text>
+        </div>
+      </div>
+    </ng-template>
+  </ion-popover>
+</ion-content>

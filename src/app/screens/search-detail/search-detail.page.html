@@ -1,0 +1,179 @@
+<ion-header mode="ios" [translucent]="false" class="ion-no-border">
+  <ion-toolbar class="ion-no-padding" color="whiteColor">
+    <div class="column margin20">
+      <ion-icon
+        (click)="goBack()"
+        name="chevron-back"
+        color="blackColor"
+        style="font-size: 28px"
+      ></ion-icon>
+
+      <div (click)="goTo('search-detail')" class="rowAlignCenter searchField">
+        <ion-icon
+          mode="ios"
+          name="search"
+          color="grayColor"
+          style="font-size: 16px"
+        ></ion-icon>
+        <ion-input
+          placeholder="Search here..."
+          class="blackColor14Regular textInput"
+          style="--placeholderColor: var(--grayColor); --placeholderOpacity: 1"
+        />
+      </div>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content scrollY="false">
+  <div
+    style="
+      background-color: var(--whiteColor);
+      box-shadow: 0 2px 3px rgba(0, 0, 0, 0.15);
+      margin-bottom: 2px;
+    "
+  >
+    <div>
+      <ion-segment
+        (ionChange)="onFilterUpdate($event)"
+        mode="md"
+        value="Top"
+        style="margin-top: -10px"
+      >
+        <ion-segment-button value="Top">
+          <ion-text
+            style="font-size: 16px; font-weight: 600; text-transform: none"
+            >Top</ion-text
+          >
+        </ion-segment-button>
+        <ion-segment-button value="Accounts">
+          <ion-text
+            style="font-size: 16px; font-weight: 600; text-transform: none"
+            >Accounts</ion-text
+          >
+        </ion-segment-button>
+        <ion-segment-button value="Tags">
+          <ion-text
+            style="font-size: 16px; font-weight: 600; text-transform: none"
+            >Tags</ion-text
+          >
+        </ion-segment-button>
+      </ion-segment>
+    </div>
+  </div>
+  <ion-content style="--padding-top: 15px; --padding-bottom: 50px">
+    <div *ngIf="selectedTabValue==='Top'">
+      <ion-text class="blackColor18SemiBold" style="margin: 0 20px">
+        Suggested
+      </ion-text>
+      <div style="margin-top: 20px">
+        <div *ngFor="let item of topSearchesList">
+          <div
+            class="rowAlignCenter"
+            style="margin: 0 20px; margin-bottom: 13px"
+          >
+            <div
+              class="center circle60"
+              style="background-color: var(--whiteColor); border: 2px solid"
+              [style.border-color]="item.storyAvailable?'var(--primaryColor)':'transparent'"
+            >
+              <img [src]="item.userProfilePic" class="profileImageCircle" />
+            </div>
+            <div class="column" style="margin-left: 10px; flex: 1">
+              <ion-text
+                class="blackColor16SemiBold ellipseText"
+                style="-webkit-line-clamp: 1"
+              >
+                {{item.userProfileName}}
+              </ion-text>
+              <ion-text
+                class="grayColor14Regular ellipseText"
+                style="-webkit-line-clamp: 1"
+              >
+                {{item.userFullName}} {{item.isFollow ? '• Following' : null}}
+              </ion-text>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="selectedTabValue==='Accounts'">
+      <ion-text class="blackColor18SemiBold" style="margin: 0 20px">
+        Suggested
+      </ion-text>
+      <div style="margin-top: 20px">
+        <div *ngFor="let item of accountSearchesList">
+          <div
+            class="rowAlignCenter"
+            style="margin: 0 20px; margin-bottom: 13px"
+          >
+            <div
+              class="center circle60"
+              style="background-color: var(--whiteColor); border: 2px solid"
+              [style.border-color]="item.storyAvailable?'var(--primaryColor)':'transparent'"
+            >
+              <img [src]="item.userProfilePic" class="profileImageCircle" />
+            </div>
+            <div class="column" style="margin-left: 10px; flex: 1">
+              <ion-text
+                class="blackColor16SemiBold ellipseText"
+                style="-webkit-line-clamp: 1"
+              >
+                {{item.userProfileName}}
+              </ion-text>
+              <ion-text
+                class="grayColor14Regular ellipseText"
+                style="-webkit-line-clamp: 1"
+              >
+                {{item.userFullName}} {{item.isFollow ? '• Following'
+                :('Followed by'+' '+ item.followedByUsers[0]+', and '+
+                (item.followedByUsers.length - 1)+' more')}}
+              </ion-text>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="selectedTabValue==='Tags'">
+      <ion-text class="blackColor18SemiBold" style="margin: 0 20px">
+        Suggested
+      </ion-text>
+      <div style="margin-top: 20px">
+        <div *ngFor="let item of tagSearchesList">
+          <div
+            class="rowAlignCenter"
+            style="margin: 0 20px; margin-bottom: 13px"
+          >
+            <div style="position: relative">
+              <div
+                class="center circle60"
+                style="background-color: var(--whiteColor)"
+              >
+                <img [src]="item.userProfilePic" class="profileImageCircle" />
+              </div>
+              <div class="center hashWrapper">
+                <ion-text class="whiteColor14Bold"> # </ion-text>
+              </div>
+            </div>
+            <div class="column" style="margin-left: 10px; flex: 1">
+              <ion-text
+                class="blackColor16SemiBold ellipseText"
+                style="-webkit-line-clamp: 1"
+              >
+                {{item.hastag}}
+              </ion-text>
+              <ion-text
+                class="grayColor14Regular ellipseText"
+                style="-webkit-line-clamp: 1"
+              >
+                {{item.postsCount}} posts
+              </ion-text>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ion-content>
+</ion-content>

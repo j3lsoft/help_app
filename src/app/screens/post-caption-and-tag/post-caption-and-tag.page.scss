@@ -1,0 +1,13 @@
+.divider {
+  background-color: var(--extraLightGrayColor);
+  height: 1px;
+  margin: 15px 20px;
+}
+
+.circleImage {
+  width: 50px;
+  height: 50px;
+  border-radius: 25px;
+  object-fit: cover;
+  overflow: hidden;
+}

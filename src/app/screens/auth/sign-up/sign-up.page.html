@@ -1,0 +1,157 @@
+<ion-header mode="ios" [translucent]="false" class="ion-no-border">
+  <ion-toolbar color="secondaryColor">
+    <div class="rowAlignCenter margin20" style="margin-left: 15px">
+      <ion-icon
+        (click)="goBack()"
+        name="chevron-back"
+        color="whiteColor"
+        style="font-size: 28px"
+      ></ion-icon>
+      <ion-text class="whiteColor20SemiBold" style="margin-left: 10px">
+        Sign Up
+      </ion-text>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content color="secondaryColor">
+  <div class="margin20">
+    <ion-text class="grayColor16Regular"> Name</ion-text>
+    <ion-input
+      [(ngModel)]="name"
+      name="name"
+      placeholder="Enter Name"
+      mode="ios"
+      class="whiteColor18Regular textInput"
+      style="--placeholder-color: var(--whiteColor); --placeholder-opacity: 1"
+    ></ion-input>
+    <div class="divider"></div>
+  </div>
+
+  <div class="margin20" style="margin-top: 25px">
+    <ion-text class="grayColor16Regular"> Email Address </ion-text>
+    <ion-input
+      [(ngModel)]="email"
+      name="email"
+      placeholder="Enter Email Address"
+      mode="ios"
+      class="whiteColor18Regular textInput"
+      style="--placeholder-color: var(--whiteColor); --placeholder-opacity: 1"
+      inputmode="email"
+    ></ion-input>
+    <div class="divider"></div>
+  </div>
+
+  <div class="margin20" style="margin-top: 25px">
+    <ion-text class="grayColor16Regular"> Phone Number </ion-text>
+    <ion-input
+      [(ngModel)]="phoneNumber"
+      name="phoneNumber"
+      placeholder="Enter Phone Number"
+      mode="ios"
+      class="whiteColor18Regular textInput"
+      style="--placeholder-color: var(--whiteColor); --placeholder-opacity: 1"
+      inputmode="numeric"
+    ></ion-input>
+    <div class="divider"></div>
+  </div>
+
+  <div class="margin20" style="margin-top: 25px">
+    <ion-text class="grayColor16Regular"> Create Password </ion-text>
+    <div class="rowAlignCenter">
+      <ion-input
+        [(ngModel)]="password"
+        name="password"
+        placeholder="Enter Create Password"
+        mode="ios"
+        class="whiteColor18Regular textInput"
+        style="
+          --placeholder-color: var(--whiteColor);
+          --placeholder-opacity: 1;
+          flex: 1;
+        "
+        clearOnEdit="false"
+        inputmode="password"
+        [type]="showPassword?'text':'password'"
+      ></ion-input>
+      <ion-icon
+        (click)="showPassword=!showPassword"
+        [name]="!showPassword?'eye-off-outline': 'eye-outline'"
+        color="whiteColor"
+        style="font-size: 20px"
+      ></ion-icon>
+    </div>
+
+    <div class="divider"></div>
+  </div>
+
+  <div class="margin20" style="margin-top: 25px">
+    <ion-text class="grayColor16Regular"> Confirm Password </ion-text>
+    <div class="rowAlignCenter">
+      <ion-input
+        [(ngModel)]="confirmPwd"
+        name="confirmPwd"
+        placeholder="Enter Confirm Password"
+        mode="ios"
+        class="whiteColor18Regular textInput"
+        style="
+          --placeholder-color: var(--whiteColor);
+          --placeholder-opacity: 1;
+          flex: 1;
+        "
+        clearOnEdit="false"
+        inputmode="password"
+        [type]="showConfirmPwd?'text':'password'"
+      ></ion-input>
+      <ion-icon
+        (click)="showConfirmPwd=!showConfirmPwd"
+        [name]="!showConfirmPwd?'eye-off-outline': 'eye-outline'"
+        color="whiteColor"
+        style="font-size: 20px"
+      ></ion-icon>
+    </div>
+
+    <div class="divider"></div>
+  </div>
+
+  <div (click)="goTo('/auth/verification')" class="center margin20 button">
+    <ion-text class="whiteColor22Bold"> Sign Up </ion-text>
+  </div>
+
+  <ion-text class="grayColor16Regular center"> OR </ion-text>
+
+  <div class="rowAlignCenter margin20" style="justify-content: center">
+    <div class="center socialWrapper">
+      <ion-img
+        src="../../../../assets/images/icons/facebook.png"
+        style="width: 26px; height: 26px; object-fit: contain"
+      >
+      </ion-img>
+    </div>
+
+    <div class="center socialWrapper" style="margin: 0 30px">
+      <ion-img
+        src="../../../../assets/images/icons/google.png"
+        style="width: 26px; height: 26px; object-fit: contain"
+      >
+      </ion-img>
+    </div>
+
+    <div class="center socialWrapper">
+      <ion-img
+        src="../../../../assets/images/icons/twitter.png"
+        style="width: 26px; height: 26px; object-fit: contain"
+      >
+      </ion-img>
+    </div>
+  </div>
+
+  <div class="ion-text-center margin20">
+    <ion-text class="lightGrayColor16Regular">
+      Already have an account?
+      <ion-text (click)="goTo('/auth/sign-in')" class="primaryColor16Bold">
+        Sign In
+      </ion-text>
+    </ion-text>
+  </div>
+</ion-content>

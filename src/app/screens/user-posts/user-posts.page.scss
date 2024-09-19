@@ -1,0 +1,14 @@
+.circle50Image {
+  width: 50px;
+  height: 50px;
+  border-radius: 25px;
+  object-fit: cover;
+  overflow: hidden;
+}
+
+.postDetail {
+  background-color: var(--whiteColor);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}

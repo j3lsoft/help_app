@@ -1,0 +1,19 @@
+ion-toggle {
+  --track-background: var(--extraLightGrayColor);
+  --track-background-checked: var(--primaryColor);
+  --handle-background: var(--whiteColor);
+  --handle-width: 13px;
+  --handle-height: 13px;
+}
+
+ion-toggle::part(track) {
+  height: 18px;
+  width: 31px;
+}
+
+.shoMoreText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+}

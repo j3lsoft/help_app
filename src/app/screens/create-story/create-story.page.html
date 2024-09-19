@@ -1,0 +1,54 @@
+<ion-header mode="ios" [translucent]="false">
+  <ion-toolbar
+    class="ion-no-padding"
+    color="whiteColor"
+    style="box-shadow: 0 2px 3px rgba(0, 0, 0, 0.15)"
+  >
+    <div
+      class="rowAlignCenter"
+      style="padding: 15px 20px; background-color: var(--whiteColor)"
+    >
+      <ion-icon
+        (click)="goBack()"
+        name="close"
+        color="blackColor"
+        style="font-size: 24px"
+      >
+      </ion-icon>
+      <ion-text class="blackColor20SemiBold" style="margin-left: 10px">
+        Create Story
+      </ion-text>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="horizontalScroll" style="padding: 15px">
+    <div *ngFor="let item of storyOptions" style="display: inline-block">
+      <div
+        (click)="goTo('story1')"
+        class="center columnAlignCenter optionBox"
+        [style.background]="'linear-gradient(to right,'+item.color1 +','+ item.color2 +')' "
+      >
+        <ion-img
+          [src]="item.icon"
+          style="width: 30px; height: 30px; object-fit: contain"
+        >
+        </ion-img>
+        <ion-text class="whiteColor14SemiBold ellipseText optionText">
+          {{item.option}}
+        </ion-text>
+      </div>
+    </div>
+  </div>
+
+  <ion-text class="blackColor18SemiBold" style="margin: 0 20px">
+    Gallery
+  </ion-text>
+
+  <div class="postWrapper">
+    <div *ngFor="let item of galleryImages" style="margin-bottom: -5px">
+      <img [src]="item.image" class="postImage" />
+    </div>
+  </div>
+</ion-content>

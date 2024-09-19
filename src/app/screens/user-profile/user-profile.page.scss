@@ -1,0 +1,50 @@
+.circle97 {
+  width: 97px;
+  height: 97px;
+  border-radius: 48.5px;
+  overflow: hidden;
+}
+
+.profileImageCircle {
+  width: 88px;
+  height: 88px;
+  border-radius: 44px;
+  overflow: hidden;
+  object-fit: cover;
+}
+
+.followAnddMessageButton {
+  flex: 1;
+  border-radius: 10px;
+  padding: 11px;
+  box-shadow: 0 3px 9px rgba(0, 0, 0, 0.15);
+  margin: 0 10px;
+}
+
+ion-segment-button {
+  --color: var(--lightGrayColor);
+  --color-checked: var(--primaryColor);
+  --indicator-height: 1.5px;
+  --ripple-color: transparent;
+}
+
+.tabsWrapper {
+  background-color: var(--whiteColor);
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.15);
+  margin-bottom: 2px;
+  margin-top: 5px;
+}
+
+.postWrapper {
+  column-count: 3;
+  column-gap: 10px;
+  margin: 20px;
+  margin-top: 15px;
+}
+
+.postImage {
+  object-fit: cover;
+  width: 100%;
+  height: 140px;
+  margin-bottom: 10px;
+}

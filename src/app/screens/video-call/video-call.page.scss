@@ -1,0 +1,26 @@
+.callerImage {
+  width: 150px;
+  height: 150px;
+  border-radius: 10px;
+  overflow: hidden;
+  object-fit: cover;
+}
+
+.optionsWrapper {
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  padding: 20px;
+  border-top-left-radius: 15px;
+  border-top-right-radius: 15px;
+  justify-content: space-between;
+}
+
+.nameCallerWrapper {
+  top: 0;
+  left: 0;
+  right: 0;
+  justify-content: space-between;
+  margin: 0 20px;
+}

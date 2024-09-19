@@ -1,0 +1,219 @@
+<ion-header mode="ios" [translucent]="false">
+  <ion-toolbar
+    class="ion-no-padding"
+    color="whiteColor"
+    style="box-shadow: 0 2px 3px rgba(0, 0, 0, 0.15)"
+  >
+    <div
+      class="rowAlignCenter"
+      style="
+        justify-content: space-between;
+        padding: 15px 20px;
+        background-color: var(--whiteColor);
+      "
+    >
+      <div class="rowAlignCenter" style="flex: 1">
+        <ion-icon
+          (click)="goBack()"
+          name="chevron-back"
+          color="blackColor"
+          style="font-size: 28px"
+        ></ion-icon>
+        <div style="position: relative; margin-left: 5px; margin-right: 10px">
+          <img
+            src="../../../assets/images/users/user12.png"
+            class="circleImage36"
+          />
+          <div class="activeIndicator"></div>
+        </div>
+        <div class="column" style="flex: 1; margin-right: 10px">
+          <ion-text
+            class="blackColor14SemiBold ellipseText"
+            style="-webkit-line-clamp: 1"
+          >
+            Jiya Shah
+          </ion-text>
+          <ion-text
+            class="grayColor12Regular ellipseText"
+            style="-webkit-line-clamp: 1"
+          >
+            Online
+          </ion-text>
+        </div>
+      </div>
+      <div class="rowAlignCenter">
+        <span
+          (click)="goTo('video-call')"
+          class="material-icons"
+          style="color: var(--blackColor); font-size: 21px"
+        >
+          videocam
+        </span>
+        <span (click)="goTo('call')" class="material-icons callIcon">call</span>
+        <span
+          class="material-icons"
+          style="color: var(--blackColor); font-size: 20px"
+        >
+          more_vert
+        </span>
+      </div>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content style="--padding-top: 20px; --padding-bottom: 30px">
+  <div>
+    <div
+      class="column"
+      *ngFor="let item of userMessages; let index=index;"
+      style="margin: 5px 20px"
+      [style.align-items]="item.isSender === true ? 'flex-end' : 'flex-start'"
+    >
+      <div class="row" style="max-width: 90%">
+        <div *ngIf="!item.isSender">
+          <div *ngIf="index !== 0">
+            <div
+              *ngIf="userMessages[index].isSender === userMessages[index - 1].isSender"
+              style="margin-right: 35px"
+            ></div>
+            <div
+              *ngIf="userMessages[index].isSender !== userMessages[index - 1].isSender"
+              style="margin-right: 10px"
+            >
+              <img
+                [src]="receiverImage"
+                class="circleImage"
+                style="width: 25px; height: 25px; border-radius: 12.5px"
+              />
+            </div>
+          </div>
+          <div *ngIf="index === 0">
+            <div
+              *ngIf="(userMessages[index].isSender === userMessages[index + 1].isSender) || (!userMessages[index].isSender)"
+              style="margin-right: 10px"
+            >
+              <img
+                [src]="receiverImage"
+                class="circleImage"
+                style="width: 25px; height: 25px; border-radius: 12.5px"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="item.messageType">
+          <div class="row" *ngIf="item.messageType === 'images'">
+            <div *ngFor="let innerItem of item.images.slice(0, 4)">
+              <img
+                [src]="innerItem"
+                class="circleImage"
+                style="width: 60px; height: 60px; border-radius: 10px"
+                [style.margin-left]="item.isSender?'4px':'0px'"
+                [style.margin-right]="item.isSender?'0px':'4px'"
+              />
+            </div>
+          </div>
+        </div>
+        <div *ngIf="!item.messageType">
+          <div
+            style="padding: 5px 10px; padding-bottom: 8px; border-radius: 5px"
+            [style.border-bottom-right-radius]="item.isSender ? '0' : '5px'"
+            [style.border-bottom-left-radius]="item.isSender ? '5px' : '0'"
+            [style.background]="item.isSender? 'var(--primaryColor)' : '#F0F0F0'"
+          >
+            <ion-text
+              [class]="item.isSender?'whiteColor12Regular':'blackColor12Regular'"
+            >
+              {{item.message}}
+            </ion-text>
+          </div>
+        </div>
+
+        <div *ngIf="item.isSender">
+          <div>
+            <div *ngIf="index !== 0">
+              <div
+                *ngIf="userMessages[index].isSender === userMessages[index - 1].isSender"
+                style="margin-left: 35px"
+              ></div>
+              <div
+                *ngIf="userMessages[index].isSender !== userMessages[index - 1].isSender"
+                style="margin-left: 10px"
+              >
+                <img
+                  [src]="senderImage"
+                  class="circleImage"
+                  style="width: 25px; height: 25px; border-radius: 12.5px"
+                />
+              </div>
+            </div>
+            <div *ngIf="index === 0">
+              <div
+                *ngIf="(userMessages[index].isSender === userMessages[index + 1].isSender) || userMessages[index].isSender"
+                style="margin-left: 10px"
+              >
+                <img
+                  [src]="senderImage"
+                  class="circleImage"
+                  style="width: 25px; height: 25px; border-radius: 12.5px"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ion-text
+        class="grayColor10SemiBold"
+        [style.align-self]="item.isSender?'flex-end':'flex-start'"
+        [style.margin-left]="item.isSender?'0':'35px'"
+        [style.margin-right]="item.isSender?'35px':'0'"
+      >
+        {{item.messageTime}}
+      </ion-text>
+    </div>
+  </div>
+</ion-content>
+
+<ion-footer
+  mode="md"
+  class="ion-no-border"
+  style="background-color: var(--whiteColor)"
+>
+  <form>
+    <div
+      class="rowAlignCenter margin20"
+      [style.margin-bottom]="platform.is('ios')?'30px':'20px'"
+    >
+      <span
+        class="material-icons"
+        style="color: var(--blackColor); font-size: 20px"
+      >
+        attach_file
+      </span>
+      <span
+        class="material-icons"
+        style="font-size: 20px; color: var(--blackColor); margin-left: 5px"
+      >
+        insert_emoticon
+      </span>
+
+      <ion-textarea
+        #textArea
+        [(ngModel)]="newMsg"
+        [ngModelOptions]="{standalone: true}"
+        mode="ios"
+        placeholder="Write your Message..."
+        class="blackColor12Regular messageField"
+        rows="1"
+        (ionFocus)="focus()"
+      ></ion-textarea>
+
+      <ion-icon
+        (click)="addMessage()"
+        name="send"
+        color="primaryColor"
+        style="font-size: 20px"
+      ></ion-icon>
+    </div>
+  </form>
+</ion-footer>

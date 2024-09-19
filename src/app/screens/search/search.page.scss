@@ -1,0 +1,37 @@
+.searchField {
+  border-radius: 10px;
+  background-color: var(--whiteColor);
+  box-shadow: 0 3px 9px rgba(0, 0, 0, 0.15);
+  margin-top: 13px;
+  padding: 15px 10px;
+}
+
+.textInput{
+  flex: 1;
+  margin-left: 10px;
+  height: 20px;
+  min-height: 20px;
+}
+
+.filterOption {
+  display: inline-block;
+  padding: 4px 20px;
+  background-color: var(--whiteColor);
+  border: 1.5px solid;
+  border-radius: 5px;
+  margin: 5px;
+}
+
+.postWrapper {
+  column-count: 3;
+  column-gap: 2px;
+  margin-left: 20px;
+  margin-right: 20px;
+}
+
+.postImage {
+  object-fit: cover;
+  width: 100%;
+  margin-bottom: 2px;
+  position: relative;
+}

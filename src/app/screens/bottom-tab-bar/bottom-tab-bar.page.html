@@ -1,0 +1,211 @@
+<ion-tabs>
+  <ion-tab-bar slot="bottom" mode="ios" *ngIf="showTabs">
+    <ion-tab-button tab="home">
+      <ion-icon name="home-outline" style="font-size: 26px"></ion-icon>
+    </ion-tab-button>
+    <ion-tab-button tab="notifications">
+      <ion-icon name="notifications-outline" style="font-size: 28px"></ion-icon>
+    </ion-tab-button>
+    <ion-tab-button> </ion-tab-button>
+    <ion-tab-button tab="message">
+      <ion-icon
+        name="chatbubble-ellipses-outline"
+        style="font-size: 28px"
+      ></ion-icon>
+    </ion-tab-button>
+    <ion-tab-button tab="profile">
+      <ion-icon name="person-outline" style="font-size: 26px"></ion-icon>
+    </ion-tab-button>
+  </ion-tab-bar>
+</ion-tabs>
+
+<ion-menu
+  *ngIf="showDrawer"
+  style="--width: 70%"
+  side="end"
+  content-id="main-content"
+>
+  <ion-header mode="ios" [translucent]="false">
+    <ion-toolbar
+      class="ion-no-padding"
+      color="whiteColor"
+      style="box-shadow: 0 2px 3px rgba(0, 0, 0, 0.15)"
+    >
+      <div style="padding: 15px 20px; background-color: #fafafa">
+        <ion-text class="blackColor20SemiBold"> Settings </ion-text>
+      </div>
+    </ion-toolbar>
+  </ion-header>
+  <ion-content>
+    <div class="row margin20" style="align-items: flex-start">
+      <div
+        (click)=" closeDrawer();goTo('user-activity')"
+        class="rowAlignCenter"
+      >
+        <span
+          class="material-icons"
+          style="color: var(--blackColor); font-size: 22px"
+          >av_timer</span
+        >
+        <ion-text class="blackColor16SemiBold" style="margin-left: 10px">
+          Your Activity
+        </ion-text>
+      </div>
+    </div>
+
+    <div class="row margin20" style="align-items: flex-start">
+      <div
+        (click)="closeDrawer(); goTo('/bottom-tab-bar/notifications')"
+        class="rowAlignCenter"
+      >
+        <ion-icon
+          name="notifications-outline"
+          color="blackColor"
+          style="font-size: 22px"
+        ></ion-icon>
+        <ion-text class="blackColor16SemiBold" style="margin-left: 10px">
+          Notifications
+        </ion-text>
+      </div>
+    </div>
+
+    <div class="row margin20" style="align-items: flex-start">
+      <div
+        (click)=" closeDrawer();goTo('account-privacy')"
+        class="rowAlignCenter"
+      >
+        <span
+          class="material-icons"
+          style="color: var(--blackColor); font-size: 22px"
+        >
+          lock_outline
+        </span>
+        <ion-text class="blackColor16SemiBold" style="margin-left: 10px">
+          Account Privacy
+        </ion-text>
+      </div>
+    </div>
+
+    <div class="row margin20" style="align-items: flex-start">
+      <div
+        (click)=" closeDrawer();goTo('block-accounts')"
+        class="rowAlignCenter"
+      >
+        <ion-icon
+          name="close-circle-outline"
+          color="blackColor"
+          style="font-size: 22px"
+        ></ion-icon>
+        <ion-text class="blackColor16SemiBold" style="margin-left: 10px">
+          Block Accounts
+        </ion-text>
+      </div>
+    </div>
+
+    <div class="row margin20" style="align-items: flex-start">
+      <div
+        (click)=" closeDrawer();goTo('link-accounts')"
+        class="rowAlignCenter"
+      >
+        <span
+          class="material-icons"
+          style="color: var(--blackColor); font-size: 22px"
+        >
+          attach_file
+        </span>
+        <ion-text class="blackColor16SemiBold" style="margin-left: 10px">
+          Link Accounts
+        </ion-text>
+      </div>
+    </div>
+
+    <div class="row margin20" style="align-items: flex-start">
+      <div (click)=" closeDrawer();goTo('about')" class="rowAlignCenter">
+        <span
+          class="material-icons"
+          style="color: var(--blackColor); font-size: 22px"
+        >
+          info_outline
+        </span>
+        <ion-text class="blackColor16SemiBold" style="margin-left: 10px">
+          About
+        </ion-text>
+      </div>
+    </div>
+
+    <div class="row margin20" style="align-items: flex-start">
+      <div (click)=" closeDrawer();goTo('help')" class="rowAlignCenter">
+        <span
+          class="material-icons"
+          style="color: var(--blackColor); font-size: 22px"
+        >
+          help_outline
+        </span>
+        <ion-text class="blackColor16SemiBold" style="margin-left: 10px">
+          Help
+        </ion-text>
+      </div>
+    </div>
+
+    <div class="row margin20" style="align-items: flex-start; margin-top: 35px">
+      <div (click)="showDialog=true" class="rowAlignCenter">
+        <span
+          class="material-icons"
+          style="color: var(--primaryColor); font-size: 22px"
+        >
+          logout
+        </span>
+        <ion-text class="primaryColor16SemiBold" style="margin-left: 10px">
+          Logout
+        </ion-text>
+      </div>
+    </div>
+
+    <ion-popover
+      mode="md"
+      [isOpen]="showDialog"
+      style="--width: 85%; --min-width: 85%"
+      (didDismiss)="showDialog = false"
+    >
+      <ng-template>
+        <div style="background-color: var(--whiteColor)">
+          <ion-text class="blackColor20SemiBold dialogHeader">
+            Sure you want to logout?
+          </ion-text>
+          <div class="rowAlignCenter" style="margin: 10px">
+            <div style="flex: 1">
+              <ion-text
+                (click)="showDialog = false"
+                class="primaryColor18Bold center cancelButton"
+                style="flex: 1"
+              >
+                Cancel
+              </ion-text>
+            </div>
+            <div style="flex: 1">
+              <ion-text
+                (click)="showDialog = false;logout()"
+                class="whiteColor18Bold center logoutButton"
+                style="flex: 1"
+              >
+                Logout
+              </ion-text>
+            </div>
+          </div>
+        </div>
+      </ng-template>
+    </ion-popover>
+  </ion-content>
+</ion-menu>
+
+<div
+  *ngIf="showTabs"
+  (click)="goTo('/bottom-tab-bar/create-post')"
+  class="circlePrimary60 center"
+  [style.bottom]="platform.is('ios')?'60px':'30px'"
+>
+  <ion-icon
+    icon="add"
+    style="color: var(--whiteColor); font-size: 32px"
+  ></ion-icon>
+</div>

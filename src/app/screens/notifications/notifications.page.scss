@@ -1,0 +1,16 @@
+.circle60 {
+  width: 60px;
+  height: 60px;
+  border-radius: 30px;
+}
+
+.requestCountCircle {
+  width: 30px;
+  height: 30px;
+  border-radius: 15px;
+  background-color: var(--primaryColor);
+  position: absolute;
+  bottom: -10px;
+  right: -5px;
+  overflow: hidden;
+}

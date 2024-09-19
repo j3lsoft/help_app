@@ -1,0 +1,111 @@
+<ion-header mode="ios" [translucent]="false">
+  <ion-toolbar
+    class="ion-no-padding"
+    color="whiteColor"
+    style="box-shadow: 0 2px 3px rgba(0, 0, 0, 0.15)"
+  >
+    <div
+      class="rowAlignCenter"
+      style="justify-content: space-between; padding: 15px"
+    >
+      <ion-icon
+        (click)="goBack()"
+        name="chevron-back"
+        color="blackColor"
+        style="font-size: 28px"
+      ></ion-icon>
+
+      <ion-icon
+        name="arrow-forward-outline"
+        color="blackColor"
+        style="font-size: 20px"
+        (click)="goTo('post-caption-and-tag')"
+      ></ion-icon>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-img
+    [src]="imageUrl"
+    style="height: 300px; object-fit: cover"
+    class="margin20"
+    [style.filter]="selectedFilter"
+  >
+  </ion-img>
+
+  <div
+    style="
+      background-color: var(--whiteColor);
+      box-shadow: 0 2px 3px rgba(0, 0, 0, 0.15);
+    "
+  >
+    <div>
+      <ion-segment
+        (ionChange)="onFilterUpdate($event)"
+        mode="md"
+        value="Filter"
+        style="margin-top: -15px"
+      >
+        <ion-segment-button value="Filter">
+          <ion-text
+            style="font-size: 16px; font-weight: 600; text-transform: none"
+          >
+            Filter
+          </ion-text>
+        </ion-segment-button>
+        <ion-segment-button value="Edit">
+          <ion-text
+            style="font-size: 16px; font-weight: 600; text-transform: none"
+          >
+            Edit
+          </ion-text>
+        </ion-segment-button>
+      </ion-segment>
+    </div>
+  </div>
+
+  <div
+    *ngIf="selectedTabValue==='Filter'"
+    class="horizontalScroll"
+    style="padding: 20px 15px; padding-top: 10px"
+  >
+    <div *ngFor="let item of filtersList" style="display: inline-block">
+      <div class="columnAlignCenter" style="margin: 5px">
+        <ion-text class="blackColor16SemiBold" style="margin-bottom: 5px">
+          {{item.filterName}}
+        </ion-text>
+        <ion-img
+          (click)="selectedFilter=item.filter"
+          [src]="imageUrl"
+          style="width: 100px; height: 100px; object-fit: cover"
+          [style.filter]="item.filter"
+        >
+        </ion-img>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="selectedTabValue==='Edit'">
+    <div style="column-count: 4; margin: 20px; column-gap: 10px">
+      <div *ngFor="let item of editOptionsList">
+        <div
+          class="columnAlignCenter"
+          style="display: flexbox; margin-bottom: 20px"
+        >
+          <ion-img
+            [src]="item.editOptionIcom"
+            style="width: 25px; height: 25px; object-fit: cover"
+          >
+          </ion-img>
+          <ion-text
+            class="blackColor14Regular ellipseText"
+            style="-webkit-line-clamp: 1; margin-top: 3px; text-align: center"
+          >
+            {{item.optionName}}
+          </ion-text>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>

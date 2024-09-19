@@ -1,0 +1,89 @@
+<ion-content scrollY="false">
+  <img
+    src="../../../assets/images/users/user12.png"
+    style="width: 100%; height: 100%; object-fit: cover"
+  />
+
+  <div
+    slot="fixed"
+    class="row nameCallerWrapper"
+    [style.top]="platform.is('ios')?'55px':'15px'"
+  >
+    <div class="column">
+      <ion-text
+        class="whiteColor20Bold ellipseText"
+        style="-webkit-line-clamp: 1"
+      >
+        Jiya shah
+      </ion-text>
+      <ion-text class="whiteColor14SemiBold" style="margin-top: 5px">
+        02:35 min
+      </ion-text>
+    </div>
+    <img src="../../../assets/images/users/user43.png" class="callerImage" />
+  </div>
+  <div
+    class="rowAlignCenter optionsWrapper"
+    slot="fixed"
+    [style.padding-bottom]="platform.is('ios')?'20px':'15px'"
+  >
+    <div class="columnAlignCenter" style="flex: 1">
+      <img
+        src="../../../assets/images/icons/effect.png"
+        style="width: 30px; height: 30px; object-fit: contain"
+      />
+      <ion-text
+        class="whiteColor16SemiBold ellipseText"
+        style="-webkit-line-clamp: 1; margin-top: 10px"
+      >
+        Effects
+      </ion-text>
+    </div>
+
+    <div class="columnAlignCenter" style="flex: 1">
+      <span
+        (click)="isMute=!isMute"
+        class="material-icons"
+        style="color: var(--whiteColor); font-size: 30px"
+      >
+        {{isMute ? 'mic' : 'mic_off'}}
+      </span>
+      <ion-text
+        class="whiteColor16SemiBold ellipseText"
+        style="-webkit-line-clamp: 1; margin-top: 10px"
+      >
+        Mute
+      </ion-text>
+    </div>
+
+    <div class="columnAlignCenter" style="flex: 1">
+      <span
+        class="material-icons"
+        style="color: var(--whiteColor); font-size: 30px"
+      >
+        flip_camera_ios
+      </span>
+      <ion-text
+        class="whiteColor16SemiBold ellipseText"
+        style="-webkit-line-clamp: 1; margin-top: 10px"
+      >
+        Flip
+      </ion-text>
+    </div>
+
+    <div class="columnAlignCenter" style="flex: 1">
+      <ion-icon
+        (click)="goBack()"
+        name="close-circle"
+        style="color: var(--redColor); font-size: 30px"
+      >
+      </ion-icon>
+      <ion-text
+        class="whiteColor16SemiBold ellipseText"
+        style="-webkit-line-clamp: 1; margin-top: 10px"
+      >
+        End
+      </ion-text>
+    </div>
+  </div>
+</ion-content>

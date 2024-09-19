@@ -1,0 +1,28 @@
+::ng-deep .each_input:focus {
+  outline-style: solid;
+  outline-color: var(--primaryColor);
+  outline-width: 2px;
+  caret-color: var(--whiteColor);
+}
+
+::ng-deep .each_input {
+  outline-style: solid;
+  outline-color: var(--lightGrayColor);
+  outline-width: 1.5px;
+  margin: 10px;
+}
+
+.dialogWrapper {
+  background-color: var(--whiteColor);
+  padding: 20px;
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+ion-popover::part(content) {
+  border-radius: 10px;
+  top: unset !important;
+  bottom: 42%;
+}

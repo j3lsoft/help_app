@@ -1,0 +1,67 @@
+<ion-header mode="ios" [translucent]="false" class="ion-no-border">
+  <ion-toolbar
+    class="ion-no-padding"
+    color="whiteColor"
+    style="box-shadow: 0 2px 3px rgba(0, 0, 0, 0.15)"
+  >
+    <div class="column margin20">
+      <ion-icon
+        (click)="goBack()"
+        name="chevron-back"
+        color="blackColor"
+        style="font-size: 28px"
+      ></ion-icon>
+
+      <div (click)="goTo('search-detail')" class="rowAlignCenter searchField">
+        <ion-icon
+          mode="ios"
+          name="search"
+          color="grayColor"
+          style="font-size: 16px"
+        ></ion-icon>
+        <ion-input
+          placeholder="Search here..."
+          class="blackColor14Regular textInput"
+          style="--placeholderColor: var(--grayColor); --placeholderOpacity: 1"
+          readonly="true"
+        />
+      </div>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content style="--padding-bottom: 20px">
+  <div class="horizontalScroll" style="padding: 15px">
+    <div
+      *ngFor="let item of filterOptionsList;let index=index;"
+      (click)="selectedFilterOptionIndex=index"
+      class="filterOption"
+      [style.border-color]="selectedFilterOptionIndex===index?'var(--primaryColor)':'var(--lightGrayColor)'"
+    >
+      <ion-text
+        [class]="selectedFilterOptionIndex===index?'primaryColor16SemiBold':'lightGrayColor16SemiBold'"
+      >
+        {{item}}
+      </ion-text>
+    </div>
+  </div>
+
+  <div class="postWrapper">
+    <div *ngFor="let item of publicPostsList" style="margin-bottom: -5px">
+      <div style="position: relative">
+        <img
+          [src]="item.image"
+          class="postImage"
+          [style.height]="item.isVideo?'200px':'100px'"
+        />
+        <ion-text
+          *ngIf="item.isVideo"
+          class="whiteColor16SemiBold"
+          style="position: absolute; bottom: 10px; left: 10px"
+        >
+          Video
+        </ion-text>
+      </div>
+    </div>
+  </div>
+</ion-content>

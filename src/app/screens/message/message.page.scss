@@ -1,0 +1,54 @@
+ion-segment-button {
+  --color: var(--lightGrayColor);
+  --color-checked: var(--primaryColor);
+  --indicator-height: 1.5px;
+  --ripple-color: transparent;
+}
+
+.circleImage {
+  object-fit: cover;
+  overflow: hidden;
+}
+
+.activeIndicatorBig {
+  position: absolute;
+  bottom: 0px;
+  right: 4px;
+  width: 11px;
+  height: 11px;
+  border-radius: 5.5px;
+  background-color: var(--greenColor);
+  border: 1px solid var(--whiteColor);
+}
+
+.activeIndicatorSmall {
+  position: absolute;
+  bottom: -2px;
+  right: 4px;
+  width: 9px;
+  height: 9px;
+  border-radius: 4.5px;
+  background-color: var(--greenColor);
+}
+
+.activeUserName {
+  text-align: center;
+  display: inline-block;
+  width: 40px;
+  -webkit-line-clamp: 1;
+  margin-top: 5px;
+}
+
+.circle30 {
+  width: 30px;
+  height: 30px;
+  border-radius: 15px;
+  background-color: var(--whiteColor);
+  box-shadow: 0 2px 9px rgba(0, 0, 0, 0.15);
+}
+
+.divider {
+  background-color: var(--extraLightGrayColor);
+  height: 1.2px;
+  margin: 10px 0;
+}

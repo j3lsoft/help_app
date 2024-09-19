@@ -1,0 +1,61 @@
+.icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+ion-tab-bar {
+  --background: var(--whiteColor);
+  height: 60px;
+}
+
+ion-tab-button {
+  --color: var(--lightGrayColor);
+  --color-selected: var(--primaryColor);
+}
+
+.circlePrimary60 {
+  width: 65px;
+  height: 65px;
+  border-radius: 32.5px;
+  border: 5px solid var(--whiteColor);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  bottom: 0;
+  display: flex;
+  align-self: center;
+  position: absolute;
+  background-color: var(--primaryColor);
+}
+
+ion-popover::part(content) {
+  border-radius: 10px;
+  bottom: unset !important;
+  top: 40%;
+}
+
+.cancelButton {
+  border-radius: 5px;
+  padding: 13px;
+  background-color: var(--whiteColor);
+  margin: 10px;
+  box-shadow: 0 2px 9px rgba(0, 0, 0, 0.15);
+}
+
+.logoutButton {
+  border: 1px solid var(--primrayColor);
+  border-radius: 5px;
+  padding: 13px;
+  background-color: var(--primaryColor);
+  margin: 10px;
+}
+
+.dialogHeader {
+  margin: 20px;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+  margin-top: 15px;
+}

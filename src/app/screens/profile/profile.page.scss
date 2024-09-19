@@ -1,0 +1,57 @@
+.circle97 {
+  width: 105px;
+  height: 105px;
+  border-radius: 52.5px;
+  overflow: hidden;
+}
+
+.profileImageCircle {
+  width: 96px;
+  height: 96px;
+  border-radius: 48px;
+  overflow: hidden;
+  object-fit: cover;
+}
+
+.editProfileButton {
+  background-color: var(--whiteColor);
+  border: 1px solid var(--grayColor);
+  border-radius: 10px;
+  padding: 10px;
+  margin: 0 20px;
+}
+
+.header {
+  padding: 15px 20px;
+  background-color: var(--whiteColor);
+  justify-content: space-between;
+  padding-left: 15px;
+}
+
+ion-segment-button {
+  --color: var(--lightGrayColor);
+  --color-checked: var(--primaryColor);
+  --indicator-height: 1.5px;
+  --ripple-color: transparent;
+}
+
+.tabsWrapper {
+  background-color: var(--whiteColor);
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.15);
+  margin-bottom: 2px;
+  margin-top: 5px;
+}
+
+.postWrapper {
+  column-count: 3;
+  column-gap: 10px;
+  margin: 20px;
+  margin-top: 15px;
+}
+
+.postImage {
+  object-fit: cover;
+  width: 100%;
+  height: 140px;
+  margin-bottom: 10px;
+}

@@ -1,0 +1,309 @@
+<ion-header mode="ios" [translucent]="false">
+  <ion-toolbar
+    class="ion-no-padding"
+    color="whiteColor"
+    style="box-shadow: 0 2px 3px rgba(0, 0, 0, 0.15)"
+  >
+    <div class="row header">
+      <div class="columnAlignCenter">
+        <ion-img
+          src="../../../assets/images/homeAppLogo.png"
+          style="width: 30px; height: 30px; object-fit: contain"
+        >
+        </ion-img>
+        <ion-text class="primaryColor12ExtraBold" style="margin-top: 3px">
+          Social <ion-text class="secondaryColor12ExtraBold">Media</ion-text>
+        </ion-text>
+      </div>
+      <ion-icon
+        (click)="goTo('search')"
+        name="search"
+        color="blackColor"
+        style="font-size: 18px"
+      >
+      </ion-icon>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content style="--padding-bottom: 50px">
+  <div class="column">
+    <ion-text
+      class="primaryColor14Bold margin20"
+      style="margin-bottom: 5px; margin-top: 15px"
+    >
+      Short Stories
+    </ion-text>
+    <div class="horizontalScroll row" style="padding: 0 15px">
+      <div class="row">
+        <div class="columnAlignCenter" style="margin: 0 5px">
+          <div
+            (click)="goTo('create-story')"
+            class="center circle60"
+            style="
+              background-color: #e3f2fd;
+              border: 2px dashed var(--primaryColor);
+            "
+          >
+            <ion-icon name="add" color="primaryColor" style="font-size: 30px">
+            </ion-icon>
+          </div>
+          <ion-text class="blackColor10Regular" style="margin-top: 3px">
+            Share story
+          </ion-text>
+        </div>
+
+        <div *ngFor="let item of usersStories" style="margin: 0 5px">
+          <div class="columnAlignCenter">
+            <div
+              (click)="goTo('open-story')"
+              class="center circle60"
+              style="background-color: var(--whiteColor); border: 2px solid"
+              [style.border-color]="item.storySeen?'var(--grayColor)':'var(--primaryColor)'"
+            >
+              <ion-img [src]="item.userProfilePic" class="profileImageCircle">
+              </ion-img>
+            </div>
+            <ion-text
+              class="blackColor10Regular ellipseText"
+              style="display: inline-block; max-width: 60px; margin-top: 3px"
+            >
+              {{item.userName}}
+            </ion-text>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div
+    *ngFor="let item of todaysPostsList;let index=index;"
+    class="column"
+    style="margin: 0 20px; margin-top: 20px"
+  >
+    <div class="rowAlignCenter" style="justify-content: space-between">
+      <div (click)="goTo('user-profile')" class="rowAlignCenter">
+        <ion-img [src]="item.userProfilePic" class="circle50Image"> </ion-img>
+        <div class="column" style="flex: 1; margin-left: 10px">
+          <ion-text
+            class="blackColor14SemiBold ellipseText"
+            style="-webkit-line-clamp: 1"
+          >
+            {{item.userName}}
+          </ion-text>
+          <ion-text
+            class="grayColor12Regular ellipseText"
+            style="-webkit-line-clamp: 1; margin-top: 2px"
+          >
+            {{item.userDetail}}
+          </ion-text>
+        </div>
+      </div>
+      <ion-icon
+        name="ellipsis-vertical"
+        color="blackColor"
+        style="font-size: 18px"
+      ></ion-icon>
+    </div>
+    <ion-text
+      class="grayColor12Regular"
+      style="margin-top: 4px; margin-bottom: 10px"
+    >
+      {{item.aboutPost}}
+    </ion-text>
+    <div class="column postDetail">
+      <ion-img
+        [src]="item.postImage"
+        style="height: 150px; width: 100%; object-fit: cover"
+      >
+      </ion-img>
+      <div
+        class="rowAlignCenter"
+        style="justify-content: space-between; padding: 14px 10px"
+      >
+        <div class="rowAlignCenter" style="flex: 1">
+          <ion-icon
+            (click)="todaysPostsList[index].postLike=!todaysPostsList[index].postLike"
+            [name]="item.postLike? 'heart':'heart-outline'"
+            [color]="item.postLike? 'redColor':'grayColor'"
+            style="font-size: 19px"
+          ></ion-icon>
+          <ion-text
+            class="grayColor14SemiBold ellipseText"
+            style="-webkit-line-clamp: 1; margin-left: 10px"
+          >
+            {{item.postLikes}} Likes
+          </ion-text>
+        </div>
+
+        <div class="rowAlignCenter" style="margin: 0 5px; flex: 1">
+          <ion-icon
+            name="chatbox-ellipses-outline"
+            color="grayColor"
+            style="font-size: 20px"
+          >
+          </ion-icon>
+          <ion-text
+            class="grayColor14SemiBold ellipseText"
+            style="-webkit-line-clamp: 1; margin-left: 10px"
+          >
+            {{item.postComments}} Comments
+          </ion-text>
+        </div>
+
+        <div class="rowAlignCenter" style="flex: 1">
+          <ion-icon
+            name="share-social"
+            color="grayColor"
+            style="font-size: 18px"
+          ></ion-icon>
+          <ion-text
+            class="grayColor14SemiBold ellipseText"
+            style="margin-left: 10px; -webkit-line-clamp: 1"
+          >
+            {{item.postShares}} Share
+          </ion-text>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div
+      class="rowAlignCenter"
+      style="justify-content: space-between; margin: 15px 20px"
+    >
+      <ion-text class="blackColor18SemiBold" style="flex: 1">
+        Suggestion for you
+      </ion-text>
+      <ion-text class="primaryColor14SemiBold"> See All </ion-text>
+    </div>
+    <div class="horizontalScroll" style="padding: 0 15px">
+      <div
+        *ngFor="let item of suggestionsList;let index=index"
+        class="suggestionWrapper"
+      >
+        <div class="center">
+          <ion-img [src]="item.userProfilePic" class="circle60Image"> </ion-img>
+        </div>
+        <ion-text
+          class="blackColor16SemiBold ellipseText"
+          style="margin-top: 10px; text-align: center"
+        >
+          {{item.userName}}
+        </ion-text>
+        <ion-text
+          class="grayColor14Regular ellipseText"
+          style="margin-top: 1px; text-align: center"
+        >
+          {{item.userAbout}}
+        </ion-text>
+        <div
+          (click)="suggestionsList[index].isFollow=!suggestionsList[index].isFollow"
+          class="center followUnfollowButton"
+          [style.background]="item.isFollow ? 'var(--whiteColor)' : 'var(--primaryColor)'"
+        >
+          <ion-text
+            class="ellipseText"
+            [class]="item.isFollow ?'primaryColor18Bold':'whiteColor18Bold'"
+            style="text-align: center"
+          >
+            {{item.isFollow ? 'Following' : 'Follow'}}
+          </ion-text>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div
+    *ngFor="let item of oldPostsList;let index=index;"
+    class="column"
+    style="margin: 0 20px; margin-top: 20px"
+  >
+    <div class="rowAlignCenter" style="justify-content: space-between">
+      <div (click)="goTo('user-profile')" class="rowAlignCenter">
+        <ion-img [src]="item.userProfilePic" class="circle50Image"> </ion-img>
+        <div class="column" style="flex: 1; margin-left: 10px">
+          <ion-text
+            class="blackColor14SemiBold ellipseText"
+            style="-webkit-line-clamp: 1"
+          >
+            {{item.userName}}
+          </ion-text>
+          <ion-text
+            class="grayColor12Regular ellipseText"
+            style="-webkit-line-clamp: 1; margin-top: 2px"
+          >
+            {{item.userDetail}}
+          </ion-text>
+        </div>
+      </div>
+      <ion-icon
+        name="ellipsis-vertical"
+        color="blackColor"
+        style="font-size: 18px"
+      ></ion-icon>
+    </div>
+    <ion-text
+      class="grayColor12Regular"
+      style="margin-top: 4px; margin-bottom: 10px"
+    >
+      {{item.aboutPost}}
+    </ion-text>
+    <div class="column postDetail">
+      <ion-img
+        [src]="item.postImage"
+        style="height: 150px; width: 100%; object-fit: cover"
+      >
+      </ion-img>
+      <div
+        class="rowAlignCenter"
+        style="justify-content: space-between; padding: 14px 10px"
+      >
+        <div class="rowAlignCenter" style="flex: 1">
+          <ion-icon
+            (click)="oldPostsList[index].postLike=!oldPostsList[index].postLike"
+            [name]="item.postLike? 'heart':'heart-outline'"
+            [color]="item.postLike? 'redColor':'grayColor'"
+            style="font-size: 19px"
+          ></ion-icon>
+          <ion-text
+            class="grayColor14SemiBold ellipseText"
+            style="-webkit-line-clamp: 1; margin-left: 10px"
+          >
+            {{item.postLikes}} Likes
+          </ion-text>
+        </div>
+
+        <div class="rowAlignCenter" style="margin: 0 5px; flex: 1">
+          <ion-icon
+            name="chatbox-ellipses-outline"
+            color="grayColor"
+            style="font-size: 20px"
+          >
+          </ion-icon>
+          <ion-text
+            class="grayColor14SemiBold ellipseText"
+            style="-webkit-line-clamp: 1; margin-left: 10px"
+          >
+            {{item.postComments}} Comments
+          </ion-text>
+        </div>
+
+        <div class="rowAlignCenter" style="flex: 1">
+          <ion-icon
+            name="share-social"
+            color="grayColor"
+            style="font-size: 18px"
+          ></ion-icon>
+          <ion-text
+            class="grayColor14SemiBold ellipseText"
+            style="margin-left: 10px; -webkit-line-clamp: 1"
+          >
+            {{item.postShares}} Share
+          </ion-text>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>

@@ -1,0 +1,66 @@
+<ion-content scrollY="false">
+  <ion-img
+    src="../../../assets/images/storyBg.png"
+    style="width: 100%; height: 100%; object-fit: cover"
+  >
+  </ion-img>
+
+  <div slot="fixed" class="column" style="top: 0; left: 0; right: 0">
+    <div
+      style="margin: 15px 20px"
+      [style.margin-top]="platform.is('ios')?'80px':'40px'"
+    >
+      <ion-progress-bar
+        [value]="progress"
+        style="
+          --background: var(--grayColor);
+          --progress-background: var(--whiteColor);
+          height: 1.5px;
+        "
+      ></ion-progress-bar>
+      <div
+        class="rowAlignCenter"
+        style="justify-content: space-between; margin-top: 15px"
+      >
+        <div class="rowAlignCenter" style="flex: 1">
+          <ion-img
+            src="../../../assets/images/users/user1.png"
+            class="circleImage"
+          >
+          </ion-img>
+          <ion-text
+            class="whiteColor12Regular ellipseText"
+            style="-webkit-line-clamp: 1; margin-left: 5px; flex: 1"
+          >
+            Shree Patel
+          </ion-text>
+        </div>
+        <ion-icon
+          (click)="goBack()"
+          name="close"
+          color="whiteColor"
+          style="font-size: 20px"
+        >
+        </ion-icon>
+      </div>
+    </div>
+  </div>
+
+  <div slot="fixed" style="bottom: 0; left: 0; right: 0">
+    <div class="rowAlignCenter" style="margin: 20px">
+      <ion-input
+        mode="ios"
+        placeholder="Type Message..."
+        class="blackColor12Regular textField"
+        (ionFocus)="isMessageFocus=true"
+        (ionBlur)="isMessageFocus=false"
+      >
+      </ion-input>
+      <ion-icon
+        name="paper-plane-outline"
+        color="whiteColor"
+        style="font-size: 30px; margin-left: 20px"
+      ></ion-icon>
+    </div>
+  </div>
+</ion-content>

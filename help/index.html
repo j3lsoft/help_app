@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <title>
+    SocialMedia - Instagram Clone App UI in Ionic v1.0
+  </title>
+
+  <!-- CSS style -->
+  <link rel="stylesheet" type="text/css" href="assets/css/global.css" />
+  <link rel="stylesheet" type="text/css" href="assets/css/fontello.css" media="all" />
+  <link rel="stylesheet" type="text/css" href="assets/js/google-code-prettify/prettify.css" />
+
+  <!-- Google web fonts -->
+  <link
+    href="http://fonts.googleapis.com/css?family=Open+Sans:400,300,300italic,400italic,600,600italic,700,700italic,800"
+    rel="stylesheet" type="text/css" />
+
+  <!-- jQuery -->
+  <script type="text/javascript" src="assets/js/jquery.js"></script>
+  <script type="text/javascript" src="assets/js/globals.js"></script>
+  <script type="text/javascript" src="assets/js/google-code-prettify/prettify.js"></script>
+
+  <style type="text/css">
+    img {
+      max-width: 800px;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Header -->
+  <header>
+    <div class="container">
+      <div class="logo">
+        SocialMedia - Instagram Clone App UI in Ionic v1.0
+      </div>
+      <div class="slogan">Fabulous UI in Ionic</div>
+    </div>
+  </header>
+
+  <!-- Container -->
+  <div class="container">
+    <div class="author">
+      Created: <strong>22/06/2023</strong><br />
+      Last Update: <strong>22/06/2023</strong><br />
+      By:
+      <strong><a href="https://codecanyon.net/user/rendercodetechnology/portfolio"
+          target="_blank">RenderCodeTechnology</a></strong><br />
+      Profile:
+      <strong><a href="https://codecanyon.net/user/rendercodetechnology"
+          target="_blank">www.codecanyon.net.com/user/rendercodetechnology</a></strong><br />
+      E-mail:
+      <strong><a href="mailto:rendercodetechnology@gmail.com">rendercodetechnology@gmail.com</a></strong><br />
+    </div>
+    <p>&nbsp;</p>
+
+    <h2 class="alt">Table of Contents</h2>
+    <ol class="alpha">
+      <li><a href="#basic">Basic Information</a></li>
+      <li><a href="#file">Directories & File Uses</a></li>
+      <li><a href="#question">Still have a question?</a></li>
+      <li><a href="#contact">Contact US</a></li>
+    </ol>
+
+    <hr />
+    <h3 id="basic">A) Basic Information</h3>
+
+    <ul>
+      <li>
+        <b>Environment Setup</b> - Please visit this link and setup ionic CLI
+        <a href="https://ionicframework.com/docs/intro/cli"
+          target="_blank">https://ionicframework.com/docs/intro/cli</a>
+      </li>
+      <li>
+        <b>Run our app with Expo</b> - Open <b>ionic-SocialMedia</b> folder on your
+        selected IDE (VSCode is Recommended). Then follow below step.
+      </li>
+      <ul>
+        <li>Run <b>npm install</b> command in terminal.</li>
+        <p><b>Note: </b>If you get error in <b>npm install</b> then please try <b>yarn install</b> or <b>npm install
+            --legacy-peer-deps</b>.</p>
+        <li>For run android app you need to set your android sdk path at
+          <b>ionic-SocialMedia/android/local.properties</b>
+          at line number <b>8</b>.
+        </li>
+        <img src="img/sdk-path.png" width="550px" />
+        <li>Run <b>ionic capacitor run android -l --external</b> command in terminal for run app for android.</li>
+        <li>Run <b>ionic capacitor run ios --livereload --external</b> command in terminal for run app for iOS.</li>
+        <p>For more about run ionic app please visit this link:<a
+            href="https://ionicframework.com/docs/cli/commands/capacitor-run">https://ionicframework.com/docs/cli/commands/capacitor-run</a>
+        </p>
+      </ul>
+      <li>
+        <b>Change App Icon</b>-
+        <span><a href="https://capacitorjs.com/docs/guides/splash-screens-and-icons"
+            target="_blank">https://capacitorjs.com/docs/guides/splash-screens-and-icons</a></span>
+      </li>
+      <li>
+        <b>Build & Release Android App</b>-
+        <span><a href="https://ionic.io/blog/building-and-releasing-your-capacitor-android-app"
+            target="_blank">https://ionic.io/blog/building-and-releasing-your-capacitor-android-app</a></span>
+      </li>
+      <li>
+        <b>Build & Release iOS App</b>-
+        <span><a href="https://ionic.io/blog/building-and-releasing-your-capacitor-ios-app"
+            target="_blank">https://ionic.io/blog/building-and-releasing-your-capacitor-ios-app</a></span>
+      </li>
+    </ul>
+
+    <hr />
+    <h3 id="file">B) Directories & File Uses</h3>
+
+    <li><b>src</b> - Contain all images, fonts, screen code, services, environment variable, etc. in this folder</li>
+    <img src="img/src.png" width="400px" />
+    <ul>
+      <li>
+        <b>app(Folder)</b> - Contain all screens code, services, components in this folder.
+      </li>
+      <img src="img/app.png" width="400px" />
+      <ul>
+        <li><b>screens(Folder)</b> - Contain all screens code in this folder.</li>
+        <img src="img/screens.png" width="400px" />
+      </ul>
+      <li>
+        <b>assets(Folder)</b> - Contain all images & fonts in this folder.
+        <img src="img/assets.png" width="400px" />
+      </li>
+      <li><b>environments(Folder)</b> - Contain all environments variable in this folder. (For production & Debug).</li>
+      <img src="img/env.png" width="400px" />
+      <li><b>theme(Folder)</b> - Contain all files regarding theme in this folder</li>
+      <img src="img/theme.png" width="400px" />
+    </ul>
+
+    <hr />
+
+    <h3 id="question">C) Still Have a Question?</h3>
+
+    <p>
+      Please mail us on
+      <span><b><a href="mailto:rendercodetechnology@gmail.com">rendercodetechnology@gmail.com</a></b></span>
+    </p>
+
+    <hr />
+
+    <h3 id="contact">D) Contact US</h3>
+
+    <p>
+      If you have any kind of problem with this code then please mail us on
+      <span><b><a href="mailto:rendercodetechnology@gmail.com">rendercodetechnology@gmail.com</a></b></span>
+    </p>
+
+    <p>
+      If you have any project in flutter then please contact us. We are
+      experiance flutter developer team and build high quality apps for
+      android and ios.
+    </p>
+    <hr />
+
+    <p>
+      Once again, thank you so much for purchasing this item. As I said at the
+      beginning, I'd be glad to help you if you have any questions relating to
+      this item. No guarantees, but I'll do my best to assist. If you have a
+      more general question relating to the application on Codecanyon, you
+      might consider visiting the forums and asking your question in the "Item
+      Discussion" section.
+    </p>
+
+    <a href="https://codecanyon.net/downloads" target="_blank"><img src="img/review.jpg" width="100%" /></a>
+  </div>
+
+  <!-- Social profiles -->
+  <footer>
+    <div class="container" style="color: #ffffff">
+      Feel Free To Contact Us
+      <span><a href="mailto:rendercodetechnology@gmail.com">rendercodetechnology@gmail.com</a></span>
+    </div>
+  </footer>
+
+  <!-- Go to top arrow -->
+  <div class="totop">
+    <div class="gototop">
+      <div class="arrowgototop"></div>
+    </div>
+  </div>
+</body>
+
+</html>

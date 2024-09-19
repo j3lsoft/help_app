@@ -1,0 +1,17 @@
+.shareStoryButton {
+  background-color: var(--whiteColor);
+  margin-bottom: 40px;
+  margin-top: 20px;
+  align-self: flex-end;
+  padding: 9px 20px;
+  border-radius: 20px;
+  margin-right: 20px;
+}
+
+.colorCircle{
+  width: 30px;
+  height: 30px;
+  border-radius: 15px;
+  border: 1.5px solid var(--whiteColor);
+  margin: 0 5px;
+}

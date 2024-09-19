@@ -1,0 +1,237 @@
+<ion-header mode="ios" [translucent]="false">
+  <ion-toolbar
+    class="ion-no-padding"
+    color="whiteColor"
+    style="box-shadow: 0 2px 3px rgba(0, 0, 0, 0.15)"
+  >
+    <div
+      class="rowAlignCenter"
+      style="padding: 15px 20px; background-color: var(--whiteColor)"
+    >
+      <ion-icon
+        (click)="goBack()"
+        name="chevron-back"
+        color="blackColor"
+        style="font-size: 28px"
+      ></ion-icon>
+      <ion-text class="blackColor20SemiBold" style="margin-left: 10px">
+        realtinashah
+      </ion-text>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="rowAlignCenter margin20" style="justify-content: space-between">
+    <div
+      class="columnAlignCenter"
+      style="align-items: flex-start; flex: 1; margin: 0 2px"
+    >
+      <ion-text
+        class="blackColor16Bold ellipseText"
+        style="-webkit-line-clamp: 1"
+      >
+        105
+      </ion-text>
+      <ion-text
+        class="grayColor14Regular ellipseText"
+        style="-webkit-line-clamp: 1"
+      >
+        posts
+      </ion-text>
+    </div>
+    <div class="column" style="align-items: flex-start; flex: 1; margin: 0 2px">
+      <div class="columnAlignCenter">
+        <ion-text
+          class="blackColor16Bold ellipseText"
+          style="-webkit-line-clamp: 1"
+        >
+          59
+        </ion-text>
+        <ion-text
+          class="grayColor14Regular ellipseText"
+          style="-webkit-line-clamp: 1"
+        >
+          videos
+        </ion-text>
+      </div>
+    </div>
+    <div class="column" style="align-items: flex-start; flex: 1; margin: 0 2px">
+      <div (click)="goTo('followers')" class="columnAlignCenter">
+        <ion-text
+          class="blackColor16Bold ellipseText"
+          style="-webkit-line-clamp: 1"
+        >
+          850k
+        </ion-text>
+        <ion-text
+          class="grayColor14Regular ellipseText"
+          style="-webkit-line-clamp: 1"
+        >
+          followers
+        </ion-text>
+      </div>
+    </div>
+    <div class="column" style="align-items: flex-end; flex: 1; margin: 0 2px">
+      <div (click)="goTo('followings')" class="columnAlignCenter">
+        <ion-text
+          class="blackColor16Bold ellipseText"
+          style="-webkit-line-clamp: 1"
+        >
+          542
+        </ion-text>
+        <ion-text
+          class="grayColor14Regular ellipseText"
+          style="-webkit-line-clamp: 1"
+        >
+          following
+        </ion-text>
+      </div>
+    </div>
+  </div>
+
+  <div class="margin20" style="margin-top: 27px; margin-bottom: 15px">
+    <div class="rowAlignCenter" style="justify-content: space-between">
+      <div class="column" style="flex: 1; margin-right: 5px">
+        <ion-text
+          class="blackColor18SemiBold ellipseText"
+          style="-webkit-line-clamp: 1"
+        >
+          Tina Shah
+        </ion-text>
+        <ion-text
+          class="grayColor14Regular ellipseText"
+          style="-webkit-line-clamp: 1"
+        >
+          Artist
+        </ion-text>
+        <ion-text
+          class="blackColor14Regular ellipseText"
+          style="-webkit-line-clamp: 1"
+        >
+          Art + Prints + Workshops
+        </ion-text>
+        <ion-text
+          class="blackColor14Regular ellipseText"
+          style="-webkit-line-clamp: 1"
+        >
+          Find me on
+          <ion-text class="blueColor14Regular">{{'@samantha___'}}</ion-text>
+        </ion-text>
+        <ion-text
+          class="blackColor14Regular ellipseText"
+          style="-webkit-line-clamp: 1"
+        >
+          Website:
+          <ion-text class="blueColor14Regular">
+            www.officialtinashah.com
+          </ion-text>
+        </ion-text>
+      </div>
+      <div
+        (click)="storyAvailable? goTo('open-story'):null"
+        class="center circle97"
+        style="background-color: var(--whiteColor); border: 2px solid"
+        [style.border-color]="storyAvailable?'var(--primaryColor)':'var(--lightGrayColor)'"
+      >
+        <img
+          src="../../../assets/images/users/user11.png"
+          class="profileImageCircle"
+        />
+      </div>
+    </div>
+    <ion-text class="blackColor14Regular" style="display: flex">
+      Followed by Followed by alicia___ , isha.__ , joyjain_rr and 27 more
+    </ion-text>
+  </div>
+
+  <div class="rowAlignCenter" style="margin: 0 10px">
+    <div
+      (click)="isFollow=!isFollow"
+      class="center followAnddMessageButton"
+      [style.background]="isFollow?'var(--whiteColor)':'var(--primaryColor)'"
+    >
+      <ion-text
+        [class]="isFollow?'primaryColor18Bold': 'whiteColor18Bold'"
+        class="ellipseText"
+        style="-webkit-line-clamp: 1"
+      >
+        {{isFollow?'Following': 'Follow'}}
+      </ion-text>
+    </div>
+    <div
+      class="center followAnddMessageButton"
+      style="background-color: var(--whiteColor)"
+    >
+      <ion-text
+        class="primaryColor18Bold ellipseText"
+        style="-webkit-line-clamp: 1"
+      >
+        Message
+      </ion-text>
+    </div>
+  </div>
+
+  <div class="tabsWrapper">
+    <ion-segment (ionChange)="onFilterUpdate($event)" mode="md" value="All">
+      <ion-segment-button value="All">
+        <span class="material-icons" style="font-size: 26px"> apps </span>
+      </ion-segment-button>
+      <ion-segment-button value="Videos">
+        <span class="material-icons" style="font-size: 24px">airplay</span>
+      </ion-segment-button>
+      <ion-segment-button value="Tags">
+        <span class="material-icons-outlined" style="font-size: 26px">
+          person_pin
+        </span>
+      </ion-segment-button>
+    </ion-segment>
+  </div>
+
+  <div *ngIf="selectedTabValue==='All'">
+    <div class="postWrapper">
+      <div *ngFor="let item of allPosts" style="margin-bottom: -5px">
+        <img
+          (click)="goTo('user-posts')"
+          [src]="item.image"
+          class="postImage"
+        />
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="selectedTabValue==='Videos'">
+    <div class="postWrapper">
+      <div *ngFor="let item of videoPosts" style="margin-bottom: -5px">
+        <div style="position: relative">
+          <img (click)="goTo('videos')" [src]="item.image" class="postImage" />
+          <div
+            class="rowAlignCenter"
+            style="position: absolute; bottom: 20px; left: 5px; right: 0px"
+          >
+            <ion-icon
+              name="play-outline"
+              color="whiteColor"
+              style="font-size: 13px"
+            ></ion-icon>
+            <ion-text class="whiteColor12SemiBold" style="margin-left: 5px">
+              {{item.views}}
+            </ion-text>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="selectedTabValue==='Tags'">
+    <div class="postWrapper">
+      <div *ngFor="let item of imagePosts" style="margin-bottom: -5px">
+        <img
+          (click)="goTo('user-posts')"
+          [src]="item.image"
+          class="postImage"
+        />
+      </div>
+    </div>
+  </div>
+</ion-content>

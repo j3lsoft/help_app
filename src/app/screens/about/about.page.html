@@ -1,0 +1,58 @@
+<ion-header mode="ios" [translucent]="false">
+  <ion-toolbar
+    class="ion-no-padding"
+    color="whiteColor"
+    style="box-shadow: 0 2px 3px rgba(0, 0, 0, 0.15)"
+  >
+    <div
+      class="rowAlignCenter"
+      style="padding: 15px 20px; background-color: var(--whiteColor)"
+    >
+      <ion-icon
+        (click)="goBack()"
+        name="chevron-back"
+        color="blackColor"
+        style="font-size: 28px"
+      ></ion-icon>
+      <ion-text class="blackColor20SemiBold" style="margin-left: 10px">
+        About
+      </ion-text>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div style="margin-top: 15px">
+    <ion-text class="blackColor18SemiBold" style="margin: 0 20px">
+      Company Policies
+    </ion-text>
+
+    <div class="margin20" style="margin-top: 5px">
+      <div *ngFor="let item of companyPolicies">
+        <ion-text
+          class="grayColor14Regular"
+          style="display: flex; margin-bottom: 3px; text-align: justify"
+        >
+          {{item}}
+        </ion-text>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <ion-text class="blackColor18SemiBold" style="margin: 0 20px">
+      Terms of Use
+    </ion-text>
+
+    <div class="margin20" style="margin-top: 5px">
+      <div *ngFor="let item of termsOfUses">
+        <ion-text
+          class="grayColor14Regular"
+          style="display: flex; margin-bottom: 3px; text-align: justify"
+        >
+          {{item}}
+        </ion-text>
+      </div>
+    </div>
+  </div>
+</ion-content>

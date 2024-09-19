@@ -1,0 +1,46 @@
+.searchField {
+  border-radius: 10px;
+  background-color: var(--whiteColor);
+  box-shadow: 0 3px 9px rgba(0, 0, 0, 0.15);
+  margin-top: 13px;
+  padding: 15px 10px;
+}
+
+.textInput {
+  flex: 1;
+  margin-left: 10px;
+  height: 22px;
+  min-height: 22px;
+}
+
+ion-segment-button {
+  --color: var(--lightGrayColor);
+  --color-checked: var(--primaryColor);
+  --indicator-height: 1.5px;
+  --ripple-color: transparent;
+}
+
+.circle60 {
+  width: 60px;
+  height: 60px;
+  border-radius: 30px;
+  overflow: hidden;
+}
+
+.profileImageCircle {
+  width: 52px;
+  height: 52px;
+  border-radius: 26px;
+  overflow: hidden;
+  object-fit: cover;
+}
+
+.hashWrapper {
+  width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  background-color: var(--primaryColor);
+  position: absolute;
+  bottom: 0;
+  right: 5px;
+}

@@ -1,0 +1,104 @@
+
+@import "@ionic/angular/css/core.css";
+@import "@ionic/angular/css/normalize.css";
+@import "@ionic/angular/css/structure.css";
+@import "@ionic/angular/css/typography.css";
+@import "@ionic/angular/css/display.css";
+@import "@ionic/angular/css/padding.css";
+@import "@ionic/angular/css/float-elements.css";
+@import "@ionic/angular/css/text-alignment.css";
+@import "@ionic/angular/css/text-transformation.css";
+@import "@ionic/angular/css/flex-utils.css";
+@import 'material-icons/iconfont/material-icons.scss';
+@import "./theme/fonts.scss";
+@import "./theme/styles.scss";
+
+* {
+  font-family: "OpenSans";
+}
+
+.ellipseText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+}
+
+.horizontalScroll {
+  overflow-x: scroll;
+  white-space: nowrap;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.exitWrapper {
+  position: absolute;
+  bottom: 40px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.exitText {
+  background-color: var(--blackColor);
+  padding: 10px 15px;
+  border-radius: 20px;
+}
+
+ion-content::part(scroll)::-webkit-scrollbar {
+  display: none;
+}
+
+ion-content {
+  --background: var(--whiteColor);
+}
+
+.ion-valid.sc-ion-input-ios-h {
+  --highlight-color: var(--primaryColor);
+}
+
+.ion-valid.sc-ion-textarea-ios-h {
+  --highlight-color: var(--primaryColor);
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+}
+
+.rowAlignCenter {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+}
+
+.columnAlignCenter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.margin20 {
+  margin: 20px;
+}
+
+ion-toast {
+  --color: var(--whiteColor);
+  --background: var(--secondaryColor);
+  transform: translateY(-60px);
+  --box-shadow: 0 0 0;
+  --border-radius: 5px;
+}
+

@@ -1,0 +1,60 @@
+.wrapper {
+  width: 100%;
+  position: absolute;
+}
+
+.itemWrapper {
+  width: 100%;
+  background-color: var(--whiteColor);
+  margin: 0px 5px;
+  margin-top: 10px;
+  overflow: hidden;
+}
+
+.userImage {
+  width: 50px;
+  height: 50px;
+  border-radius: 25px;
+  overflow: hidden;
+  object-fit: cover;
+}
+
+.likePhotos {
+  border-radius: 5px;
+  object-fit: cover;
+  overflow: hidden;
+  margin: 0 5px;
+}
+
+.image60 {
+  width: 60px;
+  height: 60px;
+  border-radius: 5px;
+  object-fit: cover;
+  overflow: hidden;
+}
+
+.imageCommon {
+  overflow: hidden;
+  object-fit: cover;
+}
+
+.positionImage {
+  width: 38px;
+  height: 38px;
+  border-radius: 19px;
+  position: absolute;
+  bottom: -20px;
+  right: 0px;
+}
+
+.historyWrapper {
+  width: 50px;
+  height: 50px;
+  border-radius: 25px;
+  background-color: var(--whiteColor);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  margin-left: 2px;
+  margin-top: 2px;
+}

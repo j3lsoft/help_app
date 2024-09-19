@@ -1,0 +1,27 @@
+.userImage {
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  overflow: hidden;
+  object-fit: cover;
+}
+
+.footer {
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--whiteColor);
+  padding: 10px 20px;
+  box-shadow: 0 1px 11px rgba(0, 0, 0, 0.15);
+}
+
+.textField {
+  margin-left: 10px;
+  flex: 1;
+}
+
+.circle50 {
+  width: 50px;
+  height: 50px;
+  border-radius: 25px;
+}
