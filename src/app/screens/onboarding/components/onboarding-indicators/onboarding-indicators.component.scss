@@ -1,0 +1,21 @@
+.onboarding-indicators {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.onboarding-indicators__dot {
+  margin: 0 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 3px;
+  background: var(--whiteColor);
+  transition: width 0.2s ease, border-radius 0.2s ease, background 0.2s ease;
+}
+
+.onboarding-indicators__dot--active {
+  width: 25px;
+  border-radius: 5px;
+  background: var(--primaryColor);
+}
+

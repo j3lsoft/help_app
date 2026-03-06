@@ -7,6 +7,8 @@ import { IonicModule } from '@ionic/angular';
 import { OnboardingPageRoutingModule } from './onboarding-routing.module';
 
 import { OnboardingPage } from './onboarding.page';
+import { OnboardingSlideComponent } from './components/onboarding-slide/onboarding-slide.component';
+import { OnboardingIndicatorsComponent } from './components/onboarding-indicators/onboarding-indicators.component';
 
 @NgModule({
   imports: [
@@ -15,7 +17,11 @@ import { OnboardingPage } from './onboarding.page';
     IonicModule,
     OnboardingPageRoutingModule
   ],
-  declarations: [OnboardingPage],
+  declarations: [
+    OnboardingPage,
+    OnboardingSlideComponent,
+    OnboardingIndicatorsComponent
+  ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class OnboardingPageModule { }

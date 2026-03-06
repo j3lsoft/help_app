@@ -4,3 +4,21 @@
   height: 100%;
   flex-direction: column;
 }
+
+.swiper-wrapper {
+  flex: 1;
+}
+
+.onboarding-indicators-wrapper {
+  align-self: center;
+}
+
+.onboarding-actions {
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.onboarding-actions--ios {
+  margin-bottom: 30px;
+}
+
