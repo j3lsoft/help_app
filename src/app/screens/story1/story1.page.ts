@@ -1,11 +1,20 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { NavController, Platform } from '@ionic/angular';
+import { NavController, Platform, IonicModule } from '@ionic/angular';
+import { FormsModule } from '@angular/forms';
+import { NgIf, NgFor } from '@angular/common';
 
 @Component({
-  selector: 'app-story1',
-  templateUrl: './story1.page.html',
-  styleUrls: ['./story1.page.scss'],
+    selector: 'app-story1',
+    templateUrl: './story1.page.html',
+    styleUrls: ['./story1.page.scss'],
+    standalone: true,
+    imports: [
+        IonicModule,
+        NgIf,
+        FormsModule,
+        NgFor,
+    ],
 })
 export class Story1Page implements OnInit {
 

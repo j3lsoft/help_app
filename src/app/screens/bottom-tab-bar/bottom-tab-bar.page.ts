@@ -1,12 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
-import { IonRouterOutlet, MenuController, Platform, PopoverController } from '@ionic/angular';
+import { IonRouterOutlet, MenuController, Platform, PopoverController, IonicModule } from '@ionic/angular';
 import { Subject, filter, takeUntil } from 'rxjs';
+import { NgIf } from '@angular/common';
 
 @Component({
-  selector: 'app-bottom-tab-bar',
-  templateUrl: './bottom-tab-bar.page.html',
-  styleUrls: ['./bottom-tab-bar.page.scss'],
+    selector: 'app-bottom-tab-bar',
+    templateUrl: './bottom-tab-bar.page.html',
+    styleUrls: ['./bottom-tab-bar.page.scss'],
+    standalone: true,
+    imports: [IonicModule, NgIf],
 })
 
 export class BottomTabBarPage implements OnInit {

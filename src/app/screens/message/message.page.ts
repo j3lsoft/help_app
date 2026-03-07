@@ -1,10 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { NgIf, NgFor } from '@angular/common';
+import { IonicModule } from '@ionic/angular';
 
 @Component({
-  selector: 'app-message',
-  templateUrl: './message.page.html',
-  styleUrls: ['./message.page.scss'],
+    selector: 'app-message',
+    templateUrl: './message.page.html',
+    styleUrls: ['./message.page.scss'],
+    standalone: true,
+    imports: [
+        IonicModule,
+        NgIf,
+        NgFor,
+    ],
 })
 export class MessagePage implements OnInit {
 

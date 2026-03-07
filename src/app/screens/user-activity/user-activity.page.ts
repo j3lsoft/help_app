@@ -1,11 +1,13 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
-import { NavController } from '@ionic/angular';
+import { NavController, IonicModule } from '@ionic/angular';
 import Chart from 'chart.js/auto';
 
 @Component({
-  selector: 'app-user-activity',
-  templateUrl: './user-activity.page.html',
-  styleUrls: ['./user-activity.page.scss'],
+    selector: 'app-user-activity',
+    templateUrl: './user-activity.page.html',
+    styleUrls: ['./user-activity.page.scss'],
+    standalone: true,
+    imports: [IonicModule],
 })
 export class UserActivityPage implements OnInit {
 

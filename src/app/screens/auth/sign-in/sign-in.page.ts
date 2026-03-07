@@ -1,11 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { IonRouterOutlet } from '@ionic/angular';
+import { IonRouterOutlet, IonicModule } from '@ionic/angular';
+import { FormsModule } from '@angular/forms';
 
 @Component({
-  selector: 'app-sign-in',
-  templateUrl: './sign-in.page.html',
-  styleUrls: ['./sign-in.page.scss'],
+    selector: 'app-sign-in',
+    templateUrl: './sign-in.page.html',
+    styleUrls: ['./sign-in.page.scss'],
+    standalone: true,
+    imports: [IonicModule, FormsModule],
 })
 export class SignInPage implements OnInit {
 

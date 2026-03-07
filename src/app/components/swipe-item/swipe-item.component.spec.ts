@@ -9,9 +9,8 @@ describe('SwipeItemComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ SwipeItemComponent ],
-      imports: [IonicModule.forRoot()]
-    }).compileComponents();
+    imports: [IonicModule.forRoot(), SwipeItemComponent]
+}).compileComponents();
 
     fixture = TestBed.createComponent(SwipeItemComponent);
     component = fixture.componentInstance;

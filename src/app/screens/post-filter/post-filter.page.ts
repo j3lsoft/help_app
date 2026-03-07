@@ -1,11 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { IonRouterOutlet, NavController } from '@ionic/angular';
+import { IonRouterOutlet, NavController, IonicModule } from '@ionic/angular';
+import { NgIf, NgFor } from '@angular/common';
 
 @Component({
-  selector: 'app-post-filter',
-  templateUrl: './post-filter.page.html',
-  styleUrls: ['./post-filter.page.scss'],
+    selector: 'app-post-filter',
+    templateUrl: './post-filter.page.html',
+    styleUrls: ['./post-filter.page.scss'],
+    standalone: true,
+    imports: [
+        IonicModule,
+        NgIf,
+        NgFor,
+    ],
 })
 export class PostFilterPage implements OnInit {
 

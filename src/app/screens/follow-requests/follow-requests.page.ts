@@ -1,10 +1,17 @@
 import { Component, OnInit } from '@angular/core';
-import { NavController } from '@ionic/angular';
+import { NavController, IonicModule } from '@ionic/angular';
+import { NgFor, NgIf } from '@angular/common';
 
 @Component({
-  selector: 'app-follow-requests',
-  templateUrl: './follow-requests.page.html',
-  styleUrls: ['./follow-requests.page.scss'],
+    selector: 'app-follow-requests',
+    templateUrl: './follow-requests.page.html',
+    styleUrls: ['./follow-requests.page.scss'],
+    standalone: true,
+    imports: [
+        IonicModule,
+        NgFor,
+        NgIf,
+    ],
 })
 export class FollowRequestsPage implements OnInit {
 

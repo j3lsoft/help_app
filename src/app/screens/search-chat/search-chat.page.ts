@@ -1,10 +1,13 @@
 import { Component, OnInit } from '@angular/core';
-import { NavController } from '@ionic/angular';
+import { NavController, IonicModule } from '@ionic/angular';
+import { NgFor } from '@angular/common';
 
 @Component({
-  selector: 'app-search-chat',
-  templateUrl: './search-chat.page.html',
-  styleUrls: ['./search-chat.page.scss'],
+    selector: 'app-search-chat',
+    templateUrl: './search-chat.page.html',
+    styleUrls: ['./search-chat.page.scss'],
+    standalone: true,
+    imports: [IonicModule, NgFor],
 })
 export class SearchChatPage implements OnInit {
 

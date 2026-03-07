@@ -1,13 +1,21 @@
-import { Component, ElementRef, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { Router } from '@angular/router';
-import { NavController } from '@ionic/angular';
+import { NavController, IonicModule } from '@ionic/angular';
+import { NgFor, NgIf } from '@angular/common';
 
 @Component({
-  selector: 'app-videos',
-  templateUrl: './videos.page.html',
-  styleUrls: ['./videos.page.scss'],
+    selector: 'app-videos',
+    templateUrl: './videos.page.html',
+    styleUrls: ['./videos.page.scss'],
+    standalone: true,
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    imports: [
+        IonicModule,
+        NgFor,
+        NgIf,
+    ],
 })
-export class VideosPage implements OnInit {
+export class VideosPage implements AfterViewInit {
 
   @ViewChild('video') myVideo?: ElementRef;
   @ViewChild('swiper') swiperRef: ElementRef | undefined;
@@ -72,8 +80,6 @@ export class VideosPage implements OnInit {
 
   constructor(private router: Router, private navCtrl: NavController) { }
 
-  ngOnInit() {
-  }
 
   goBack() {
     this.navCtrl.back()

@@ -1,11 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { NavController } from '@ionic/angular';
+import { NavController, IonicModule } from '@ionic/angular';
+import { NgIf, NgFor } from '@angular/common';
 
 @Component({
-  selector: 'app-search-detail',
-  templateUrl: './search-detail.page.html',
-  styleUrls: ['./search-detail.page.scss'],
+    selector: 'app-search-detail',
+    templateUrl: './search-detail.page.html',
+    styleUrls: ['./search-detail.page.scss'],
+    standalone: true,
+    imports: [
+        IonicModule,
+        NgIf,
+        NgFor,
+    ],
 })
 export class SearchDetailPage implements OnInit {
 

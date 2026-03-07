@@ -1,11 +1,20 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { ToastController } from '@ionic/angular';
+import { ToastController, IonicModule } from '@ionic/angular';
+import { SwipeItemComponent } from '../../components/swipe-item/swipe-item.component';
+import { NgIf, NgFor } from '@angular/common';
 
 @Component({
-  selector: 'app-notifications',
-  templateUrl: './notifications.page.html',
-  styleUrls: ['./notifications.page.scss'],
+    selector: 'app-notifications',
+    templateUrl: './notifications.page.html',
+    styleUrls: ['./notifications.page.scss'],
+    standalone: true,
+    imports: [
+        IonicModule,
+        NgIf,
+        NgFor,
+        SwipeItemComponent,
+    ],
 })
 export class NotificationsPage implements OnInit {
 

@@ -1,13 +1,20 @@
 import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { AnimationController, GestureController, IonItem, } from '@ionic/angular';
+import { AnimationController, GestureController, IonItem, IonicModule } from '@ionic/angular';
+import { NgIf, NgFor } from '@angular/common';
 
 const ANIMATION_BREAKPOINT = window.innerWidth - 100;
 
 @Component({
-  selector: 'app-swipe-item',
-  templateUrl: './swipe-item.component.html',
-  styleUrls: ['./swipe-item.component.scss'],
+    selector: 'app-swipe-item',
+    templateUrl: './swipe-item.component.html',
+    styleUrls: ['./swipe-item.component.scss'],
+    standalone: true,
+    imports: [
+        IonicModule,
+        NgIf,
+        NgFor,
+    ],
 })
 
 export class SwipeItemComponent implements AfterViewInit {

@@ -1,13 +1,24 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { Platform } from '@ionic/angular';
+import { Platform, IonicModule } from '@ionic/angular';
 import { AppStorageService } from '../../services/app-storage.service';
 import { STORAGE_KEYS } from '../../services/storage-keys';
+import { OnboardingIndicatorsComponent } from './components/onboarding-indicators/onboarding-indicators.component';
+import { OnboardingSlideComponent } from './components/onboarding-slide/onboarding-slide.component';
+import { NgFor } from '@angular/common';
 
 @Component({
-  selector: 'app-onboarding',
-  templateUrl: './onboarding.page.html',
-  styleUrls: ['./onboarding.page.scss'],
+    selector: 'app-onboarding',
+    templateUrl: './onboarding.page.html',
+    styleUrls: ['./onboarding.page.scss'],
+    standalone: true,
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    imports: [
+        IonicModule,
+        NgFor,
+        OnboardingSlideComponent,
+        OnboardingIndicatorsComponent,
+    ],
 })
 export class OnboardingPage {
   @ViewChild('swiper') swiperRef: ElementRef | undefined;

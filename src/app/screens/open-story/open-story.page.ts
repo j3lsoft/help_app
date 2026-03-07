@@ -1,10 +1,12 @@
 import { Component, OnInit } from '@angular/core';
-import { NavController, Platform } from '@ionic/angular';
+import { NavController, Platform, IonicModule } from '@ionic/angular';
 
 @Component({
-  selector: 'app-open-story',
-  templateUrl: './open-story.page.html',
-  styleUrls: ['./open-story.page.scss'],
+    selector: 'app-open-story',
+    templateUrl: './open-story.page.html',
+    styleUrls: ['./open-story.page.scss'],
+    standalone: true,
+    imports: [IonicModule],
 })
 export class OpenStoryPage implements OnInit {
 

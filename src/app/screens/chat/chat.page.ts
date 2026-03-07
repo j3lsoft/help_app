@@ -1,11 +1,20 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { IonContent, NavController, Platform } from '@ionic/angular';
+import { IonContent, NavController, Platform, IonicModule } from '@ionic/angular';
+import { FormsModule } from '@angular/forms';
+import { NgFor, NgIf } from '@angular/common';
 
 @Component({
-  selector: 'app-chat',
-  templateUrl: './chat.page.html',
-  styleUrls: ['./chat.page.scss'],
+    selector: 'app-chat',
+    templateUrl: './chat.page.html',
+    styleUrls: ['./chat.page.scss'],
+    standalone: true,
+    imports: [
+        IonicModule,
+        NgFor,
+        NgIf,
+        FormsModule,
+    ],
 })
 export class ChatPage implements OnInit {
 

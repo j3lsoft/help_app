@@ -1,10 +1,13 @@
 import { Component, OnInit } from '@angular/core';
-import { NavController } from '@ionic/angular';
+import { NavController, IonicModule } from '@ionic/angular';
+import { NgFor } from '@angular/common';
 
 @Component({
-  selector: 'app-followings',
-  templateUrl: './followings.page.html',
-  styleUrls: ['./followings.page.scss'],
+    selector: 'app-followings',
+    templateUrl: './followings.page.html',
+    styleUrls: ['./followings.page.scss'],
+    standalone: true,
+    imports: [IonicModule, NgFor],
 })
 export class FollowingsPage implements OnInit {
 

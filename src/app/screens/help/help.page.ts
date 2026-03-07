@@ -1,11 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { NavController } from '@ionic/angular';
+import { NavController, IonicModule } from '@ionic/angular';
+import { NgFor } from '@angular/common';
 
 @Component({
-  selector: 'app-help',
-  templateUrl: './help.page.html',
-  styleUrls: ['./help.page.scss'],
+    selector: 'app-help',
+    templateUrl: './help.page.html',
+    styleUrls: ['./help.page.scss'],
+    standalone: true,
+    imports: [IonicModule, NgFor],
 })
 export class HelpPage implements OnInit {
 

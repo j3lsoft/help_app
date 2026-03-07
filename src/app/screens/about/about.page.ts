@@ -1,10 +1,13 @@
 import { Component, OnInit } from '@angular/core';
-import { NavController } from '@ionic/angular';
+import { NavController, IonicModule } from '@ionic/angular';
+import { NgFor } from '@angular/common';
 
 @Component({
-  selector: 'app-about',
-  templateUrl: './about.page.html',
-  styleUrls: ['./about.page.scss'],
+    selector: 'app-about',
+    templateUrl: './about.page.html',
+    styleUrls: ['./about.page.scss'],
+    standalone: true,
+    imports: [IonicModule, NgFor],
 })
 export class AboutPage implements OnInit {
 

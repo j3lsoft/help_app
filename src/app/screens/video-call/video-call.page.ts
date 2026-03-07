@@ -1,10 +1,12 @@
 import { Component, OnInit } from '@angular/core';
-import { NavController, Platform } from '@ionic/angular';
+import { NavController, Platform, IonicModule } from '@ionic/angular';
 
 @Component({
-  selector: 'app-video-call',
-  templateUrl: './video-call.page.html',
-  styleUrls: ['./video-call.page.scss'],
+    selector: 'app-video-call',
+    templateUrl: './video-call.page.html',
+    styleUrls: ['./video-call.page.scss'],
+    standalone: true,
+    imports: [IonicModule],
 })
 export class VideoCallPage implements OnInit {
 

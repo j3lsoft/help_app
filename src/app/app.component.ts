@@ -1,17 +1,19 @@
-import { Location } from '@angular/common';
+import { Location, NgIf } from '@angular/common';
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { App } from '@capacitor/app';
 import { StatusBar } from '@capacitor/status-bar';
-import { AlertController, NavController, Platform } from '@ionic/angular';
+import { AlertController, NavController, Platform, IonicModule } from '@ionic/angular';
 import { register } from 'swiper/element/bundle';
 
 register();
 
 @Component({
-  selector: 'app-root',
-  templateUrl: 'app.component.html',
-  styleUrls: ['app.component.scss'],
+    selector: 'app-root',
+    templateUrl: 'app.component.html',
+    styleUrls: ['app.component.scss'],
+    standalone: true,
+    imports: [IonicModule, NgIf],
 })
 export class AppComponent {
   tap = 0;

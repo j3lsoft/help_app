@@ -1,10 +1,13 @@
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { IonicModule } from '@ionic/angular';
 
 @Component({
-  selector: 'app-onboarding-slide',
-  templateUrl: './onboarding-slide.component.html',
-  styleUrls: ['./onboarding-slide.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-onboarding-slide',
+    templateUrl: './onboarding-slide.component.html',
+    styleUrls: ['./onboarding-slide.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: true,
+    imports: [IonicModule],
 })
 export class OnboardingSlideComponent {
   @Input() imageSrc!: string;

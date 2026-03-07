@@ -1,10 +1,13 @@
 import { Component, OnInit } from '@angular/core';
-import { NavController } from '@ionic/angular';
+import { NavController, IonicModule } from '@ionic/angular';
+import { NgFor } from '@angular/common';
 
 @Component({
-  selector: 'app-link-accounts',
-  templateUrl: './link-accounts.page.html',
-  styleUrls: ['./link-accounts.page.scss'],
+    selector: 'app-link-accounts',
+    templateUrl: './link-accounts.page.html',
+    styleUrls: ['./link-accounts.page.scss'],
+    standalone: true,
+    imports: [IonicModule, NgFor],
 })
 export class LinkAccountsPage implements OnInit {
 

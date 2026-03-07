@@ -1,11 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { NavController } from '@ionic/angular';
+import { NavController, IonicModule } from '@ionic/angular';
+import { NgIf, NgFor } from '@angular/common';
 
 @Component({
-  selector: 'app-user-profile',
-  templateUrl: './user-profile.page.html',
-  styleUrls: ['./user-profile.page.scss'],
+    selector: 'app-user-profile',
+    templateUrl: './user-profile.page.html',
+    styleUrls: ['./user-profile.page.scss'],
+    standalone: true,
+    imports: [
+        IonicModule,
+        NgIf,
+        NgFor,
+    ],
 })
 export class UserProfilePage implements OnInit {
 

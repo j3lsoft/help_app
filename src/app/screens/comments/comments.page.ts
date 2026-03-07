@@ -1,10 +1,19 @@
 import { Component, OnInit } from '@angular/core';
-import { NavController, Platform } from '@ionic/angular';
+import { NavController, Platform, IonicModule } from '@ionic/angular';
+import { FormsModule } from '@angular/forms';
+import { NgFor, NgIf } from '@angular/common';
 
 @Component({
-  selector: 'app-comments',
-  templateUrl: './comments.page.html',
-  styleUrls: ['./comments.page.scss'],
+    selector: 'app-comments',
+    templateUrl: './comments.page.html',
+    styleUrls: ['./comments.page.scss'],
+    standalone: true,
+    imports: [
+        IonicModule,
+        NgFor,
+        NgIf,
+        FormsModule,
+    ],
 })
 export class CommentsPage implements OnInit {
 

@@ -1,10 +1,13 @@
 import { Component, OnInit } from '@angular/core';
-import { ModalController, NavController, Platform } from '@ionic/angular';
+import { ModalController, NavController, Platform, IonicModule } from '@ionic/angular';
+import { FormsModule } from '@angular/forms';
 
 @Component({
-  selector: 'app-edit-profile',
-  templateUrl: './edit-profile.page.html',
-  styleUrls: ['./edit-profile.page.scss'],
+    selector: 'app-edit-profile',
+    templateUrl: './edit-profile.page.html',
+    styleUrls: ['./edit-profile.page.scss'],
+    standalone: true,
+    imports: [IonicModule, FormsModule],
 })
 export class EditProfilePage implements OnInit {
 

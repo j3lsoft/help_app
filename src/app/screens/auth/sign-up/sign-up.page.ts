@@ -1,11 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { NavController } from '@ionic/angular';
+import { NavController, IonicModule } from '@ionic/angular';
+import { FormsModule } from '@angular/forms';
 
 @Component({
-  selector: 'app-sign-up',
-  templateUrl: './sign-up.page.html',
-  styleUrls: ['./sign-up.page.scss'],
+    selector: 'app-sign-up',
+    templateUrl: './sign-up.page.html',
+    styleUrls: ['./sign-up.page.scss'],
+    standalone: true,
+    imports: [IonicModule, FormsModule],
 })
 export class SignUpPage implements OnInit {
 

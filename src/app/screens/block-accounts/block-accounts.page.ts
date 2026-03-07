@@ -1,10 +1,17 @@
 import { Component, OnInit } from '@angular/core';
-import { NavController, Platform } from '@ionic/angular';
+import { NavController, Platform, IonicModule } from '@ionic/angular';
+import { NgIf, NgFor } from '@angular/common';
 
 @Component({
-  selector: 'app-block-accounts',
-  templateUrl: './block-accounts.page.html',
-  styleUrls: ['./block-accounts.page.scss'],
+    selector: 'app-block-accounts',
+    templateUrl: './block-accounts.page.html',
+    styleUrls: ['./block-accounts.page.scss'],
+    standalone: true,
+    imports: [
+        IonicModule,
+        NgIf,
+        NgFor,
+    ],
 })
 export class BlockAccountsPage implements OnInit {
 

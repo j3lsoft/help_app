@@ -1,11 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { NavController, PopoverController } from '@ionic/angular';
+import { NavController, PopoverController, IonicModule } from '@ionic/angular';
+import { NgFor } from '@angular/common';
 
 @Component({
-  selector: 'app-create-post',
-  templateUrl: './create-post.page.html',
-  styleUrls: ['./create-post.page.scss'],
+    selector: 'app-create-post',
+    templateUrl: './create-post.page.html',
+    styleUrls: ['./create-post.page.scss'],
+    standalone: true,
+    imports: [IonicModule, NgFor],
 })
 
 export class CreatePostPage implements OnInit {

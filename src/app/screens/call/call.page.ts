@@ -1,10 +1,12 @@
 import { Component, OnInit } from '@angular/core';
-import { NavController, Platform } from '@ionic/angular';
+import { NavController, Platform, IonicModule } from '@ionic/angular';
 
 @Component({
-  selector: 'app-call',
-  templateUrl: './call.page.html',
-  styleUrls: ['./call.page.scss'],
+    selector: 'app-call',
+    templateUrl: './call.page.html',
+    styleUrls: ['./call.page.scss'],
+    standalone: true,
+    imports: [IonicModule],
 })
 export class CallPage implements OnInit {
 

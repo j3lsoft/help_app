@@ -1,10 +1,13 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { NavController } from '@ionic/angular';
+import { NavController, IonicModule } from '@ionic/angular';
+import { FormsModule } from '@angular/forms';
 
 @Component({
-  selector: 'app-account-privacy',
-  templateUrl: './account-privacy.page.html',
-  styleUrls: ['./account-privacy.page.scss'],
+    selector: 'app-account-privacy',
+    templateUrl: './account-privacy.page.html',
+    styleUrls: ['./account-privacy.page.scss'],
+    standalone: true,
+    imports: [IonicModule, FormsModule],
 })
 export class AccountPrivacyPage implements OnInit {
 
