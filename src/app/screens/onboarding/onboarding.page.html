@@ -28,10 +28,10 @@
       [class.onboarding-actions--ios]="platform.is('ios')"
     >
       <ion-text (click)="goTo('/auth/sign-in')" class="whiteColor16Bold">
-        {{currentIndex===2?' ':'Skip'}}
+        {{isLastScreen() ? ' ' : 'Skip'}}
       </ion-text>
       <ion-text (click)="handleButtonPress()" class="primaryColor16Bold">
-        {{currentIndex===2?'Login': 'Next'}}
+        {{isLastScreen() ? 'Login' : 'Next'}}
       </ion-text>
     </div>
   </div>

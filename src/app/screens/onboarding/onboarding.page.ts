@@ -1,6 +1,8 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { Platform } from '@ionic/angular';
+import { AppStorageService } from '../../services/app-storage.service';
+import { STORAGE_KEYS } from '../../services/storage-keys';
 
 @Component({
   selector: 'app-onboarding',
@@ -44,14 +46,25 @@ export class OnboardingPage {
 
   screenHeight = window.innerHeight;
 
-  constructor(private router: Router, public platform: Platform) {}
+  constructor(
+    private router: Router,
+    public platform: Platform,
+    private appStorageService: AppStorageService,
+  ) {}
 
   slideChangeCall() {
     this.currentIndex = this.swiperRef?.nativeElement.swiper.activeIndex;
   }
 
   goTo(screen: any) {
+    if (screen === '/auth/sign-in') {
+      this.appStorageService.setBoolean(STORAGE_KEYS.hasSeenOnboarding, true);
+    }
     this.router.navigateByUrl(screen);
+  }
+
+  isLastScreen() {
+    return this.currentIndex >= this.onboardingScreenList.length - 1;
   }
 
   handleButtonPress() {
@@ -61,10 +74,8 @@ export class OnboardingPage {
       return;
     }
 
-    const isLastScreen =
-      this.currentIndex >= this.onboardingScreenList.length - 1;
-
-    if (isLastScreen) {
+    if (this.isLastScreen()) {
+      this.appStorageService.setBoolean(STORAGE_KEYS.hasSeenOnboarding, true);
       this.router.navigateByUrl('/auth/sign-in');
     } else {
       swiper.slideTo(this.currentIndex + 1);

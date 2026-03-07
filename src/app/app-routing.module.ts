@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
+import { OnboardingSeenGuard } from './guards/onboarding-seen.guard';
 
 const routes: Routes = [
   {
@@ -13,6 +14,7 @@ const routes: Routes = [
   },
   {
     path: 'onboarding',
+    canMatch: [OnboardingSeenGuard],
     loadChildren: () => import('./screens/onboarding/onboarding.module').then( m => m.OnboardingPageModule)
   },
   {
