@@ -5,7 +5,6 @@ import { IonicModule } from '@ionic/angular';
     selector: 'app-auth',
     templateUrl: './auth.page.html',
     styleUrls: ['./auth.page.scss'],
-    standalone: true,
     imports: [IonicModule],
 })
 export class AuthPage {

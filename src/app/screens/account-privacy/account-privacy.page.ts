@@ -6,7 +6,6 @@ import { FormsModule } from '@angular/forms';
     selector: 'app-account-privacy',
     templateUrl: './account-privacy.page.html',
     styleUrls: ['./account-privacy.page.scss'],
-    standalone: true,
     imports: [IonicModule, FormsModule],
 })
 export class AccountPrivacyPage implements OnInit {

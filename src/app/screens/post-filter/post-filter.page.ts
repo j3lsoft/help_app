@@ -7,7 +7,6 @@ import { NgIf, NgFor } from '@angular/common';
     selector: 'app-post-filter',
     templateUrl: './post-filter.page.html',
     styleUrls: ['./post-filter.page.scss'],
-    standalone: true,
     imports: [
         IonicModule,
         NgIf,

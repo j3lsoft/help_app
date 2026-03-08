@@ -9,7 +9,6 @@ const ANIMATION_BREAKPOINT = window.innerWidth - 100;
     selector: 'app-swipe-item',
     templateUrl: './swipe-item.component.html',
     styleUrls: ['./swipe-item.component.scss'],
-    standalone: true,
     imports: [
         IonicModule,
         NgIf,

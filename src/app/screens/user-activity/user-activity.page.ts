@@ -6,7 +6,6 @@ import Chart from 'chart.js/auto';
     selector: 'app-user-activity',
     templateUrl: './user-activity.page.html',
     styleUrls: ['./user-activity.page.scss'],
-    standalone: true,
     imports: [IonicModule],
 })
 export class UserActivityPage implements OnInit {

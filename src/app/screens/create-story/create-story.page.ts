@@ -7,7 +7,6 @@ import { NgFor } from '@angular/common';
     selector: 'app-create-story',
     templateUrl: './create-story.page.html',
     styleUrls: ['./create-story.page.scss'],
-    standalone: true,
     imports: [IonicModule, NgFor],
 })
 export class CreateStoryPage implements OnInit {

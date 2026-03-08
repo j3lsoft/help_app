@@ -7,7 +7,6 @@ import { FormsModule } from '@angular/forms';
     selector: 'app-sign-in',
     templateUrl: './sign-in.page.html',
     styleUrls: ['./sign-in.page.scss'],
-    standalone: true,
     imports: [IonicModule, FormsModule],
 })
 export class SignInPage implements OnInit {

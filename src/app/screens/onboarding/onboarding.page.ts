@@ -8,17 +8,16 @@ import { OnboardingSlideComponent } from './components/onboarding-slide/onboardi
 import { NgFor } from '@angular/common';
 
 @Component({
-    selector: 'app-onboarding',
-    templateUrl: './onboarding.page.html',
-    styleUrls: ['./onboarding.page.scss'],
-    standalone: true,
-    schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [
-        IonicModule,
-        NgFor,
-        OnboardingSlideComponent,
-        OnboardingIndicatorsComponent,
-    ],
+  selector: 'app-onboarding',
+  templateUrl: './onboarding.page.html',
+  styleUrls: ['./onboarding.page.scss'],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  imports: [
+    IonicModule,
+    NgFor,
+    OnboardingSlideComponent,
+    OnboardingIndicatorsComponent,
+  ],
 })
 export class OnboardingPage {
   @ViewChild('swiper') swiperRef: ElementRef | undefined;
@@ -60,7 +59,7 @@ export class OnboardingPage {
   constructor(
     private router: Router,
     public platform: Platform,
-    private appStorageService: AppStorageService,
+    private appStorageService: AppStorageService
   ) {}
 
   slideChangeCall() {

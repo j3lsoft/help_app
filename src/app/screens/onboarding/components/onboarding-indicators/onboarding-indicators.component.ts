@@ -6,7 +6,6 @@ import { NgFor } from '@angular/common';
     templateUrl: './onboarding-indicators.component.html',
     styleUrls: ['./onboarding-indicators.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: true,
     imports: [NgFor],
 })
 export class OnboardingIndicatorsComponent {

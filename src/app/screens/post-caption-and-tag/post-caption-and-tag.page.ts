@@ -6,7 +6,6 @@ import { IonRouterOutlet, NavController, IonicModule } from '@ionic/angular';
     selector: 'app-post-caption-and-tag',
     templateUrl: './post-caption-and-tag.page.html',
     styleUrls: ['./post-caption-and-tag.page.scss'],
-    standalone: true,
     imports: [IonicModule],
 })
 export class PostCaptionAndTagPage implements OnInit {

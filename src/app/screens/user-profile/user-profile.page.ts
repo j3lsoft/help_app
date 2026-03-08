@@ -7,7 +7,6 @@ import { NgIf, NgFor } from '@angular/common';
     selector: 'app-user-profile',
     templateUrl: './user-profile.page.html',
     styleUrls: ['./user-profile.page.scss'],
-    standalone: true,
     imports: [
         IonicModule,
         NgIf,

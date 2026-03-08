@@ -4,11 +4,10 @@ import { NavController, IonicModule } from '@ionic/angular';
 import { NgFor, NgIf } from '@angular/common';
 
 @Component({
-    selector: 'app-videos',
-    templateUrl: './videos.page.html',
-    styleUrls: ['./videos.page.scss'],
-    standalone: true,
-    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  selector: 'app-videos',
+  templateUrl: './videos.page.html',
+  styleUrls: ['./videos.page.scss'],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [
         IonicModule,
         NgFor,

@@ -8,7 +8,6 @@ import { NgIf, NgFor } from '@angular/common';
     selector: 'app-story1',
     templateUrl: './story1.page.html',
     styleUrls: ['./story1.page.scss'],
-    standalone: true,
     imports: [
         IonicModule,
         NgIf,

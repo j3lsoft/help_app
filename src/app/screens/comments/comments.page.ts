@@ -7,7 +7,6 @@ import { NgFor, NgIf } from '@angular/common';
     selector: 'app-comments',
     templateUrl: './comments.page.html',
     styleUrls: ['./comments.page.scss'],
-    standalone: true,
     imports: [
         IonicModule,
         NgFor,

@@ -6,7 +6,6 @@ import { NgFor } from '@angular/common';
     selector: 'app-followings',
     templateUrl: './followings.page.html',
     styleUrls: ['./followings.page.scss'],
-    standalone: true,
     imports: [IonicModule, NgFor],
 })
 export class FollowingsPage implements OnInit {

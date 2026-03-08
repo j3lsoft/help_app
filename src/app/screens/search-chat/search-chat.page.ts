@@ -6,7 +6,6 @@ import { NgFor } from '@angular/common';
     selector: 'app-search-chat',
     templateUrl: './search-chat.page.html',
     styleUrls: ['./search-chat.page.scss'],
-    standalone: true,
     imports: [IonicModule, NgFor],
 })
 export class SearchChatPage implements OnInit {

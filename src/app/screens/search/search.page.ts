@@ -7,7 +7,6 @@ import { NgFor, NgIf } from '@angular/common';
     selector: 'app-search',
     templateUrl: './search.page.html',
     styleUrls: ['./search.page.scss'],
-    standalone: true,
     imports: [
         IonicModule,
         NgFor,

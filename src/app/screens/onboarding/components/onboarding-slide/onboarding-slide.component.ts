@@ -6,7 +6,6 @@ import { IonicModule } from '@ionic/angular';
     templateUrl: './onboarding-slide.component.html',
     styleUrls: ['./onboarding-slide.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: true,
     imports: [IonicModule],
 })
 export class OnboardingSlideComponent {

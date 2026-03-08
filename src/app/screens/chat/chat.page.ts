@@ -8,7 +8,6 @@ import { NgFor, NgIf } from '@angular/common';
     selector: 'app-chat',
     templateUrl: './chat.page.html',
     styleUrls: ['./chat.page.scss'],
-    standalone: true,
     imports: [
         IonicModule,
         NgFor,

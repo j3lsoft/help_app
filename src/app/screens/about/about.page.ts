@@ -6,7 +6,6 @@ import { NgFor } from '@angular/common';
     selector: 'app-about',
     templateUrl: './about.page.html',
     styleUrls: ['./about.page.scss'],
-    standalone: true,
     imports: [IonicModule, NgFor],
 })
 export class AboutPage implements OnInit {

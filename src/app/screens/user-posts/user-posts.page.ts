@@ -7,7 +7,6 @@ import { NgFor } from '@angular/common';
     selector: 'app-user-posts',
     templateUrl: './user-posts.page.html',
     styleUrls: ['./user-posts.page.scss'],
-    standalone: true,
     imports: [IonicModule, NgFor],
 })
 export class UserPostsPage implements OnInit {

@@ -6,7 +6,6 @@ import { NgFor, NgIf } from '@angular/common';
     selector: 'app-follow-requests',
     templateUrl: './follow-requests.page.html',
     styleUrls: ['./follow-requests.page.scss'],
-    standalone: true,
     imports: [
         IonicModule,
         NgFor,

@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 import { OnboardingSeenGuard } from './guards/onboarding-seen.guard';
 
-export const appRoutes: Routes = [
+export const routes: Routes = [
   {
     path: '',
     redirectTo: 'splash',

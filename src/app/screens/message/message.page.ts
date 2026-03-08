@@ -7,7 +7,6 @@ import { IonicModule } from '@ionic/angular';
     selector: 'app-message',
     templateUrl: './message.page.html',
     styleUrls: ['./message.page.scss'],
-    standalone: true,
     imports: [
         IonicModule,
         NgIf,

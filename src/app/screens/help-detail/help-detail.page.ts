@@ -7,7 +7,6 @@ import { NgFor } from '@angular/common';
     selector: 'app-help-detail',
     templateUrl: './help-detail.page.html',
     styleUrls: ['./help-detail.page.scss'],
-    standalone: true,
     imports: [IonicModule, NgFor],
 })
 export class HelpDetailPage implements OnInit {

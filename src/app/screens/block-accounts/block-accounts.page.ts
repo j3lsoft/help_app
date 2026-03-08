@@ -6,7 +6,6 @@ import { NgIf, NgFor } from '@angular/common';
     selector: 'app-block-accounts',
     templateUrl: './block-accounts.page.html',
     styleUrls: ['./block-accounts.page.scss'],
-    standalone: true,
     imports: [
         IonicModule,
         NgIf,

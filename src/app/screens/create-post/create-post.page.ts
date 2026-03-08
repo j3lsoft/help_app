@@ -7,7 +7,6 @@ import { NgFor } from '@angular/common';
     selector: 'app-create-post',
     templateUrl: './create-post.page.html',
     styleUrls: ['./create-post.page.scss'],
-    standalone: true,
     imports: [IonicModule, NgFor],
 })
 

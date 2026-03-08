@@ -8,7 +8,6 @@ import { NgIf } from '@angular/common';
     selector: 'app-bottom-tab-bar',
     templateUrl: './bottom-tab-bar.page.html',
     styleUrls: ['./bottom-tab-bar.page.scss'],
-    standalone: true,
     imports: [IonicModule, NgIf],
 })
 

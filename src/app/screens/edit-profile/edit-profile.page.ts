@@ -6,7 +6,6 @@ import { FormsModule } from '@angular/forms';
     selector: 'app-edit-profile',
     templateUrl: './edit-profile.page.html',
     styleUrls: ['./edit-profile.page.scss'],
-    standalone: true,
     imports: [IonicModule, FormsModule],
 })
 export class EditProfilePage implements OnInit {

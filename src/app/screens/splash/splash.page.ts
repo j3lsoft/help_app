@@ -6,7 +6,6 @@ import { IonicModule } from '@ionic/angular';
     selector: 'app-splash',
     templateUrl: './splash.page.html',
     styleUrls: ['./splash.page.scss'],
-    standalone: true,
     imports: [IonicModule],
 })
 export class SplashPage implements OnInit {

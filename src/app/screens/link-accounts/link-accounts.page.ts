@@ -6,7 +6,6 @@ import { NgFor } from '@angular/common';
     selector: 'app-link-accounts',
     templateUrl: './link-accounts.page.html',
     styleUrls: ['./link-accounts.page.scss'],
-    standalone: true,
     imports: [IonicModule, NgFor],
 })
 export class LinkAccountsPage implements OnInit {

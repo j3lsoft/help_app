@@ -5,7 +5,6 @@ import { NavController, Platform, IonicModule } from '@ionic/angular';
     selector: 'app-open-story',
     templateUrl: './open-story.page.html',
     styleUrls: ['./open-story.page.scss'],
-    standalone: true,
     imports: [IonicModule],
 })
 export class OpenStoryPage implements OnInit {

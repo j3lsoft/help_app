@@ -7,7 +7,6 @@ import { NgOtpInputConfig, NgOtpInputModule } from 'ng-otp-input';
     selector: 'app-verification',
     templateUrl: './verification.page.html',
     styleUrls: ['./verification.page.scss'],
-    standalone: true,
     imports: [IonicModule, NgOtpInputModule],
 })
 
