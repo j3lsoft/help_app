@@ -22,6 +22,14 @@ export class AppStorageService {
     }
   }
 
+  async remove(key: string): Promise<void> {
+    try {
+      await Preferences.remove({ key });
+    } catch {
+      // ignore
+    }
+  }
+
   async getBoolean(key: string): Promise<boolean> {
     const value = await this.getString(key);
     return value === 'true';
