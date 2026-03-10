@@ -1,8 +1,10 @@
 <ion-app>
   <ion-router-outlet></ion-router-outlet>
-  <div *ngIf="tap===1" class="exitWrapper">
+  @if (tap===1) {
+  <div class="exitWrapper">
     <ion-text class="whiteColor14Medium exitText">
       Press Back Once Again To Exit!
     </ion-text>
   </div>
+  }
 </ion-app>
