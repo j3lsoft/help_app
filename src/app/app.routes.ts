@@ -32,8 +32,8 @@ export const routes: Routes = [
     children: [
       {
         path: 'home',
-        loadComponent: () =>
-          import('./screens/home/home.page').then((m) => m.HomePage),
+        loadChildren: () =>
+          import('./features/home/home.routes').then((m) => m.HOME_ROUTES),
       },
       {
         path: 'notifications',

@@ -1,0 +1,42 @@
+<div class="story-container">
+  <ion-text class="primaryColor14Bold margin20 story-container__title">
+    Short Stories
+  </ion-text>
+  <div class="story-scroll">
+    <div class="story-scroll__wrapper">
+      <!-- Share Story Button -->
+      <div class="story-item" (click)="shareStory.emit()">
+        <div class="story-item__circle story-item__circle--add">
+          <ion-icon
+            name="add"
+            color="primaryColor"
+            style="font-size: 30px"
+          ></ion-icon>
+        </div>
+        <ion-text class="blackColor10Regular story-item__name">
+          Share story
+        </ion-text>
+      </div>
+
+      <!-- User Stories -->
+      @for (item of stories(); track item.id) {
+      <div class="story-item" (click)="storyClick.emit(item)">
+        <div
+          class="story-item__circle"
+          [style.border-color]="
+            item.storySeen ? 'var(--grayColor)' : 'var(--primaryColor)'
+          "
+        >
+          <ion-img
+            [src]="item.userProfilePic"
+            class="story-item__img"
+          ></ion-img>
+        </div>
+        <ion-text class="blackColor10Regular story-item__name ellipseText">
+          {{ item.userName }}
+        </ion-text>
+      </div>
+      }
+    </div>
+  </div>
+</div>

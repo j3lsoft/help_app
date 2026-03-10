@@ -1,0 +1,65 @@
+<div class="post-card">
+  <div class="post-card__header">
+    <div class="post-card__user-info" (click)="userClick.emit()">
+      <ion-img
+        [src]="post().userProfilePic"
+        class="post-card__avatar"
+      ></ion-img>
+      <div class="post-card__user-meta">
+        <ion-text class="blackColor14SemiBold ellipseText line-clamp-1">
+          {{ post().userName }}
+        </ion-text>
+        <ion-text class="grayColor12Regular ellipseText line-clamp-1">
+          {{ post().userDetail }}
+        </ion-text>
+      </div>
+    </div>
+    <ion-icon
+      name="ellipsis-vertical"
+      color="blackColor"
+      class="post-card__options-icon"
+    ></ion-icon>
+  </div>
+
+  <ion-text class="grayColor12Regular post-card__description">
+    {{ post().aboutPost }}
+  </ion-text>
+
+  <div class="post-card__content">
+    <ion-img [src]="post().postImage" class="post-card__main-image"></ion-img>
+    <div class="post-card__actions">
+      <div class="post-card__action-item" (click)="likeClick.emit()">
+        <ion-icon
+          [name]="post().postLike ? 'heart' : 'heart-outline'"
+          [color]="post().postLike ? 'redColor' : 'grayColor'"
+          class="post-card__action-icon"
+        ></ion-icon>
+        <ion-text class="grayColor14SemiBold ellipseText line-clamp-1">
+          {{ post().postLikes }} Likes
+        </ion-text>
+      </div>
+
+      <div class="post-card__action-item" (click)="commentClick.emit()">
+        <ion-icon
+          name="chatbox-ellipses-outline"
+          color="grayColor"
+          class="post-card__action-icon"
+        ></ion-icon>
+        <ion-text class="grayColor14SemiBold ellipseText line-clamp-1">
+          {{ post().postComments }} Comments
+        </ion-text>
+      </div>
+
+      <div class="post-card__action-item" (click)="shareClick.emit()">
+        <ion-icon
+          name="share-social"
+          color="grayColor"
+          class="post-card__action-icon"
+        ></ion-icon>
+        <ion-text class="grayColor14SemiBold ellipseText line-clamp-1">
+          {{ post().postShares }} Share
+        </ion-text>
+      </div>
+    </div>
+  </div>
+</div>

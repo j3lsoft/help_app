@@ -1,0 +1,37 @@
+<app-home-header (searchClick)="goTo('search')"></app-home-header>
+
+<ion-content style="--padding-bottom: 50px">
+  <app-story-list
+    [stories]="usersStories()"
+    (shareStory)="goTo('create-story')"
+    (storyClick)="goTo('open-story')"
+  ></app-story-list>
+
+  @for (item of todaysPostsList(); track item.id) {
+  <div style="margin: 0 20px">
+    <app-post-card
+      [post]="item"
+      (userClick)="goTo('user-profile')"
+      (likeClick)="handlePostLike('today', item.id)"
+      (commentClick)="goTo('comments')"
+    ></app-post-card>
+  </div>
+  }
+
+  <app-suggestion-list
+    [suggestions]="suggestionsList()"
+    (toggleFollow)="handleFollowToggle($event)"
+    (seeAllClick)="goTo('search-detail')"
+  ></app-suggestion-list>
+
+  @for (item of oldPostsList(); track item.id) {
+  <div style="margin: 0 20px">
+    <app-post-card
+      [post]="item"
+      (userClick)="goTo('user-profile')"
+      (likeClick)="handlePostLike('old', item.id)"
+      (commentClick)="goTo('comments')"
+    ></app-post-card>
+  </div>
+  }
+</ion-content>

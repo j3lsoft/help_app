@@ -1,0 +1,52 @@
+<div class="suggestion-container">
+  <div class="suggestion-container__header">
+    <ion-text class="blackColor18SemiBold suggestion-container__title">
+      Suggestion for you
+    </ion-text>
+    <ion-text
+      class="primaryColor14SemiBold suggestion-container__see-all"
+      (click)="seeAllClick.emit()"
+    >
+      See All
+    </ion-text>
+  </div>
+  <div class="suggestion-scroll">
+    <div class="suggestion-scroll__wrapper">
+      @for (item of suggestions(); track item.id; let index = $index) {
+      <div class="suggestion-card">
+        <div class="suggestion-card__avatar-wrapper">
+          <ion-img
+            [src]="item.userProfilePic"
+            class="suggestion-card__avatar"
+          ></ion-img>
+        </div>
+        <ion-text
+          class="blackColor16SemiBold ellipseText suggestion-card__name"
+        >
+          {{ item.userName }}
+        </ion-text>
+        <ion-text
+          class="grayColor14Regular ellipseText suggestion-card__username"
+        >
+          {{ item.userAbout }}
+        </ion-text>
+        <div
+          (click)="toggleFollow.emit(item)"
+          class="suggestion-card__button"
+          [style.background]="
+            item.isFollow ? 'var(--whiteColor)' : 'var(--primaryColor)'
+          "
+        >
+          <ion-text
+            class="ellipseText"
+            [class]="item.isFollow ? 'primaryColor18Bold' : 'whiteColor18Bold'"
+            style="text-align: center"
+          >
+            {{ item.isFollow ? "Following" : "Follow" }}
+          </ion-text>
+        </div>
+      </div>
+      }
+    </div>
+  </div>
+</div>

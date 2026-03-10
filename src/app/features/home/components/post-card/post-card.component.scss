@@ -1,0 +1,90 @@
+.post-card {
+  display: flex;
+  flex-direction: column;
+  margin-top: 20px;
+
+  &__header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__user-info {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    flex: 1;
+    cursor: pointer;
+  }
+
+  &__avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    overflow: hidden;
+  }
+
+  &__user-meta {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    margin-left: 10px;
+  }
+
+  &__options-icon {
+    font-size: 18px;
+    cursor: pointer;
+  }
+
+  &__description {
+    margin-top: 4px;
+    margin-bottom: 10px;
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--whiteColor);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+  }
+
+  &__main-image {
+    height: 150px;
+    width: 100%;
+    object-fit: cover;
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 10px;
+  }
+
+  &__action-item {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    flex: 1;
+    margin: 0 2px;
+    cursor: pointer;
+  }
+
+  &__action-icon {
+    font-size: 19px;
+    margin-right: 8px;
+  }
+
+  .line-clamp-1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
