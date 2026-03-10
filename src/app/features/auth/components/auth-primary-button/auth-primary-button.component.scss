@@ -1,0 +1,11 @@
+:host(.auth-primary-button) {
+  background-color: var(--primaryColor);
+  padding: 15px;
+  border-radius: 10px;
+}
+
+:host(.auth-primary-button--disabled) {
+  opacity: 0.7;
+  pointer-events: none;
+}
+

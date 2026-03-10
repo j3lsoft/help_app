@@ -1,0 +1,21 @@
+.auth-social-buttons {
+  justify-content: center;
+}
+
+.auth-social-buttons__item {
+  width: 50px;
+  height: 50px;
+  border-radius: 10px;
+  background-color: var(--whiteColor);
+}
+
+.auth-social-buttons__item--middle {
+  margin: 0 30px;
+}
+
+.auth-social-buttons__icon {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+}
+

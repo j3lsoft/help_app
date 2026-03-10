@@ -1,0 +1,22 @@
+<ion-header mode="ios" [translucent]="false" class="ion-no-border">
+  <ion-toolbar color="secondaryColor">
+    @if (showBack()) {
+      <div class="rowAlignCenter margin20 auth-header__back">
+        <ion-icon
+          name="chevron-back"
+          color="whiteColor"
+          class="auth-header__back-icon"
+          (click)="onBack()"
+        ></ion-icon>
+        <ion-text class="whiteColor20SemiBold auth-header__back-title">
+          {{ title() }}
+        </ion-text>
+      </div>
+    } @else {
+      <ion-text class="whiteColor20SemiBold margin20 auth-header__title">
+        {{ title() }}
+      </ion-text>
+    }
+  </ion-toolbar>
+</ion-header>
+

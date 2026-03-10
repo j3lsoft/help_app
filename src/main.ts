@@ -4,6 +4,7 @@ import { environment } from './environments/environment';
 import { AppComponent } from './app/app.component';
 import { BrowserModule, bootstrapApplication } from '@angular/platform-browser';
 import { IonicModule } from '@ionic/angular';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import {
   IonicRouteStrategy,
   provideIonicAngular,
@@ -30,5 +31,6 @@ bootstrapApplication(AppComponent, {
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     provideIonicAngular(),
     provideRouter(routes, withPreloading(PreloadAllModules)),
+    provideHttpClient(withInterceptorsFromDi()),
   ],
 });

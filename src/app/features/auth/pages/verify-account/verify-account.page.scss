@@ -1,0 +1,74 @@
+::ng-deep .each_input:focus {
+  outline-style: solid;
+  outline-color: var(--primaryColor);
+  outline-width: 2px;
+  caret-color: var(--whiteColor);
+}
+
+::ng-deep .each_input {
+  outline-style: solid;
+  outline-color: var(--lightGrayColor);
+  outline-width: 1.5px;
+  margin: 10px;
+  height: 40px;
+  width: 40px;
+  border-radius: 5px;
+  color: var(--whiteColor);
+  font-size: 18px;
+  font-weight: 700;
+  background: transparent;
+  border-width: 0;
+}
+
+.auth-verify__content {
+  margin-top: 0;
+}
+
+.auth-verify__description {
+  margin: 10px 20px;
+  text-align: center;
+}
+
+.auth-verify__resend {
+  margin-top: 5px;
+}
+
+.auth-verify__error {
+  margin-top: 15px;
+  text-align: center;
+}
+
+.auth-verify__dialog {
+  background-color: var(--whiteColor);
+  padding: 20px;
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.auth-verify__spinner {
+  transform: scale(1.3);
+  margin-top: 10px;
+}
+
+.auth-verify__loading-text {
+  margin-top: 30px;
+}
+
+ion-popover {
+  --width: 85%;
+  --min-width: 85%;
+}
+
+ion-popover::part(content) {
+  border-radius: 10px;
+  top: unset !important;
+  bottom: 42%;
+}
+
+::ng-deep .otp-container {
+  justify-content: space-between;
+  display: flex;
+  margin: 20px;
+}

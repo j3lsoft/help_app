@@ -22,36 +22,8 @@ export const routes: Routes = [
   },
   {
     path: 'auth',
-    loadComponent: () =>
-      import('./screens/auth/auth.page').then((m) => m.AuthPage),
-    children: [
-      {
-        path: '',
-        redirectTo: 'sign-in',
-        pathMatch: 'full',
-      },
-      {
-        path: 'sign-in',
-        loadComponent: () =>
-          import('./screens/auth/sign-in/sign-in.page').then(
-            (m) => m.SignInPage
-          ),
-      },
-      {
-        path: 'sign-up',
-        loadComponent: () =>
-          import('./screens/auth/sign-up/sign-up.page').then(
-            (m) => m.SignUpPage
-          ),
-      },
-      {
-        path: 'verification',
-        loadComponent: () =>
-          import('./screens/auth/verification/verification.page').then(
-            (m) => m.VerificationPage
-          ),
-      },
-    ],
+    loadChildren: () =>
+      import('./features/auth/auth.routes').then((m) => m.AUTH_ROUTES),
   },
   {
     path: 'bottom-tab-bar',
