@@ -1,0 +1,40 @@
+<ion-content color="secondaryColor">
+  <div class="onboarding">
+    <div class="onboarding__swiper-wrapper">
+      <swiper-container
+        #swiper
+        (swiperslidechange)="slideChangeCall();"
+        [autoplay]="{autoplay:true,disableOnInteraction:false,delay:2800}"
+      >
+        @for (item of onboardingScreenList(); track item.id) {
+          <swiper-slide>
+            <app-onboarding-slide
+              [imageSrc]="item.onboardingImage"
+              [title]="item.onboardingTitle"
+              [description]="item.onboardingDescription"
+              [screenHeight]="screenHeight()"
+            ></app-onboarding-slide>
+          </swiper-slide>
+        }
+      </swiper-container>
+    </div>
+
+    <app-onboarding-indicators
+      class="onboarding__indicators"
+      [total]="onboardingScreenList().length"
+      [currentIndex]="currentIndex()"
+    ></app-onboarding-indicators>
+
+    <div
+      class="onboarding__actions rowAlignCenter margin20"
+      [class.onboarding__actions--ios]="platform.is('ios')"
+    >
+      <ion-text (click)="goTo('/auth/sign-in')" class="whiteColor16Bold">
+        {{ isLastScreen() ? ' ' : 'Skip' }}
+      </ion-text>
+      <ion-text (click)="handleButtonPress()" class="primaryColor16Bold">
+        {{ isLastScreen() ? 'Login' : 'Next' }}
+      </ion-text>
+    </div>
+  </div>
+</ion-content>

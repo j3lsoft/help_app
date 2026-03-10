@@ -1,0 +1,23 @@
+.onboarding {
+  display: flex;
+  justify-content: flex-end;
+  height: 100%;
+  flex-direction: column;
+
+  &__swiper-wrapper {
+    flex: 1;
+  }
+
+  &__indicators {
+    align-self: center;
+  }
+
+  &__actions {
+    justify-content: space-between;
+    margin-bottom: 20px;
+
+    &--ios {
+      margin-bottom: 30px;
+    }
+  }
+}

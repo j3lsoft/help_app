@@ -1,0 +1,17 @@
+<div class="column onboarding-slide" [style.height.px]="screenHeight() - 70">
+  <div class="center onboarding-slide__image-wrapper">
+    <img [src]="imageSrc()" class="onboarding-slide__image" alt="" />
+  </div>
+
+  <div class="onboarding-slide__text">
+    <ion-text class="whiteColor20SemiBold ellipseText onboarding-slide__title">
+      {{ title() }}
+    </ion-text>
+
+    <ion-text
+      class="whiteColor14Regular ellipseText onboarding-slide__description"
+    >
+      {{ description() }}
+    </ion-text>
+  </div>
+</div>

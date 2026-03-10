@@ -1,30 +1,44 @@
-import { Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, ViewChild } from '@angular/core';
+import {
+  Component,
+  CUSTOM_ELEMENTS_SCHEMA,
+  ElementRef,
+  viewChild,
+  signal,
+  computed,
+  inject,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { Router } from '@angular/router';
-import { Platform, IonicModule } from '@ionic/angular';
-import { AppStorageService } from '../../services/app-storage.service';
-import { STORAGE_KEYS } from '../../services/storage-keys';
-import { OnboardingIndicatorsComponent } from './components/onboarding-indicators/onboarding-indicators.component';
-import { OnboardingSlideComponent } from './components/onboarding-slide/onboarding-slide.component';
-import { NgFor } from '@angular/common';
+import { Platform } from '@ionic/angular';
+import { IonContent, IonText } from '@ionic/angular/standalone';
+import { AppStorageService } from '../../../core/services/storage/app-storage.service';
+import { STORAGE_KEYS } from '../../../core/services/storage/storage-keys';
+import { OnboardingIndicatorsComponent } from '../components/onboarding-indicators/onboarding-indicators.component';
+import { OnboardingSlideComponent } from '../components/onboarding-slide/onboarding-slide.component';
 
 @Component({
   selector: 'app-onboarding',
   templateUrl: './onboarding.page.html',
   styleUrls: ['./onboarding.page.scss'],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    IonicModule,
-    NgFor,
+    IonContent,
+    IonText,
     OnboardingSlideComponent,
     OnboardingIndicatorsComponent,
   ],
 })
 export class OnboardingPage {
-  @ViewChild('swiper') swiperRef: ElementRef | undefined;
+  private readonly router = inject(Router);
+  public readonly platform = inject(Platform);
+  private readonly appStorageService = inject(AppStorageService);
 
-  currentIndex = 0;
+  readonly swiperRef = viewChild<ElementRef>('swiper');
 
-  onboardingScreenList = [
+  readonly currentIndex = signal(0);
+
+  readonly onboardingScreenList = signal([
     {
       id: '1',
       onboardingImage: '../../../assets/images/onboarding/help-logo.png',
@@ -52,43 +66,46 @@ export class OnboardingPage {
       onboardingDescription:
         'Our souls are eternal energy, supported by the wisdom of our ancestors who guide us through life is challenges. At Help!, connect with trusted spiritual experts—clairvoyants, mediums, and Ifa priests—who offer insights from both scientific and metaphysical knowledge.',
     },
-  ];
+  ]);
 
-  screenHeight = window.innerHeight;
+  readonly screenHeight = signal(window.innerHeight);
 
-  constructor(
-    private router: Router,
-    public platform: Platform,
-    private appStorageService: AppStorageService
-  ) {}
+  readonly isLastScreen = computed(() => {
+    return this.currentIndex() >= this.onboardingScreenList().length - 1;
+  });
 
   slideChangeCall() {
-    this.currentIndex = this.swiperRef?.nativeElement.swiper.activeIndex;
-  }
-
-  goTo(screen: any) {
-    if (screen === '/auth/sign-in') {
-      this.appStorageService.setBoolean(STORAGE_KEYS.hasSeenOnboarding, true);
+    const swiper = this.swiperRef()?.nativeElement.swiper;
+    if (swiper) {
+      this.currentIndex.set(swiper.activeIndex);
     }
-    this.router.navigateByUrl(screen);
   }
 
-  isLastScreen() {
-    return this.currentIndex >= this.onboardingScreenList.length - 1;
+  async goTo(screen: string) {
+    if (screen === '/auth/sign-in') {
+      await this.appStorageService.setBoolean(
+        STORAGE_KEYS.hasSeenOnboarding,
+        true
+      );
+    }
+    await this.router.navigateByUrl(screen);
   }
 
-  handleButtonPress() {
-    const swiper = this.swiperRef?.nativeElement.swiper;
+  async handleButtonPress() {
+    const swiper = this.swiperRef()?.nativeElement.swiper;
 
     if (!swiper) {
       return;
     }
 
     if (this.isLastScreen()) {
-      this.appStorageService.setBoolean(STORAGE_KEYS.hasSeenOnboarding, true);
-      this.router.navigateByUrl('/auth/sign-in');
+      await this.appStorageService.setBoolean(
+        STORAGE_KEYS.hasSeenOnboarding,
+        true
+      );
+      await this.router.navigateByUrl('/auth/sign-in');
     } else {
-      swiper.slideTo(this.currentIndex + 1);
+      swiper.slideTo(this.currentIndex() + 1);
     }
   }
 }

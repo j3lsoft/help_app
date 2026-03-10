@@ -1,0 +1,9 @@
+<div class="onboarding-indicators">
+  @for (_ of dots(); track $index) {
+    <div
+      class="onboarding-indicators__dot"
+      [class.onboarding-indicators__dot--active]="$index === currentIndex()"
+    ></div>
+  }
+</div>
+
