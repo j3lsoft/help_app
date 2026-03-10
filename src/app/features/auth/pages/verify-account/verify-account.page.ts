@@ -125,7 +125,7 @@ export class VerifyAccountPage {
       this.showLoadingDialog.set(false);
       // Give the popover time to start the dismissal process before navigation
       setTimeout(async () => {
-        await this.router.navigateByUrl('/bottom-tab-bar/home');
+        await this.router.navigateByUrl('/tabs/home');
       }, 100);
     } catch (e) {
       this.errorMessage.set(this.mapVerifyError(e));

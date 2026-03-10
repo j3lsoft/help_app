@@ -1,9 +1,11 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
   inject,
   signal,
 } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import {
   IonContent,
@@ -11,17 +13,14 @@ import {
   IonInput,
   IonText,
 } from '@ionic/angular/standalone';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { addIcons } from 'ionicons';
 import { eyeOffOutline, eyeOutline } from 'ionicons/icons';
+import { firstValueFrom } from 'rxjs';
 import { AuthHeaderComponent } from '../../components/auth-header/auth-header.component';
 import { AuthPrimaryButtonComponent } from '../../components/auth-primary-button/auth-primary-button.component';
 import { AuthSocialButtonsComponent } from '../../components/auth-social-buttons/auth-social-buttons.component';
 import { AuthApiService } from '../../services/auth-api.service';
 import { AuthService } from '../../services/auth.service';
-import { firstValueFrom } from 'rxjs';
-import { HttpErrorResponse } from '@angular/common/http';
-import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -95,7 +94,7 @@ export class LoginPage {
       );
 
       await this.authService.login(response);
-      await this.router.navigateByUrl('/bottom-tab-bar/home');
+      await this.router.navigateByUrl('/tabs/home');
     } catch (e) {
       this.serverError.set(this.mapLoginError(e));
     } finally {

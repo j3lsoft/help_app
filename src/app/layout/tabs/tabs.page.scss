@@ -1,0 +1,132 @@
+.tabs {
+  &__icon {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+
+    &--small {
+      font-size: 26px;
+    }
+
+    &--large {
+      font-size: 28px;
+    }
+  }
+
+  &__add-button {
+    width: 65px;
+    height: 65px;
+    border-radius: 32.5px;
+    border: 5px solid var(--whiteColor);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    bottom: 0;
+    align-self: center;
+    position: absolute;
+    background-color: var(--primaryColor);
+
+    &-icon {
+      color: var(--whiteColor);
+      font-size: 32px;
+    }
+
+    &--ios {
+      bottom: 60px;
+    }
+
+    &--md {
+      bottom: 30px;
+    }
+  }
+
+  &__menu {
+    --width: 70%;
+
+    &-header-wrapper {
+      padding: 15px 20px;
+      background-color: #fafafa;
+    }
+
+    &-toolbar {
+      box-shadow: 0 2px 3px rgba(0, 0, 0, 0.15);
+    }
+
+    &-item-icon {
+      color: var(--blackColor);
+      font-size: 22px;
+
+      &--primary {
+        color: var(--primaryColor);
+      }
+    }
+
+    &-item-label {
+      margin-left: 10px;
+    }
+
+    &-logout-section {
+      margin-top: 35px;
+    }
+  }
+
+  &__popover {
+    --width: 85%;
+    --min-width: 85%;
+
+    &-content {
+      background-color: var(--whiteColor);
+    }
+
+    &-footer {
+      margin: 10px;
+    }
+
+    &-footer-item {
+      flex: 1;
+    }
+  }
+
+  &__cancel-button {
+    border-radius: 5px;
+    padding: 13px;
+    background-color: var(--whiteColor);
+    margin: 10px;
+    box-shadow: 0 2px 9px rgba(0, 0, 0, 0.15);
+    flex: 1;
+  }
+
+  &__logout-button {
+    border: 1px solid var(--primaryColor);
+    border-radius: 5px;
+    padding: 13px;
+    background-color: var(--primaryColor);
+    margin: 10px;
+    flex: 1;
+  }
+
+  &__dialog-header {
+    margin: 20px;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+    margin-top: 15px;
+  }
+}
+
+ion-tab-bar {
+  --background: var(--whiteColor);
+  height: 60px;
+}
+
+ion-tab-button {
+  --color: var(--lightGrayColor);
+  --color-selected: var(--primaryColor);
+}
+
+ion-popover::part(content) {
+  border-radius: 10px;
+  bottom: unset !important;
+  top: 40%;
+}

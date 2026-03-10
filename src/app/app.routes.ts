@@ -26,11 +26,9 @@ export const routes: Routes = [
       import('./features/auth/auth.routes').then((m) => m.AUTH_ROUTES),
   },
   {
-    path: 'bottom-tab-bar',
+    path: 'tabs',
     loadComponent: () =>
-      import('./screens/bottom-tab-bar/bottom-tab-bar.page').then(
-        (m) => m.BottomTabBarPage
-      ),
+      import('./layout/tabs/tabs.page').then((m) => m.TabsPage),
     children: [
       {
         path: 'home',

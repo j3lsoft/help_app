@@ -3,8 +3,8 @@ import { Component, inject } from '@angular/core';
 import { App } from '@capacitor/app';
 import { StatusBar } from '@capacitor/status-bar';
 import { NavController, Platform } from '@ionic/angular';
-import { register } from 'swiper/element/bundle';
 import { IonApp, IonRouterOutlet, IonText } from '@ionic/angular/standalone';
+import { register } from 'swiper/element/bundle';
 
 register();
 
@@ -30,12 +30,12 @@ export class AppComponent {
     this.platform.backButton.subscribeWithPriority(10, () => {
       if (
         this.location.isCurrentPathEqualTo('/auth/login') ||
-        this.location.isCurrentPathEqualTo('/bottom-tab-bar/home') ||
-        this.location.isCurrentPathEqualTo('/bottom-tab-bar/notifications') ||
-        this.location.isCurrentPathEqualTo('/bottom-tab-bar/message') ||
-        this.location.isCurrentPathEqualTo('/bottom-tab-bar/profile') ||
-        this.location.isCurrentPathEqualTo('/auth/sign-in') ||
-        this.location.isCurrentPathEqualTo('/onboarding')
+        this.location.isCurrentPathEqualTo('/tabs/home') ||
+        this.location.isCurrentPathEqualTo('/tabs/notifications') ||
+        this.location.isCurrentPathEqualTo('/tabs/message') ||
+        this.location.isCurrentPathEqualTo('/tabs/profile') ||
+        this.location.isCurrentPathEqualTo('/tabs/auth/sign-in') ||
+        this.location.isCurrentPathEqualTo('/tabs/onboarding')
       ) {
         this.tap++;
         if (this.tap === 2) {

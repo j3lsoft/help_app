@@ -1,0 +1,180 @@
+<ion-tabs>
+  @if (showTabs()) {
+  <ion-tab-bar slot="bottom" mode="ios">
+    <ion-tab-button tab="home">
+      <ion-icon name="home-outline" class="tabs__icon--small"></ion-icon>
+    </ion-tab-button>
+    <ion-tab-button tab="notifications">
+      <ion-icon
+        name="notifications-outline"
+        class="tabs__icon--large"
+      ></ion-icon>
+    </ion-tab-button>
+    <ion-tab-button> </ion-tab-button>
+    <ion-tab-button tab="message">
+      <ion-icon
+        name="chatbubble-ellipses-outline"
+        class="tabs__icon--large"
+      ></ion-icon>
+    </ion-tab-button>
+    <ion-tab-button tab="profile">
+      <ion-icon name="person-outline" class="tabs__icon--small"></ion-icon>
+    </ion-tab-button>
+  </ion-tab-bar>
+  }
+</ion-tabs>
+
+@if (showDrawer()) {
+<ion-menu side="end" content-id="main-content" class="tabs__menu">
+  <ion-header mode="ios" [translucent]="false">
+    <ion-toolbar class="ion-no-padding tabs__menu-toolbar" color="whiteColor">
+      <div class="tabs__menu-header-wrapper">
+        <ion-text class="blackColor20SemiBold"> Settings </ion-text>
+      </div>
+    </ion-toolbar>
+  </ion-header>
+  <ion-content>
+    <div class="row margin20" style="align-items: flex-start">
+      <div
+        (click)="closeDrawer(); goTo('user-activity')"
+        class="rowAlignCenter"
+      >
+        <span class="material-icons tabs__menu-item-icon">av_timer</span>
+        <ion-text class="blackColor16SemiBold tabs__menu-item-label">
+          Your Activity
+        </ion-text>
+      </div>
+    </div>
+
+    <div class="row margin20" style="align-items: flex-start">
+      <div
+        (click)="closeDrawer(); goTo('/notifications')"
+        class="rowAlignCenter"
+      >
+        <ion-icon
+          name="notifications-outline"
+          color="blackColor"
+          class="tabs__menu-item-icon"
+        ></ion-icon>
+        <ion-text class="blackColor16SemiBold tabs__menu-item-label">
+          Notifications
+        </ion-text>
+      </div>
+    </div>
+
+    <div class="row margin20" style="align-items: flex-start">
+      <div
+        (click)="closeDrawer(); goTo('account-privacy')"
+        class="rowAlignCenter"
+      >
+        <span class="material-icons tabs__menu-item-icon"> lock_outline </span>
+        <ion-text class="blackColor16SemiBold tabs__menu-item-label">
+          Account Privacy
+        </ion-text>
+      </div>
+    </div>
+
+    <div class="row margin20" style="align-items: flex-start">
+      <div
+        (click)="closeDrawer(); goTo('block-accounts')"
+        class="rowAlignCenter"
+      >
+        <ion-icon
+          name="close-circle-outline"
+          color="blackColor"
+          class="tabs__menu-item-icon"
+        ></ion-icon>
+        <ion-text class="blackColor16SemiBold tabs__menu-item-label">
+          Block Accounts
+        </ion-text>
+      </div>
+    </div>
+
+    <div class="row margin20" style="align-items: flex-start">
+      <div
+        (click)="closeDrawer(); goTo('link-accounts')"
+        class="rowAlignCenter"
+      >
+        <span class="material-icons tabs__menu-item-icon"> attach_file </span>
+        <ion-text class="blackColor16SemiBold tabs__menu-item-label">
+          Link Accounts
+        </ion-text>
+      </div>
+    </div>
+
+    <div class="row margin20" style="align-items: flex-start">
+      <div (click)="closeDrawer(); goTo('about')" class="rowAlignCenter">
+        <span class="material-icons tabs__menu-item-icon"> info_outline </span>
+        <ion-text class="blackColor16SemiBold tabs__menu-item-label">
+          About
+        </ion-text>
+      </div>
+    </div>
+
+    <div class="row margin20" style="align-items: flex-start">
+      <div (click)="closeDrawer(); goTo('help')" class="rowAlignCenter">
+        <span class="material-icons tabs__menu-item-icon"> help_outline </span>
+        <ion-text class="blackColor16SemiBold tabs__menu-item-label">
+          Help
+        </ion-text>
+      </div>
+    </div>
+
+    <div
+      class="row margin20 tabs__menu-logout-section"
+      style="align-items: flex-start"
+    >
+      <div (click)="showDialog.set(true)" class="rowAlignCenter">
+        <span class="material-icons tabs__menu-item-icon--primary">
+          logout
+        </span>
+        <ion-text class="primaryColor16SemiBold tabs__menu-item-label">
+          Logout
+        </ion-text>
+      </div>
+    </div>
+
+    <ion-popover
+      mode="md"
+      [isOpen]="showDialog()"
+      class="tabs__popover"
+      (didDismiss)="showDialog.set(false)"
+    >
+      <ng-template>
+        <div class="tabs__popover-content">
+          <ion-text class="blackColor20SemiBold tabs__dialog-header">
+            Sure you want to logout?
+          </ion-text>
+          <div class="rowAlignCenter tabs__popover-footer">
+            <div class="tabs__popover-footer-item">
+              <ion-text
+                (click)="showDialog.set(false)"
+                class="primaryColor18Bold center tabs__cancel-button"
+              >
+                Cancel
+              </ion-text>
+            </div>
+            <div class="tabs__popover-footer-item">
+              <ion-text
+                (click)="logout()"
+                class="whiteColor18Bold center tabs__logout-button"
+              >
+                Logout
+              </ion-text>
+            </div>
+          </div>
+        </div>
+      </ng-template>
+    </ion-popover>
+  </ion-content>
+</ion-menu>
+} @if (showTabs()) {
+<div
+  (click)="goTo('/create-post')"
+  class="tabs__add-button center"
+  [class.tabs__add-button--ios]="platform.is('ios')"
+  [class.tabs__add-button--md]="!platform.is('ios')"
+>
+  <ion-icon icon="add" class="tabs__add-button-icon"></ion-icon>
+</div>
+}
