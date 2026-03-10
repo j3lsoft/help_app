@@ -9,7 +9,7 @@
     <ion-text class="whiteColor18Regular"> Verify Your Email </ion-text>
     <ion-text class="grayColor14Regular auth-verify__description">
       Please check your email and enter the verification code we just sent
-      you<br />{{ email }}
+      you<br />{{ email() }}
     </ion-text>
     <ion-text class="whiteColor16SemiBold"> Enter Code Here </ion-text>
     <ng-otp-input (onInputChange)="onChange($event)" [config]="config">
@@ -21,9 +21,9 @@
       Resend
     </ion-text>
 
-    @if (errorMessage) {
+    @if (errorMessage()) {
       <ion-text class="lightGrayColor14Regular auth-verify__error">
-        {{ errorMessage }}
+        {{ errorMessage() }}
       </ion-text>
     }
   </div>
@@ -34,8 +34,8 @@
 
   <ion-popover
     mode="md"
-    [isOpen]="showLoadingDialog"
-    (didDismiss)="showLoadingDialog = false"
+    [isOpen]="showLoadingDialog()"
+    (didDismiss)="showLoadingDialog.set(false)"
   >
     <ng-template>
       <div class="auth-verify__dialog">

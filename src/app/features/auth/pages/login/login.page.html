@@ -1,51 +1,72 @@
 <app-auth-header [title]="'Sign In'" [showBack]="false"></app-auth-header>
 
 <ion-content color="secondaryColor">
-  <div class="margin20">
-    <ion-text class="grayColor16Regular"> Email Address </ion-text>
-    <ion-input
-      [(ngModel)]="email"
-      name="email"
-      placeholder="Enter Email Address"
-      mode="ios"
-      class="whiteColor18Regular auth-form__input"
-      inputmode="email"
-    ></ion-input>
-    <div class="auth-form__divider"></div>
-  </div>
-
-  <div class="margin20 auth-form__field">
-    <ion-text class="grayColor16Regular"> Password </ion-text>
-    <div class="rowAlignCenter">
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <div class="margin20">
+      <ion-text class="grayColor16Regular"> Email or Username </ion-text>
       <ion-input
-        [(ngModel)]="password"
-        name="password"
-        placeholder="Enter Password"
+        formControlName="emailOrUsername"
+        name="emailOrUsername"
+        placeholder="Enter Email or Username"
         mode="ios"
-        class="whiteColor18Regular auth-form__input auth-form__input--password"
-        clearOnEdit="false"
-        inputmode="password"
-        [type]="showPassword?'text':'password'"
+        class="whiteColor18Regular auth-form__input"
+        inputmode="email"
+        autocomplete="username"
       ></ion-input>
-      <ion-icon
-        (click)="showPassword=!showPassword"
-        [name]="!showPassword?'eye-off-outline': 'eye-outline'"
-        color="whiteColor"
-        class="auth-form__toggle-icon"
-      ></ion-icon>
+      <div class="auth-form__divider"></div>
+      @if (isInvalid('emailOrUsername')) {
+        <ion-text class="redColor14SemiBold">
+          Please enter your email or username
+        </ion-text>
+      }
     </div>
 
-    <div class="auth-form__divider"></div>
-  </div>
+    <div class="margin20 auth-form__field">
+      <ion-text class="grayColor16Regular"> Password </ion-text>
+      <div class="rowAlignCenter">
+        <ion-input
+          formControlName="password"
+          name="password"
+          placeholder="Enter Password"
+          mode="ios"
+          class="whiteColor18Regular auth-form__input auth-form__input--password"
+          clearOnEdit="false"
+          inputmode="password"
+          autocomplete="current-password"
+          [type]="showPassword()?'text':'password'"
+        ></ion-input>
+        <ion-icon
+          (click)="showPassword.set(!showPassword())"
+          [name]="!showPassword()?'eye-off-outline': 'eye-outline'"
+          color="whiteColor"
+          class="auth-form__toggle-icon"
+        ></ion-icon>
+      </div>
 
-  <div class="ion-text-right auth-form__forgot-link">
-    <ion-text class="lightGrayColor14Regular"> Forget password? </ion-text>
-  </div>
+      <div class="auth-form__divider"></div>
+      @if (isInvalid('password')) {
+        <ion-text class="redColor14SemiBold">
+          Please enter your password (min 8 characters)
+        </ion-text>
+      }
+    </div>
 
-  <app-auth-primary-button
-    [label]="'Sign In'"
-    (clicked)="goTo('/auth/sign-up')"
-  ></app-auth-primary-button>
+    @if (serverError()) {
+      <ion-text class="redColor14SemiBold center auth-form__error">
+        {{ serverError() }}
+      </ion-text>
+    }
+
+    <div class="ion-text-right auth-form__forgot-link">
+      <ion-text class="lightGrayColor14Regular"> Forget password? </ion-text>
+    </div>
+
+    <app-auth-primary-button
+      [label]="'Sign In'"
+      [disabled]="form.invalid || isSubmitting()"
+      (clicked)="onSubmit()"
+    ></app-auth-primary-button>
+  </form>
 
   <ion-text class="grayColor16Regular center"> OR </ion-text>
 

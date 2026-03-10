@@ -1,4 +1,9 @@
-import { Component, OnInit, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  signal,
+} from '@angular/core';
 import { Router } from '@angular/router';
 import { NavController } from '@ionic/angular';
 import {
@@ -31,6 +36,7 @@ import { AuthSocialButtonsComponent } from '../../components/auth-social-buttons
   selector: 'app-register',
   templateUrl: './register.page.html',
   styleUrls: ['./register.page.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     IonIcon,
     IonText,
@@ -42,24 +48,17 @@ import { AuthSocialButtonsComponent } from '../../components/auth-social-buttons
     AuthSocialButtonsComponent,
   ],
 })
-export class RegisterPage implements OnInit {
+export class RegisterPage {
   private readonly navCtrl = inject(NavController);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
   private readonly authApi = inject(AuthApiService);
   private readonly storage = inject(AppStorageService);
 
-  constructor() {
-    addIcons({
-      eyeOffOutline,
-      eyeOutline,
-    });
-  }
-
-  showPassword = false;
-  showConfirmPwd = false;
-  isSubmitting = false;
-  serverError: string | null = null;
+  showPassword = signal(false);
+  showConfirmPwd = signal(false);
+  isSubmitting = signal(false);
+  serverError = signal<string | null>(null);
 
   form = this.fb.group(
     {
@@ -94,7 +93,12 @@ export class RegisterPage implements OnInit {
     }
   );
 
-  ngOnInit(): void {}
+  constructor() {
+    addIcons({
+      eyeOffOutline,
+      eyeOutline,
+    });
+  }
 
   goBack(): void {
     this.navCtrl.back();
@@ -110,14 +114,15 @@ export class RegisterPage implements OnInit {
   }
 
   async onSubmit(): Promise<void> {
-    this.serverError = null;
-    if (this.isSubmitting) {
+    this.serverError.set(null);
+    if (this.isSubmitting()) {
       return;
     }
 
     if (!environment.apiBaseUrl) {
-      this.serverError =
-        'API base URL is not configured. Please set environment.apiBaseUrl.';
+      this.serverError.set(
+        'API base URL is not configured. Please set environment.apiBaseUrl.'
+      );
       return;
     }
 
@@ -126,7 +131,7 @@ export class RegisterPage implements OnInit {
       return;
     }
 
-    this.isSubmitting = true;
+    this.isSubmitting.set(true);
     const value = this.form.getRawValue();
     try {
       await firstValueFrom(
@@ -152,9 +157,9 @@ export class RegisterPage implements OnInit {
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error('Register error', e);
-      this.serverError = this.mapRegisterError(e);
+      this.serverError.set(this.mapRegisterError(e));
     } finally {
-      this.isSubmitting = false;
+      this.isSubmitting.set(false);
     }
   }
 
