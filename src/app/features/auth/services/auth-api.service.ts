@@ -75,6 +75,22 @@ export class AuthApiService {
       .pipe(catchError((e) => this.normalizeError(e)));
   }
 
+  refresh() {
+    return this.http
+      .post<LoginResponseDto>(
+        `${this.baseUrl}/api/v1/auth/refresh`,
+        {},
+        { withCredentials: true }
+      )
+      .pipe(catchError((e) => this.normalizeError(e)));
+  }
+
+  getMe() {
+    return this.http
+      .get<LoginUserResponseDto>(`${this.baseUrl}/api/v1/auth/me`)
+      .pipe(catchError((e) => this.normalizeError(e)));
+  }
+
   private normalizeError(error: unknown) {
     if (error instanceof HttpErrorResponse) {
       return throwError(() => error);

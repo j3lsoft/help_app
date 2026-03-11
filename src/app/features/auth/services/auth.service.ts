@@ -1,8 +1,13 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { AppStorageService } from 'src/app/core/services/storage/app-storage.service';
 import { SecureStorageService } from 'src/app/core/services/storage/secure-storage.service';
 import { STORAGE_KEYS } from 'src/app/core/services/storage/storage-keys';
-import { LoginResponseDto, LoginUserResponseDto } from './auth-api.service';
+import {
+  AuthApiService,
+  LoginResponseDto,
+  LoginUserResponseDto,
+} from './auth-api.service';
 
 @Injectable({
   providedIn: 'root',
@@ -10,6 +15,7 @@ import { LoginResponseDto, LoginUserResponseDto } from './auth-api.service';
 export class AuthService {
   private readonly storage = inject(AppStorageService);
   private readonly secureStorage = inject(SecureStorageService);
+  private readonly authApi = inject(AuthApiService);
 
   private readonly _currentUser = signal<LoginUserResponseDto | null>(null);
   readonly currentUser = this._currentUser.asReadonly();
@@ -52,5 +58,27 @@ export class AuthService {
         await this.logout();
       }
     }
+  }
+
+  async getAccessToken(): Promise<string | null> {
+    return await this.secureStorage.get(STORAGE_KEYS.accessToken);
+  }
+
+  async refreshSession(): Promise<void> {
+    try {
+      const response = await firstValueFrom(this.authApi.refresh());
+      await this.login(response);
+    } catch (error) {
+      await this.logout();
+      throw error;
+    }
+  }
+
+  async fetchUserProfile(): Promise<LoginUserResponseDto> {
+    const user = await firstValueFrom(this.authApi.getMe());
+    this._currentUser.set(user);
+    // Sync with storage
+    await this.storage.setString(STORAGE_KEYS.userData, JSON.stringify(user));
+    return user;
   }
 }
