@@ -1,0 +1,17 @@
+.profile-tabs {
+  background-color: var(--whiteColor);
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.15);
+  margin-bottom: 2px;
+  margin-top: 5px;
+}
+
+ion-segment-button {
+  --color: var(--lightGrayColor);
+  --color-checked: var(--primaryColor);
+  --indicator-height: 1.5px;
+  --ripple-color: transparent;
+
+  ion-icon {
+    font-size: 24px;
+  }
+}

@@ -1,0 +1,19 @@
+<div class="profile-tabs">
+  <ion-segment
+    [value]="selectedTab()"
+    (ionChange)="onTabChange($event)"
+    mode="md"
+  >
+    <ion-segment-button value="All">
+      <span class="material-icons" style="font-size: 26px"> apps </span>
+    </ion-segment-button>
+    <ion-segment-button value="Videos">
+      <span class="material-icons" style="font-size: 24px">airplay</span>
+    </ion-segment-button>
+    <ion-segment-button value="Tags">
+      <span class="material-icons-outlined" style="font-size: 26px">
+        person_pin
+      </span>
+    </ion-segment-button>
+  </ion-segment>
+</div>

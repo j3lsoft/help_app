@@ -1,0 +1,45 @@
+<div class="profile-header__stats">
+  <div class="profile-header__stat-item">
+    <span class="profile-header__stat-value">{{ postsCount() }}</span>
+    <span class="profile-header__stat-label">posts</span>
+  </div>
+  <div class="profile-header__stat-item">
+    <span class="profile-header__stat-value">{{ videosCount() }}</span>
+    <span class="profile-header__stat-label">videos</span>
+  </div>
+  <div class="profile-header__stat-item" (click)="onFollowersClick.emit()">
+    <span class="profile-header__stat-value">{{ followersCount() }}</span>
+    <span class="profile-header__stat-label">followers</span>
+  </div>
+  <div class="profile-header__stat-item" (click)="onFollowingClick.emit()">
+    <span class="profile-header__stat-value">{{ followingCount() }}</span>
+    <span class="profile-header__stat-label">following</span>
+  </div>
+</div>
+
+<div class="profile-header__bio-section">
+  <div class="profile-header__bio-content">
+    <h2 class="profile-header__name">{{ name() }}</h2>
+    <p class="profile-header__category">{{ category() }}</p>
+    <p class="profile-header__description">{{ description() }}</p>
+    <p class="profile-header__social">
+      Find me on
+      <span class="profile-header__link">@{{ socialHandle() }}</span>
+    </p>
+    <p class="profile-header__website">
+      Website: <span class="profile-header__link">{{ website() }}</span>
+    </p>
+  </div>
+
+  <div
+    class="profile-header__image-container"
+    [class.profile-header__image-container--story]="storyAvailable()"
+    (click)="storyAvailable() ? onStoryClick.emit() : null"
+  >
+    <ion-img
+      [src]="profileImage()"
+      class="profile-header__image"
+      alt="Profile picture"
+    ></ion-img>
+  </div>
+</div>

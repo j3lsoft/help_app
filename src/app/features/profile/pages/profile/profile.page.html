@@ -1,0 +1,47 @@
+<ion-header mode="ios" [translucent]="false">
+  <ion-toolbar class="profile-page__toolbar" color="whiteColor">
+    <ion-text class="profile-page__username" style="margin-left: 20px">
+      {{ userProfile().username }}
+    </ion-text>
+    <ion-buttons slot="end">
+      <ion-menu-button mode="ios" color="blackColor"></ion-menu-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <app-profile-header
+    [name]="userProfile().name"
+    [category]="userProfile().category"
+    [description]="userProfile().description"
+    [socialHandle]="userProfile().socialHandle"
+    [website]="userProfile().website"
+    [profileImage]="userProfile().profileImage"
+    [postsCount]="userProfile().postsCount"
+    [videosCount]="userProfile().videosCount"
+    [followersCount]="userProfile().followersCount"
+    [followingCount]="userProfile().followingCount"
+    [storyAvailable]="isStoryAvailable()"
+    (onFollowersClick)="goTo('followers')"
+    (onFollowingClick)="goTo('followings')"
+    (onStoryClick)="goTo('open-story')"
+  ></app-profile-header>
+
+  <button
+    type="button"
+    class="profile-page__edit-button"
+    (click)="goTo('edit-profile')"
+  >
+    Edit Profile
+  </button>
+
+  <app-profile-tabs
+    [selectedTab]="selectedTab()"
+    (tabChange)="onTabChange($event)"
+  ></app-profile-tabs>
+
+  <app-profile-post-grid
+    [posts]="displayPosts()"
+    (onPostClick)="goTo('user-posts')"
+  ></app-profile-post-grid>
+</ion-content>

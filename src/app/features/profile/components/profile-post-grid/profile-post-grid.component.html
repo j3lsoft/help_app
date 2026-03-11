@@ -1,0 +1,24 @@
+<div class="profile-post-grid">
+  @for (item of posts(); track item.id) {
+  <div class="profile-post-grid__item">
+    <div class="profile-post-grid__media-container">
+      <ion-img
+        [src]="item.image"
+        class="profile-post-grid__image"
+        [alt]="'Post ' + item.id"
+        (click)="onPostClick.emit(item)"
+      ></ion-img>
+
+      @if (item.views) {
+      <div class="profile-post-grid__overlay">
+        <ion-icon
+          name="play-outline"
+          class="profile-post-grid__icon"
+        ></ion-icon>
+        <span class="profile-post-grid__views">{{ item.views }}</span>
+      </div>
+      }
+    </div>
+  </div>
+  }
+</div>

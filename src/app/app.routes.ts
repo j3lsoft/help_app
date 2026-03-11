@@ -60,8 +60,10 @@ export const routes: Routes = [
       },
       {
         path: 'profile',
-        loadComponent: () =>
-          import('./screens/profile/profile.page').then((m) => m.ProfilePage),
+        loadChildren: () =>
+          import('./features/profile/profile.routes').then(
+            (m) => m.PROFILE_ROUTES
+          ),
       },
       {
         path: '',
