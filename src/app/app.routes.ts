@@ -1,4 +1,6 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './core/guards/auth.guard';
+import { noAuthGuard } from './core/guards/no-auth.guard';
 import { onboardingSeenGuard } from './core/guards/onboarding-seen.guard';
 
 export const routes: Routes = [
@@ -22,11 +24,13 @@ export const routes: Routes = [
   },
   {
     path: 'auth',
+    canMatch: [noAuthGuard],
     loadChildren: () =>
       import('./features/auth/auth.routes').then((m) => m.AUTH_ROUTES),
   },
   {
     path: 'tabs',
+    canMatch: [authGuard],
     loadComponent: () =>
       import('./layout/tabs/tabs.page').then((m) => m.TabsPage),
     children: [
@@ -68,11 +72,13 @@ export const routes: Routes = [
   },
   {
     path: 'search',
+    canMatch: [authGuard],
     loadComponent: () =>
       import('./screens/search/search.page').then((m) => m.SearchPage),
   },
   {
     path: 'search-detail',
+    canMatch: [authGuard],
     loadComponent: () =>
       import('./screens/search-detail/search-detail.page').then(
         (m) => m.SearchDetailPage
@@ -80,6 +86,7 @@ export const routes: Routes = [
   },
   {
     path: 'create-story',
+    canMatch: [authGuard],
     loadComponent: () =>
       import('./screens/create-story/create-story.page').then(
         (m) => m.CreateStoryPage
@@ -87,11 +94,13 @@ export const routes: Routes = [
   },
   {
     path: 'story1',
+    canMatch: [authGuard],
     loadComponent: () =>
       import('./screens/story1/story1.page').then((m) => m.Story1Page),
   },
   {
     path: 'open-story',
+    canMatch: [authGuard],
     loadComponent: () =>
       import('./screens/open-story/open-story.page').then(
         (m) => m.OpenStoryPage
@@ -99,6 +108,7 @@ export const routes: Routes = [
   },
   {
     path: 'user-profile',
+    canMatch: [authGuard],
     loadComponent: () =>
       import('./screens/user-profile/user-profile.page').then(
         (m) => m.UserProfilePage
@@ -106,11 +116,13 @@ export const routes: Routes = [
   },
   {
     path: 'followers',
+    canMatch: [authGuard],
     loadComponent: () =>
       import('./screens/followers/followers.page').then((m) => m.FollowersPage),
   },
   {
     path: 'followings',
+    canMatch: [authGuard],
     loadComponent: () =>
       import('./screens/followings/followings.page').then(
         (m) => m.FollowingsPage
@@ -118,6 +130,7 @@ export const routes: Routes = [
   },
   {
     path: 'user-posts',
+    canMatch: [authGuard],
     loadComponent: () =>
       import('./screens/user-posts/user-posts.page').then(
         (m) => m.UserPostsPage
@@ -125,16 +138,19 @@ export const routes: Routes = [
   },
   {
     path: 'videos',
+    canMatch: [authGuard],
     loadComponent: () =>
       import('./screens/videos/videos.page').then((m) => m.VideosPage),
   },
   {
     path: 'comments',
+    canMatch: [authGuard],
     loadComponent: () =>
       import('./screens/comments/comments.page').then((m) => m.CommentsPage),
   },
   {
     path: 'follow-requests',
+    canMatch: [authGuard],
     loadComponent: () =>
       import('./screens/follow-requests/follow-requests.page').then(
         (m) => m.FollowRequestsPage
@@ -142,6 +158,7 @@ export const routes: Routes = [
   },
   {
     path: 'post-filter/:imageUrl',
+    canMatch: [authGuard],
     loadComponent: () =>
       import('./screens/post-filter/post-filter.page').then(
         (m) => m.PostFilterPage
@@ -149,6 +166,7 @@ export const routes: Routes = [
   },
   {
     path: 'post-caption-and-tag/:imageUrl',
+    canMatch: [authGuard],
     loadComponent: () =>
       import('./screens/post-caption-and-tag/post-caption-and-tag.page').then(
         (m) => m.PostCaptionAndTagPage
@@ -156,11 +174,13 @@ export const routes: Routes = [
   },
   {
     path: 'chat',
+    canMatch: [authGuard],
     loadComponent: () =>
       import('./screens/chat/chat.page').then((m) => m.ChatPage),
   },
   {
     path: 'video-call',
+    canMatch: [authGuard],
     loadComponent: () =>
       import('./screens/video-call/video-call.page').then(
         (m) => m.VideoCallPage
@@ -168,11 +188,13 @@ export const routes: Routes = [
   },
   {
     path: 'call',
+    canMatch: [authGuard],
     loadComponent: () =>
       import('./screens/call/call.page').then((m) => m.CallPage),
   },
   {
     path: 'search-chat',
+    canMatch: [authGuard],
     loadComponent: () =>
       import('./screens/search-chat/search-chat.page').then(
         (m) => m.SearchChatPage
@@ -180,6 +202,7 @@ export const routes: Routes = [
   },
   {
     path: 'edit-profile',
+    canMatch: [authGuard],
     loadComponent: () =>
       import('./screens/edit-profile/edit-profile.page').then(
         (m) => m.EditProfilePage
@@ -187,6 +210,7 @@ export const routes: Routes = [
   },
   {
     path: 'user-activity',
+    canMatch: [authGuard],
     loadComponent: () =>
       import('./screens/user-activity/user-activity.page').then(
         (m) => m.UserActivityPage
@@ -194,6 +218,7 @@ export const routes: Routes = [
   },
   {
     path: 'account-privacy',
+    canMatch: [authGuard],
     loadComponent: () =>
       import('./screens/account-privacy/account-privacy.page').then(
         (m) => m.AccountPrivacyPage
@@ -201,6 +226,7 @@ export const routes: Routes = [
   },
   {
     path: 'block-accounts',
+    canMatch: [authGuard],
     loadComponent: () =>
       import('./screens/block-accounts/block-accounts.page').then(
         (m) => m.BlockAccountsPage
@@ -208,6 +234,7 @@ export const routes: Routes = [
   },
   {
     path: 'link-accounts',
+    canMatch: [authGuard],
     loadComponent: () =>
       import('./screens/link-accounts/link-accounts.page').then(
         (m) => m.LinkAccountsPage
@@ -215,16 +242,19 @@ export const routes: Routes = [
   },
   {
     path: 'about',
+    canMatch: [authGuard],
     loadComponent: () =>
       import('./screens/about/about.page').then((m) => m.AboutPage),
   },
   {
     path: 'help',
+    canMatch: [authGuard],
     loadComponent: () =>
       import('./screens/help/help.page').then((m) => m.HelpPage),
   },
   {
     path: 'help-detail/:title',
+    canMatch: [authGuard],
     loadComponent: () =>
       import('./screens/help-detail/help-detail.page').then(
         (m) => m.HelpDetailPage
