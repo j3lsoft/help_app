@@ -1,3 +1,4 @@
+import { NgClass } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -47,6 +48,7 @@ import { AuthService } from 'src/app/features/auth/services/auth.service';
     IonText,
     IonContent,
     IonPopover,
+    NgClass,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

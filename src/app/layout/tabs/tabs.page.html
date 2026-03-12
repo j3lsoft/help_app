@@ -172,8 +172,7 @@
 <div
   (click)="goTo('/create-post')"
   class="tabs__add-button center"
-  [class.tabs__add-button--ios]="platform.is('ios')"
-  [class.tabs__add-button--md]="!platform.is('ios')"
+  [ngClass]="platform.is('ios') ? 'tabs__add-button--ios' : 'tabs__add-button--md'"
 >
   <ion-icon icon="add" class="tabs__add-button-icon"></ion-icon>
 </div>
