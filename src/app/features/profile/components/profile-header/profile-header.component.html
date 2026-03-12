@@ -7,11 +7,11 @@
     <span class="profile-header__stat-value">{{ videosCount() }}</span>
     <span class="profile-header__stat-label">videos</span>
   </div>
-  <div class="profile-header__stat-item" (click)="onFollowersClick.emit()">
+  <div class="profile-header__stat-item" (click)="followersClick.emit()">
     <span class="profile-header__stat-value">{{ followersCount() }}</span>
     <span class="profile-header__stat-label">followers</span>
   </div>
-  <div class="profile-header__stat-item" (click)="onFollowingClick.emit()">
+  <div class="profile-header__stat-item" (click)="followingClick.emit()">
     <span class="profile-header__stat-value">{{ followingCount() }}</span>
     <span class="profile-header__stat-label">following</span>
   </div>
@@ -34,7 +34,7 @@
   <div
     class="profile-header__image-container"
     [class.profile-header__image-container--story]="storyAvailable()"
-    (click)="storyAvailable() ? onStoryClick.emit() : null"
+    (click)="storyAvailable() ? storyClick.emit() : null"
   >
     <ion-img
       [src]="profileImage()"

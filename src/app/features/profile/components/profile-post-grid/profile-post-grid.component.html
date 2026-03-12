@@ -6,7 +6,7 @@
         [src]="item.image"
         class="profile-post-grid__image"
         [alt]="'Post ' + item.id"
-        (click)="onPostClick.emit(item)"
+        (click)="postClick.emit(item)"
       ></ion-img>
 
       @if (item.views) {

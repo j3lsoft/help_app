@@ -1,8 +1,8 @@
 import {
-  ChangeDetectionStrategy,
-  Component,
-  input,
-  output,
+    ChangeDetectionStrategy,
+    Component,
+    input,
+    output,
 } from '@angular/core';
 import { IonImg } from '@ionic/angular/standalone';
 
@@ -27,7 +27,7 @@ export class ProfileHeaderComponent {
   followingCount = input.required<string | number>();
   storyAvailable = input<boolean>(false);
 
-  onFollowersClick = output<void>();
-  onFollowingClick = output<void>();
-  onStoryClick = output<void>();
+  followersClick = output<void>();
+  followingClick = output<void>();
+  storyClick = output<void>();
 }

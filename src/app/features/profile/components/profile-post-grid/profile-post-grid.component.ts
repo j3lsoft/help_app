@@ -24,7 +24,7 @@ export interface PostItem {
 })
 export class ProfilePostGridComponent {
   posts = input.required<PostItem[]>();
-  onPostClick = output<PostItem>();
+  postClick = output<PostItem>();
 
   constructor() {
     addIcons({ playOutline });
