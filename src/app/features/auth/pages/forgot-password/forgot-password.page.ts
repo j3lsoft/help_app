@@ -7,66 +7,53 @@ import {
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import {
-  IonContent,
-  IonIcon,
-  IonInput,
-  IonText,
-} from '@ionic/angular/standalone';
-import { addIcons } from 'ionicons';
-import { eyeOffOutline, eyeOutline } from 'ionicons/icons';
+import { NavController } from '@ionic/angular';
+import { IonContent, IonInput, IonText } from '@ionic/angular/standalone';
 import { firstValueFrom } from 'rxjs';
+import { AppStorageService } from 'src/app/core/services/storage/app-storage.service';
+import { STORAGE_KEYS } from 'src/app/core/services/storage/storage-keys';
 import { AuthHeaderComponent } from '../../components/auth-header/auth-header.component';
 import { AuthPrimaryButtonComponent } from '../../components/auth-primary-button/auth-primary-button.component';
-import { AuthSocialButtonsComponent } from '../../components/auth-social-buttons/auth-social-buttons.component';
 import { AuthApiService } from '../../services/auth-api.service';
-import { AuthService } from '../../services/auth.service';
 
 @Component({
-  selector: 'app-login',
-  templateUrl: './login.page.html',
-  styleUrls: ['./login.page.scss'],
+  selector: 'app-forgot-password',
+  templateUrl: './forgot-password.page.html',
+  styleUrls: ['./forgot-password.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    IonText,
     IonContent,
+    IonText,
     IonInput,
-    IonIcon,
     ReactiveFormsModule,
     AuthHeaderComponent,
     AuthPrimaryButtonComponent,
-    AuthSocialButtonsComponent,
   ],
 })
-export class LoginPage {
+export class ForgotPasswordPage {
+  private readonly navCtrl = inject(NavController);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
   private readonly authApi = inject(AuthApiService);
-  private readonly authService = inject(AuthService);
+  private readonly storage = inject(AppStorageService);
 
-  showPassword = signal(false);
   isSubmitting = signal(false);
   serverError = signal<string | null>(null);
 
   form = this.fb.group({
-    emailOrUsername: this.fb.nonNullable.control('', [Validators.required]),
-    password: this.fb.nonNullable.control('', [
+    email: this.fb.nonNullable.control('', [
       Validators.required,
+      Validators.email,
     ]),
   });
 
-  constructor() {
-    addIcons({
-      eyeOutline,
-      eyeOffOutline,
-    });
+  goBack(): void {
+    this.navCtrl.back();
   }
 
-  goTo(screen: string): void {
-    this.router.navigateByUrl(screen);
-  }
-
-  isInvalid(controlName: keyof LoginPage['form']['controls']): boolean {
+  isInvalid(
+    controlName: keyof ForgotPasswordPage['form']['controls']
+  ): boolean {
     const control = this.form.controls[controlName];
     return control.invalid && (control.dirty || control.touched);
   }
@@ -83,31 +70,35 @@ export class LoginPage {
     }
 
     this.isSubmitting.set(true);
-    const value = this.form.getRawValue();
+    const email = this.form.controls.email.value.trim();
+
     try {
-      const response = await firstValueFrom(
-        this.authApi.login({
-          emailOrUsername: value.emailOrUsername.trim(),
-          password: value.password,
-        })
+      await firstValueFrom(this.authApi.requestPasswordReset({ email }));
+      await this.storage.setString(
+        STORAGE_KEYS.pendingPasswordResetEmail,
+        email
       );
 
-      await this.authService.login(response);
-      await this.router.navigateByUrl('/tabs/home');
+      await this.router.navigate(['/auth/verify-reset-otp'], {
+        queryParams: { email },
+      });
     } catch (e) {
-      this.serverError.set(this.mapLoginError(e));
+      this.serverError.set(this.mapError(e));
     } finally {
       this.isSubmitting.set(false);
     }
   }
 
-  private mapLoginError(error: unknown): string {
+  private mapError(error: unknown): string {
     if (error instanceof HttpErrorResponse) {
-      if (error.status === 401) {
-        return 'Invalid email or password.';
+      if (error.status === 0) {
+        return 'Network error. Please try again.';
       }
-      if (error.status === 403) {
-        return 'Please verify your email before logging in.';
+      if (error.status === 422) {
+        return 'Please enter a valid email.';
+      }
+      if (error.status === 429) {
+        return 'Too many requests. Please try again later.';
       }
       return 'Something went wrong. Please try again.';
     }

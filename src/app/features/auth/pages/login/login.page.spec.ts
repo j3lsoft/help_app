@@ -1,11 +1,11 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
 import { ReactiveFormsModule } from '@angular/forms';
-import { LoginPage } from './login.page';
+import { Router } from '@angular/router';
+import { of, throwError } from 'rxjs';
 import { AuthApiService } from '../../services/auth-api.service';
 import { AuthService } from '../../services/auth.service';
-import { of, throwError } from 'rxjs';
-import { HttpErrorResponse } from '@angular/common/http';
+import { LoginPage } from './login.page';
 
 describe('LoginPage', () => {
   let component: LoginPage;
@@ -82,8 +82,6 @@ describe('LoginPage', () => {
     await component.onSubmit();
 
     expect(authServiceMock.login).toHaveBeenCalledWith(loginResponse);
-    expect(routerMock.navigateByUrl).toHaveBeenCalledWith(
-      '/bottom-tab-bar/home'
-    );
+    expect(routerMock.navigateByUrl).toHaveBeenCalledWith('/tabs/home');
   });
 });

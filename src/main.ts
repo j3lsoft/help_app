@@ -7,6 +7,7 @@ import {
 
 import {
   provideHttpClient,
+  withFetch,
   withInterceptors,
   withInterceptorsFromDi,
 } from '@angular/common/http';
@@ -43,7 +44,7 @@ bootstrapApplication(AppComponent, {
     provideIonicAngular(),
     provideRouter(routes, withPreloading(PreloadAllModules)),
     provideHttpClient(
-      withInterceptorsFromDi(),
+      withFetch(),
       withInterceptors([authInterceptor])
     ),
     provideAppInitializer(() => {

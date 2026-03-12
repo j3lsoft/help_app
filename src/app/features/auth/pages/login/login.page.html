@@ -15,9 +15,9 @@
       ></ion-input>
       <div class="auth-form__divider"></div>
       @if (isInvalid('emailOrUsername')) {
-        <ion-text class="redColor14SemiBold">
-          Please enter your email or username
-        </ion-text>
+      <ion-text class="redColor14SemiBold">
+        Please enter your email or username
+      </ion-text>
       }
     </div>
 
@@ -45,20 +45,25 @@
 
       <div class="auth-form__divider"></div>
       @if (isInvalid('password')) {
-        <ion-text class="redColor14SemiBold">
-          Please enter your password (min 8 characters)
-        </ion-text>
+      <ion-text class="redColor14SemiBold">
+        Please enter your password (min 8 characters)
+      </ion-text>
       }
     </div>
 
     @if (serverError()) {
-      <ion-text class="redColor14SemiBold center auth-form__error">
-        {{ serverError() }}
-      </ion-text>
+    <ion-text class="redColor14SemiBold center auth-form__error">
+      {{ serverError() }}
+    </ion-text>
     }
 
     <div class="ion-text-right auth-form__forgot-link">
-      <ion-text class="lightGrayColor14Regular"> Forget password? </ion-text>
+      <ion-text
+        class="lightGrayColor14Regular"
+        (click)="goTo('/auth/forgot-password')"
+      >
+        Forget password?
+      </ion-text>
     </div>
 
     <app-auth-primary-button
