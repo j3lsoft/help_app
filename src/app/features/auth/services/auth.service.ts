@@ -1,4 +1,5 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { AppStorageService } from 'src/app/core/services/storage/app-storage.service';
 import { SecureStorageService } from 'src/app/core/services/storage/secure-storage.service';
@@ -16,6 +17,7 @@ export class AuthService {
   private readonly storage = inject(AppStorageService);
   private readonly secureStorage = inject(SecureStorageService);
   private readonly authApi = inject(AuthApiService);
+  private readonly router = inject(Router);
 
   private readonly _currentUser = signal<LoginUserResponseDto | null>(null);
   readonly currentUser = this._currentUser.asReadonly();
@@ -42,6 +44,7 @@ export class AuthService {
     await this.secureStorage.remove(STORAGE_KEYS.accessToken);
     await this.storage.remove(STORAGE_KEYS.userData);
     this._currentUser.set(null);
+    await this.router.navigateByUrl('/auth/sign-in', { replaceUrl: true });
   }
 
   async restoreSession(): Promise<void> {

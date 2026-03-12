@@ -19,7 +19,7 @@ import {
 import { AuthService } from '../../features/auth/services/auth.service';
 
 let isRefreshing = false;
-const refreshTokenSubject: BehaviorSubject<string | null> = new BehaviorSubject<
+let refreshTokenSubject: BehaviorSubject<string | null> = new BehaviorSubject<
   string | null
 >(null);
 
@@ -83,8 +83,11 @@ const handle401Error = (
       }),
       catchError((err) => {
         isRefreshing = false;
-        refreshTokenSubject.error(err); // This will error out all waiting requests
-        return throwError(() => err);
+        refreshTokenSubject.error(err); // Error out all waiting requests
+        refreshTokenSubject = new BehaviorSubject<string | null>(null);
+        return from(authService.logout()).pipe(
+          switchMap(() => throwError(() => err))
+        );
       })
     );
   } else {

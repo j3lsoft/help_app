@@ -30,6 +30,7 @@ import {
   personOutline,
 } from 'ionicons/icons';
 import { filter } from 'rxjs';
+import { AuthService } from 'src/app/features/auth/services/auth.service';
 
 @Component({
   selector: 'app-tabs',
@@ -54,6 +55,7 @@ export class TabsPage {
   private readonly router = inject(Router);
   private readonly popOverCtrl = inject(PopoverController);
   private readonly menuCtrl = inject(MenuController);
+  private readonly authService = inject(AuthService);
 
   private readonly navigationEnd = toSignal(
     this.router.events.pipe(
@@ -92,10 +94,10 @@ export class TabsPage {
     this.menuCtrl.close();
   }
 
-  logout(): void {
+  async logout(): Promise<void> {
     this.showDialog.set(false);
-    this.popOverCtrl.dismiss();
-    this.menuCtrl.close();
-    this.router.navigateByUrl('/auth/sign-in');
+    await this.popOverCtrl.dismiss();
+    await this.menuCtrl.close();
+    await this.authService.logout();
   }
 }
