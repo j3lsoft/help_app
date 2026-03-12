@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { ToastController, IonicModule } from '@ionic/angular';
-import { SwipeItemComponent } from '../../components/swipe-item/swipe-item.component';
+import { SwipeItemComponent } from '../../shared/components/swipe-item/swipe-item.component';
 import { NgIf, NgFor } from '@angular/common';
 
 @Component({

@@ -1,0 +1,163 @@
+<div class="wrapper" #wrapper></div>
+<ion-item #item mode="ios" lines="none" color="whiteColor" class="swipe-item">
+  <div class="itemWrapper">
+    @if (noti.type === 'following') {
+    <div class="rowAlignCenter swipe-item__row">
+      <ion-img [src]="noti.userProfilePic" class="userImage"> </ion-img>
+      <div
+        class="column swipe-item__content swipe-item__content--with-left-gap"
+      >
+        <ion-text class="blackColor14SemiBold">
+          {{ noti.userName }} started following you
+        </ion-text>
+        <ion-text class="grayColor12Regular swipe-item__time">
+          {{ noti.notificationTime }}
+        </ion-text>
+      </div>
+    </div>
+    } @if (noti.type === 'likeMorePhotos') {
+    <div class="row swipe-item__row">
+      <ion-img [src]="noti.userProfilePic" class="userImage"> </ion-img>
+      <div class="column swipe-item__content">
+        <ion-text
+          class="blackColor14SemiBold swipe-item__title swipe-item__title--with-left-gap"
+        >
+          {{ noti.userName }} liked {{ noti.likedPohotos.length }} photos
+        </ion-text>
+
+        <div class="row swipe-item__liked-photos">
+          @for ( i of (noti.likedPohotos.length >= 4 ?
+          noti.likedPohotos.slice(0, 4) : noti.likedPohotos); track i.photo ) {
+          <div>
+            <ion-img
+              [src]="i.photo"
+              class="likePhotos"
+              [class.swipe-item__like-photo--small]="
+                noti.likedPohotos.length >= 4
+              "
+              [class.swipe-item__like-photo--large]="
+                noti.likedPohotos.length < 4
+              "
+            >
+            </ion-img>
+          </div>
+          }
+        </div>
+
+        <ion-text
+          class="grayColor12Regular swipe-item__time swipe-item__time--with-left-gap"
+        >
+          {{ noti.notificationTime }}
+        </ion-text>
+      </div>
+    </div>
+    } @if (noti.type === 'likeOnePhoto') {
+    <div class="rowAlignCenter swipe-item__row swipe-item__row--space-between">
+      <ion-img [src]="noti.userProfilePic" class="userImage"> </ion-img>
+      <div
+        class="column swipe-item__content swipe-item__content--with-left-gap"
+      >
+        <ion-text class="blackColor14SemiBold">
+          {{ noti.userName }} liked your photo
+        </ion-text>
+        <ion-text class="grayColor12Regular">
+          {{ noti.notificationTime }}
+        </ion-text>
+      </div>
+      <ion-img
+        (click)="goTo('user-posts')"
+        [src]="noti.likedPhoto"
+        class="image60"
+      >
+      </ion-img>
+    </div>
+    } @if (noti.type === 'mention') {
+    <div class="row swipe-item__row swipe-item__row--space-between">
+      <ion-img [src]="noti.userProfilePic" class="userImage"> </ion-img>
+      <div
+        class="column swipe-item__content swipe-item__content--with-horizontal-gap"
+      >
+        <ion-text class="blackColor14Bold">
+          {{ noti.userName }}
+          <ion-text class="blackColor14SemiBold">
+            mentioned you in a commented :
+          </ion-text>
+          <ion-text class="blueColor14SemiBold">
+            {{ noti.mantionUserName }}
+          </ion-text>
+          <ion-text class="blackColor14SemiBold">
+            {{ noti.comment }}
+          </ion-text>
+        </ion-text>
+        <ion-text class="grayColor12Regular">
+          {{ noti.notificationTime }}
+        </ion-text>
+      </div>
+      <ion-img
+        (click)="goTo('comments')"
+        [src]="noti.mentionPhoto"
+        class="image60"
+      >
+      </ion-img>
+    </div>
+    } @if (noti.type === 'likeByMore') {
+    <div class="row swipe-item__row swipe-item__row--space-between">
+      <div class="row swipe-item__row swipe-item__content">
+        <div class="swipe-item__avatar-stack">
+          <div class="swipe-item__avatar-stack-inner">
+            <ion-img
+              class="imageCommon swipe-item__avatar-stack-primary"
+              [src]="noti.userProfilePics[0].userProfilePic"
+            >
+            </ion-img>
+            <ion-img
+              class="imageCommon positionImage"
+              [src]="noti.userProfilePics[1].userProfilePic"
+            >
+            </ion-img>
+          </div>
+        </div>
+        <div
+          class="column swipe-item__content swipe-item__content--with-horizontal-gap"
+        >
+          <ion-text class="blackColor14SemiBold">
+            {{ noti.userProfileNames[0] }} , {{ noti.userProfileNames[1] }} and
+            {{ noti.userProfileNames.length - 2 }} others liked your photo
+          </ion-text>
+          <ion-text class="grayColor12Regular">
+            {{ noti.notificationTime }}
+          </ion-text>
+        </div>
+      </div>
+      <ion-img
+        (click)="goTo('user-posts')"
+        [src]="noti.likedPhoto"
+        class="image60"
+      >
+      </ion-img>
+    </div>
+    } @if (noti.type === 'seeOldPost') {
+    <div class="row swipe-item__row swipe-item__row--space-between">
+      <div class="row swipe-item__row swipe-item__content">
+        <div class="center historyWrapper">
+          <span class="material-icons swipe-item__history-icon"> history </span>
+        </div>
+        <div
+          class="column swipe-item__content swipe-item__content--with-horizontal-gap"
+        >
+          <ion-text class="blackColor14SemiBold">
+            See your post from {{ noti.postTime }} {{ noti.seeTime }}
+          </ion-text>
+          <ion-text class="grayColor12Regular">
+            {{ noti.notificationTime }}
+          </ion-text>
+        </div>
+      </div>
+      <ion-img (click)="goTo('user-posts')" [src]="noti.post" class="image60">
+      </ion-img>
+    </div>
+    }
+
+    <div class="swipe-item__divider"></div>
+  </div>
+</ion-item>
