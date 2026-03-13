@@ -8,7 +8,6 @@ import {
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router } from '@angular/router';
-import { MenuController, Platform, PopoverController } from '@ionic/angular';
 import {
   IonContent,
   IonHeader,
@@ -20,6 +19,9 @@ import {
   IonTabs,
   IonText,
   IonToolbar,
+  MenuController,
+  Platform,
+  PopoverController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {

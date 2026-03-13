@@ -48,7 +48,7 @@
 
     <div class="row margin20" style="align-items: flex-start">
       <div
-        (click)="closeDrawer(); goTo('/notifications')"
+        (click)="closeDrawer(); goTo('/tabs/notifications')"
         class="rowAlignCenter"
       >
         <ion-icon
@@ -70,6 +70,15 @@
         <span class="material-icons tabs__menu-item-icon"> lock_outline </span>
         <ion-text class="blackColor16SemiBold tabs__menu-item-label">
           Account Privacy
+        </ion-text>
+      </div>
+    </div>
+
+    <div class="row margin20" style="align-items: flex-start">
+      <div (click)="closeDrawer(); goTo('security')" class="rowAlignCenter">
+        <span class="material-icons tabs__menu-item-icon"> security </span>
+        <ion-text class="blackColor16SemiBold tabs__menu-item-label">
+          Security
         </ion-text>
       </div>
     </div>
@@ -170,7 +179,7 @@
 </ion-menu>
 } @if (showTabs()) {
 <div
-  (click)="goTo('/create-post')"
+  (click)="goTo('tabs/create-post')"
   class="tabs__add-button center"
   [ngClass]="platform.is('ios') ? 'tabs__add-button--ios' : 'tabs__add-button--md'"
 >
