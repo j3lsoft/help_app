@@ -11,8 +11,8 @@ export const routes: Routes = [
   },
   {
     path: 'splash',
-    loadComponent: () =>
-      import('./screens/splash/splash.page').then((m) => m.SplashPage),
+    loadChildren: () =>
+      import('./features/splash/splash.routes').then((m) => m.SPLASH_ROUTES),
   },
   {
     path: 'onboarding',
@@ -224,6 +224,22 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./screens/account-privacy/account-privacy.page').then(
         (m) => m.AccountPrivacyPage
+      ),
+  },
+  {
+    path: 'security',
+    canMatch: [authGuard],
+    loadComponent: () =>
+      import('./features/settings/pages/security/security.page').then(
+        (m) => m.SecurityPage
+      ),
+  },
+  {
+    path: 'change-password',
+    canMatch: [authGuard],
+    loadComponent: () =>
+      import('./features/settings/pages/change-password/change-password.page').then(
+        (m) => m.ChangePasswordPage
       ),
   },
   {
