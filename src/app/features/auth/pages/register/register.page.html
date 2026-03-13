@@ -18,9 +18,9 @@
       ></ion-input>
       <div class="auth-form__divider"></div>
       @if (isInvalid('name')) {
-        <ion-text class="redColor14SemiBold">
-          Please enter a valid name
-        </ion-text>
+      <ion-text class="redColor14SemiBold">
+        Please enter a valid name
+      </ion-text>
       }
     </div>
 
@@ -36,9 +36,9 @@
       ></ion-input>
       <div class="auth-form__divider"></div>
       @if (isInvalid('username')) {
-        <ion-text class="redColor14SemiBold">
-          Please enter a valid username
-        </ion-text>
+      <ion-text class="redColor14SemiBold">
+        Please enter a valid username
+      </ion-text>
       }
     </div>
 
@@ -54,9 +54,9 @@
       ></ion-input>
       <div class="auth-form__divider"></div>
       @if (isInvalid('birthDate')) {
-        <ion-text class="redColor14SemiBold">
-          Please enter a valid birth date
-        </ion-text>
+      <ion-text class="redColor14SemiBold">
+        Please enter a valid birth date
+      </ion-text>
       }
     </div>
 
@@ -73,9 +73,9 @@
       ></ion-input>
       <div class="auth-form__divider"></div>
       @if (isInvalid('email')) {
-        <ion-text class="redColor14SemiBold">
-          Please enter a valid email
-        </ion-text>
+      <ion-text class="redColor14SemiBold">
+        Please enter a valid email
+      </ion-text>
       }
     </div>
 
@@ -92,65 +92,64 @@
           inputmode="password"
           autocomplete="new-password"
           [type]="showPassword()?'text':'password'"
-      ></ion-input>
-      <ion-icon
-        (click)="showPassword.set(!showPassword())"
-        [name]="!showPassword()?'eye-off-outline': 'eye-outline'"
-        color="whiteColor"
-        class="auth-form__toggle-icon"
-      ></ion-icon>
+        ></ion-input>
+        <ion-icon
+          (click)="showPassword.set(!showPassword())"
+          [name]="!showPassword()?'eye-off-outline': 'eye-outline'"
+          color="whiteColor"
+          class="auth-form__toggle-icon"
+        ></ion-icon>
+      </div>
+
+      <div class="auth-form__divider"></div>
+      @if (isInvalid('password')) {
+      <ion-text class="redColor14SemiBold">
+        Password must be at least 8 characters and include 1 number and 1
+        special character
+      </ion-text>
+      }
     </div>
 
-    <div class="auth-form__divider"></div>
-    @if (isInvalid('password')) {
-      <ion-text class="redColor14SemiBold">
-        Password must be at least 8 characters and include 1 number and 1 special character
-      </ion-text>
-    }
-  </div>
+    <div class="margin20 auth-form__field">
+      <ion-text class="grayColor16Regular"> Confirm Password </ion-text>
+      <div class="rowAlignCenter">
+        <ion-input
+          formControlName="confirmPassword"
+          name="confirmPassword"
+          placeholder="Enter Confirm Password"
+          mode="ios"
+          class="whiteColor18Regular auth-form__input auth-form__input--password"
+          clearOnEdit="false"
+          inputmode="password"
+          autocomplete="new-password"
+          [type]="showConfirmPwd()?'text':'password'"
+        ></ion-input>
+        <ion-icon
+          (click)="showConfirmPwd.set(!showConfirmPwd())"
+          [name]="!showConfirmPwd()?'eye-off-outline': 'eye-outline'"
+          color="whiteColor"
+          class="auth-form__toggle-icon"
+        ></ion-icon>
+      </div>
 
-  <div class="margin20 auth-form__field">
-    <ion-text class="grayColor16Regular"> Confirm Password </ion-text>
-    <div class="rowAlignCenter">
-      <ion-input
-        formControlName="confirmPassword"
-        name="confirmPassword"
-        placeholder="Enter Confirm Password"
-        mode="ios"
-        class="whiteColor18Regular auth-form__input auth-form__input--password"
-        clearOnEdit="false"
-        inputmode="password"
-        autocomplete="new-password"
-        [type]="showConfirmPwd()?'text':'password'"
-      ></ion-input>
-      <ion-icon
-        (click)="showConfirmPwd.set(!showConfirmPwd())"
-        [name]="!showConfirmPwd()?'eye-off-outline': 'eye-outline'"
-        color="whiteColor"
-        class="auth-form__toggle-icon"
-      ></ion-icon>
+      <div class="auth-form__divider"></div>
+      @if ((form.touched || form.dirty) && form.hasError('passwordsMismatch')) {
+      <ion-text class="redColor14SemiBold"> Passwords do not match </ion-text>
+      }
     </div>
 
-    <div class="auth-form__divider"></div>
-    @if ((form.touched || form.dirty) && form.hasError('passwordsMismatch')) {
-      <ion-text class="redColor14SemiBold">
-        Passwords do not match
-      </ion-text>
-    }
-  </div>
-
-  @if (serverError()) {
+    @if (serverError()) {
     <ion-text class="redColor14SemiBold center auth-form__error">
       {{ serverError() }}
     </ion-text>
-  }
+    }
 
-  <app-auth-primary-button
-    class="auth-form__submit"
-    [label]="'Sign Up'"
-    [disabled]="form.invalid || isSubmitting()"
-    (clicked)="onSubmit()"
-  ></app-auth-primary-button>
+    <app-auth-primary-button
+      class="auth-form__submit"
+      [label]="'Sign Up'"
+      [disabled]="form.invalid || isSubmitting()"
+      (clicked)="onSubmit()"
+    ></app-auth-primary-button>
   </form>
 
   <ion-text class="grayColor16Regular center"> OR </ion-text>

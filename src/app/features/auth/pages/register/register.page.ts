@@ -1,17 +1,10 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
   inject,
   signal,
 } from '@angular/core';
-import { Router } from '@angular/router';
-import { NavController } from '@ionic/angular';
-import {
-  IonContent,
-  IonIcon,
-  IonInput,
-  IonText,
-} from '@ionic/angular/standalone';
 import {
   AbstractControl,
   FormBuilder,
@@ -20,17 +13,25 @@ import {
   ValidatorFn,
   Validators,
 } from '@angular/forms';
-import { HttpErrorResponse } from '@angular/common/http';
-import { environment } from 'src/environments/environment';
-import { AppStorageService } from 'src/app/core/services/storage/app-storage.service';
-import { AuthApiService } from '../../services/auth-api.service';
-import { firstValueFrom } from 'rxjs';
-import { STORAGE_KEYS } from 'src/app/core/services/storage/storage-keys';
+import { Router } from '@angular/router';
+import { NavController } from '@ionic/angular';
+import {
+  IonContent,
+  IonIcon,
+  IonInput,
+  IonDatetime,
+  IonText,
+} from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { eyeOffOutline, eyeOutline } from 'ionicons/icons';
+import { firstValueFrom } from 'rxjs';
+import { AppStorageService } from 'src/app/core/services/storage/app-storage.service';
+import { STORAGE_KEYS } from 'src/app/core/services/storage/storage-keys';
+import { environment } from 'src/environments/environment';
 import { AuthHeaderComponent } from '../../components/auth-header/auth-header.component';
 import { AuthPrimaryButtonComponent } from '../../components/auth-primary-button/auth-primary-button.component';
 import { AuthSocialButtonsComponent } from '../../components/auth-social-buttons/auth-social-buttons.component';
+import { AuthApiService } from '../../services/auth-api.service';
 
 @Component({
   selector: 'app-register',
@@ -46,7 +47,7 @@ import { AuthSocialButtonsComponent } from '../../components/auth-social-buttons
     AuthHeaderComponent,
     AuthPrimaryButtonComponent,
     AuthSocialButtonsComponent,
-  ],
+],
 })
 export class RegisterPage {
   private readonly navCtrl = inject(NavController);
@@ -166,7 +167,7 @@ export class RegisterPage {
   private mapRegisterError(error: unknown): string {
     if (error instanceof HttpErrorResponse) {
       if (error.status === 0) {
-        return 'Network error. Check API base URL and CORS settings.';
+        return 'Network error. Please try again.';
       }
       if (error.status === 409) {
         const msg =
