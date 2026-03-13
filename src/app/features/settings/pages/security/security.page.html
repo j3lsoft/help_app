@@ -1,0 +1,45 @@
+<ion-header mode="ios" [translucent]="false">
+  <ion-toolbar color="whiteColor" class="security-page__toolbar">
+    <div class="security-page__header">
+      <ion-icon
+        class="security-page__back"
+        name="chevron-back"
+        color="blackColor"
+        (click)="goBack()"
+        aria-label="Go back"
+      ></ion-icon>
+      <ion-text class="blackColor20SemiBold security-page__title">
+        Security
+      </ion-text>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list inset="true" mode="ios" class="security-page__list">
+    <ion-item
+      button="true"
+      detail="false"
+      class="security-page__item"
+      (click)="goTo('/change-password')"
+    >
+      <ion-icon
+        slot="start"
+        name="key-outline"
+        class="security-page__item-icon"
+        aria-hidden="true"
+      ></ion-icon>
+      <ion-label>
+        <div class="security-page__item-title">Change password</div>
+        <div class="security-page__item-subtitle">
+          Update your current password
+        </div>
+      </ion-label>
+      <ion-icon
+        slot="end"
+        name="chevron-forward-outline"
+        aria-hidden="true"
+      ></ion-icon>
+    </ion-item>
+  </ion-list>
+</ion-content>

@@ -43,6 +43,11 @@ export interface ChangePasswordWithTokenDto {
   newPassword: string;
 }
 
+export interface ChangePasswordDto {
+  currentPassword: string;
+  newPassword: string;
+}
+
 export interface ResetPasswordDto {
   email: string;
   code: string;
@@ -111,6 +116,12 @@ export class AuthApiService {
   changePasswordWithToken(dto: ChangePasswordWithTokenDto) {
     return this.http
       .post<void>(`${this.baseUrl}/api/v1/auth/change-password-with-token`, dto)
+      .pipe(catchError((e) => this.normalizeError(e)));
+  }
+
+  changePassword(dto: ChangePasswordDto) {
+    return this.http
+      .patch<void>(`${this.baseUrl}/api/v1/auth/change-password`, dto)
       .pipe(catchError((e) => this.normalizeError(e)));
   }
 

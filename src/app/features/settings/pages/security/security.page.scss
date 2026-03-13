@@ -1,0 +1,40 @@
+.security-page {
+  &__toolbar {
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.15);
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    background-color: var(--whiteColor);
+  }
+
+  &__back {
+    font-size: 28px;
+  }
+
+  &__title {
+    margin-left: 10px;
+  }
+
+  &__list {
+    margin-top: 12px;
+  }
+
+  &__item-title {
+    font-weight: 600;
+    color: var(--blackColor);
+  }
+
+  &__item-subtitle {
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--grayColor);
+  }
+
+  &__item-icon {
+    font-size: 20px;
+    color: var(--blackColor);
+  }
+}
