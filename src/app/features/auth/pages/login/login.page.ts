@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -16,6 +15,7 @@ import {
 import { addIcons } from 'ionicons';
 import { eyeOffOutline, eyeOutline } from 'ionicons/icons';
 import { firstValueFrom } from 'rxjs';
+import { ErrorHandlerService } from 'src/app/core/services/error-handler.service';
 import { AuthHeaderComponent } from '../../components/auth-header/auth-header.component';
 import { AuthPrimaryButtonComponent } from '../../components/auth-primary-button/auth-primary-button.component';
 import { AuthSocialButtonsComponent } from '../../components/auth-social-buttons/auth-social-buttons.component';
@@ -43,6 +43,7 @@ export class LoginPage {
   private readonly fb = inject(FormBuilder);
   private readonly authApi = inject(AuthApiService);
   private readonly authService = inject(AuthService);
+  private readonly errorHandler = inject(ErrorHandlerService);
 
   showPassword = signal(false);
   isSubmitting = signal(false);
@@ -50,9 +51,7 @@ export class LoginPage {
 
   form = this.fb.group({
     emailOrUsername: this.fb.nonNullable.control('', [Validators.required]),
-    password: this.fb.nonNullable.control('', [
-      Validators.required,
-    ]),
+    password: this.fb.nonNullable.control('', [Validators.required]),
   });
 
   constructor() {
@@ -95,22 +94,9 @@ export class LoginPage {
       await this.authService.login(response);
       await this.router.navigateByUrl('/tabs/home');
     } catch (e) {
-      this.serverError.set(this.mapLoginError(e));
+      this.serverError.set(this.errorHandler.mapAuthError(e, 'login'));
     } finally {
       this.isSubmitting.set(false);
     }
-  }
-
-  private mapLoginError(error: unknown): string {
-    if (error instanceof HttpErrorResponse) {
-      if (error.status === 401) {
-        return 'Invalid email or password.';
-      }
-      if (error.status === 403) {
-        return 'Please verify your email before logging in.';
-      }
-      return 'Something went wrong. Please try again.';
-    }
-    return 'Something went wrong. Please try again.';
   }
 }

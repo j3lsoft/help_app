@@ -1,19 +1,17 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
+import { AuthState } from 'src/app/core/models/auth-state.interface';
 import { AppStorageService } from 'src/app/core/services/storage/app-storage.service';
 import { SecureStorageService } from 'src/app/core/services/storage/secure-storage.service';
 import { STORAGE_KEYS } from 'src/app/core/services/storage/storage-keys';
-import {
-  AuthApiService,
-  LoginResponseDto,
-  LoginUserResponseDto,
-} from './auth-api.service';
+import { LoginResponseDto, LoginUserResponseDto } from '../models/auth.dto';
+import { AuthApiService } from './auth-api.service';
 
 @Injectable({
   providedIn: 'root',
 })
-export class AuthService {
+export class AuthService implements AuthState {
   private readonly storage = inject(AppStorageService);
   private readonly secureStorage = inject(SecureStorageService);
   private readonly authApi = inject(AuthApiService);

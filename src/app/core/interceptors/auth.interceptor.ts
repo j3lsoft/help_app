@@ -1,35 +1,23 @@
 import {
-  HttpErrorResponse,
-  HttpEvent,
-  HttpHandlerFn,
-  HttpInterceptorFn,
-  HttpRequest,
+    HttpErrorResponse,
+    HttpEvent,
+    HttpHandlerFn,
+    HttpInterceptorFn,
+    HttpRequest,
 } from '@angular/common/http';
 import { inject } from '@angular/core';
-import {
-  BehaviorSubject,
-  Observable,
-  catchError,
-  filter,
-  from,
-  switchMap,
-  take,
-  throwError,
-} from 'rxjs';
-import { AuthService } from '../../features/auth/services/auth.service';
-
-let isRefreshing = false;
-let refreshTokenSubject: BehaviorSubject<string | null> = new BehaviorSubject<
-  string | null
->(null);
+import { Observable, catchError, from, switchMap, throwError } from 'rxjs';
+import { TokenRefreshService } from '../../features/auth/services/token-refresh.service';
+import { AUTH_STATE_TOKEN } from '../models/auth-state.interface';
 
 export const authInterceptor: HttpInterceptorFn = (
   req: HttpRequest<unknown>,
   next: HttpHandlerFn
 ): Observable<HttpEvent<unknown>> => {
-  const authService = inject(AuthService);
+  const authState = inject(AUTH_STATE_TOKEN);
+  const tokenRefreshService = inject(TokenRefreshService);
 
-  return from(authService.getAccessToken()).pipe(
+  return from(authState.getAccessToken()).pipe(
     switchMap((token) => {
       let authReq = req;
       if (token && !req.url.includes('/api/v1/auth/refresh')) {
@@ -48,7 +36,12 @@ export const authInterceptor: HttpInterceptorFn = (
             !req.url.includes('/api/v1/auth/refresh')
           ) {
             console.warn('[AuthInterceptor] 401 detected for', req.url);
-            return handle401Error(authReq, next, authService);
+            return handle401Error(
+              authReq,
+              next,
+              authState,
+              tokenRefreshService
+            );
           }
           return throwError(() => error);
         })
@@ -60,18 +53,17 @@ export const authInterceptor: HttpInterceptorFn = (
 const handle401Error = (
   request: HttpRequest<unknown>,
   next: HttpHandlerFn,
-  authService: AuthService
+  authState: import('../models/auth-state.interface').AuthState,
+  tokenRefreshService: TokenRefreshService
 ): Observable<HttpEvent<unknown>> => {
-  if (!isRefreshing) {
-    isRefreshing = true;
-    refreshTokenSubject.next(null);
+  if (!tokenRefreshService.refreshing) {
+    tokenRefreshService.startRefresh();
     console.log('[AuthInterceptor] Triggering session refresh...');
 
-    return from(authService.refreshSession()).pipe(
-      switchMap(() => from(authService.getAccessToken())),
+    return from(authState.refreshSession()).pipe(
+      switchMap(() => from(authState.getAccessToken())),
       switchMap((newToken) => {
-        isRefreshing = false;
-        refreshTokenSubject.next(newToken);
+        tokenRefreshService.completeRefresh(newToken ?? '');
 
         return next(
           request.clone({
@@ -82,18 +74,14 @@ const handle401Error = (
         );
       }),
       catchError((err) => {
-        isRefreshing = false;
-        refreshTokenSubject.error(err); // Error out all waiting requests
-        refreshTokenSubject = new BehaviorSubject<string | null>(null);
-        return from(authService.logout()).pipe(
+        tokenRefreshService.failRefresh(err);
+        return from(authState.logout()).pipe(
           switchMap(() => throwError(() => err))
         );
       })
     );
   } else {
-    return refreshTokenSubject.pipe(
-      filter((token) => token !== null),
-      take(1),
+    return tokenRefreshService.waitForRefresh().pipe(
       switchMap((token) => {
         return next(
           request.clone({

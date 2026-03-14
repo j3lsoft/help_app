@@ -95,7 +95,9 @@ export class VerifyResetOtpPage {
 
     this.showLoadingDialog.set(true);
     try {
-      await firstValueFrom(this.authApi.requestPasswordReset({ email: this.email() }));
+      await firstValueFrom(
+        this.authApi.requestPasswordReset({ email: this.email() })
+      );
       await this.storage.setString(
         STORAGE_KEYS.pendingPasswordResetEmail,
         this.email()
@@ -130,9 +132,13 @@ export class VerifyResetOtpPage {
         response.changePasswordToken
       );
 
-      await this.router.navigate(['/auth/reset-password'], {
-        queryParams: { email: this.email() },
-      });
+      this.showLoadingDialog.set(false);
+      // Give the popover time to start the dismissal process before navigation
+      setTimeout(async () => {
+        await this.router.navigate(['/auth/reset-password'], {
+          queryParams: { email: this.email() },
+        });
+      }, 100);
     } catch (e) {
       this.errorMessage.set(this.mapVerifyOtpError(e));
     } finally {

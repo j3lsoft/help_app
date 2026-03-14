@@ -1,16 +1,16 @@
 import { inject } from '@angular/core';
 import { CanMatchFn, Router } from '@angular/router';
-import { AuthService } from '../../features/auth/services/auth.service';
+import { AUTH_STATE_TOKEN } from '../models/auth-state.interface';
 
 /**
  * Guard to prevent authenticated users from accessing public/auth pages.
  * Redirects to home if already logged in.
  */
 export const noAuthGuard: CanMatchFn = (route, segments) => {
-  const authService = inject(AuthService);
+  const authState = inject(AUTH_STATE_TOKEN);
   const router = inject(Router);
 
-  if (authService.isAuthenticated()) {
+  if (authState.isAuthenticated()) {
     return router.createUrlTree(['/tabs/home']);
   }
 

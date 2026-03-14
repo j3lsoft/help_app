@@ -1,32 +1,30 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  signal,
+    ChangeDetectionStrategy,
+    Component,
+    inject,
+    signal,
 } from '@angular/core';
-import {
-  AbstractControl,
-  FormBuilder,
-  ReactiveFormsModule,
-  ValidationErrors,
-  ValidatorFn,
-  Validators,
-} from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { NavController } from '@ionic/angular';
 import {
-  IonContent,
-  IonIcon,
-  IonInput,
-  IonDatetime,
-  IonText,
+    IonContent,
+    IonIcon,
+    IonInput,
+    IonText,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { eyeOffOutline, eyeOutline } from 'ionicons/icons';
 import { firstValueFrom } from 'rxjs';
+import { ErrorHandlerService } from 'src/app/core/services/error-handler.service';
 import { AppStorageService } from 'src/app/core/services/storage/app-storage.service';
 import { STORAGE_KEYS } from 'src/app/core/services/storage/storage-keys';
+import { birthDateMinAgeValidator } from 'src/app/shared/validators/birth-date.validators';
+import {
+    matchPasswordsValidator,
+    passwordStrengthValidator,
+} from 'src/app/shared/validators/password.validators';
+import { usernameValidator } from 'src/app/shared/validators/username.validators';
 import { environment } from 'src/environments/environment';
 import { AuthHeaderComponent } from '../../components/auth-header/auth-header.component';
 import { AuthPrimaryButtonComponent } from '../../components/auth-primary-button/auth-primary-button.component';
@@ -47,7 +45,7 @@ import { AuthApiService } from '../../services/auth-api.service';
     AuthHeaderComponent,
     AuthPrimaryButtonComponent,
     AuthSocialButtonsComponent,
-],
+  ],
 })
 export class RegisterPage {
   private readonly navCtrl = inject(NavController);
@@ -55,6 +53,7 @@ export class RegisterPage {
   private readonly fb = inject(FormBuilder);
   private readonly authApi = inject(AuthApiService);
   private readonly storage = inject(AppStorageService);
+  private readonly errorHandler = inject(ErrorHandlerService);
 
   showPassword = signal(false);
   showConfirmPwd = signal(false);
@@ -158,106 +157,9 @@ export class RegisterPage {
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error('Register error', e);
-      this.serverError.set(this.mapRegisterError(e));
+      this.serverError.set(this.errorHandler.mapAuthError(e, 'register'));
     } finally {
       this.isSubmitting.set(false);
     }
   }
-
-  private mapRegisterError(error: unknown): string {
-    if (error instanceof HttpErrorResponse) {
-      if (error.status === 0) {
-        return 'Network error. Please try again.';
-      }
-      if (error.status === 409) {
-        const msg =
-          typeof error.error?.message === 'string' ? error.error.message : '';
-        const lower = msg.toLowerCase();
-        if (lower.includes('username')) {
-          return 'The username is not available';
-        }
-        if (lower.includes('email')) {
-          return 'The email is already registered';
-        }
-        return 'Email or username already exists';
-      }
-      if (error.status === 400) {
-        return 'Invalid data. Please review the form.';
-      }
-
-      const backendMessage =
-        typeof error.error?.message === 'string' ? error.error.message : '';
-      return backendMessage
-        ? backendMessage
-        : `Something went wrong. Please try again. (${error.status})`;
-    }
-    return 'Something went wrong. Please try again.';
-  }
-}
-
-function matchPasswordsValidator(
-  passwordKey: string,
-  confirmKey: string
-): ValidatorFn {
-  return (group: AbstractControl): ValidationErrors | null => {
-    const password = group.get(passwordKey)?.value;
-    const confirm = group.get(confirmKey)?.value;
-    if (!password || !confirm) {
-      return null;
-    }
-    return password === confirm ? null : { passwordsMismatch: true };
-  };
-}
-
-function usernameValidator(): ValidatorFn {
-  return (control: AbstractControl): ValidationErrors | null => {
-    const value = String(control.value ?? '');
-    if (!value) {
-      return null;
-    }
-    if (!/^[a-zA-Z0-9._]+$/.test(value)) {
-      return { usernameFormat: true };
-    }
-    if (value.startsWith('.') || value.endsWith('.')) {
-      return { usernameDot: true };
-    }
-    if (value.includes('..')) {
-      return { usernameDot: true };
-    }
-    return null;
-  };
-}
-
-function passwordStrengthValidator(): ValidatorFn {
-  return (control: AbstractControl): ValidationErrors | null => {
-    const value = String(control.value ?? '');
-    if (!value) {
-      return null;
-    }
-    const hasNumber = /\d/.test(value);
-    const hasSpecial = /[^a-zA-Z0-9]/.test(value);
-    return hasNumber && hasSpecial ? null : { weakPassword: true };
-  };
-}
-
-function birthDateMinAgeValidator(getMinAgeYears: () => number): ValidatorFn {
-  return (control: AbstractControl): ValidationErrors | null => {
-    const minAgeYears = Number(getMinAgeYears() ?? 0);
-    const value = String(control.value ?? '');
-    if (!value || minAgeYears <= 0) {
-      return null;
-    }
-
-    const birth = new Date(value);
-    if (Number.isNaN(birth.getTime())) {
-      return { invalidBirthDate: true };
-    }
-
-    const today = new Date();
-    const age = today.getFullYear() - birth.getFullYear();
-    const m = today.getMonth() - birth.getMonth();
-    const adjustedAge =
-      m < 0 || (m === 0 && today.getDate() < birth.getDate()) ? age - 1 : age;
-    return adjustedAge >= minAgeYears ? null : { underAge: true };
-  };
 }
