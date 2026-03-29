@@ -1,9 +1,9 @@
 import {
-    HttpErrorResponse,
-    HttpEvent,
-    HttpHandlerFn,
-    HttpInterceptorFn,
-    HttpRequest,
+  HttpErrorResponse,
+  HttpEvent,
+  HttpHandlerFn,
+  HttpInterceptorFn,
+  HttpRequest,
 } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Observable, catchError, from, switchMap, throwError } from 'rxjs';
@@ -19,7 +19,10 @@ export const authInterceptor: HttpInterceptorFn = (
 
   return from(authState.getAccessToken()).pipe(
     switchMap((token) => {
-      let authReq = req;
+      let authReq = req.clone({
+        withCredentials: true,
+      });
+
       if (token && !req.url.includes('/api/v1/auth/refresh')) {
         authReq = req.clone({
           setHeaders: {
@@ -67,6 +70,7 @@ const handle401Error = (
 
         return next(
           request.clone({
+            withCredentials: true,
             setHeaders: {
               Authorization: `Bearer ${newToken}`,
             },
@@ -85,6 +89,7 @@ const handle401Error = (
       switchMap((token) => {
         return next(
           request.clone({
+            withCredentials: true,
             setHeaders: {
               Authorization: `Bearer ${token}`,
             },
