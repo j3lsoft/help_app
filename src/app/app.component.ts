@@ -22,7 +22,7 @@ export class AppComponent {
   private readonly navCtrl = inject(NavController);
 
   constructor() {
-    this.intializeApp();
+    this.initializeApp();
     this.backButtonEvent();
   }
 
@@ -34,7 +34,7 @@ export class AppComponent {
         this.location.isCurrentPathEqualTo('/tabs/notifications') ||
         this.location.isCurrentPathEqualTo('/tabs/message') ||
         this.location.isCurrentPathEqualTo('/tabs/profile') ||
-        this.location.isCurrentPathEqualTo('/tabs/auth/sign-in') ||
+        this.location.isCurrentPathEqualTo('/auth/sign-in') ||
         this.location.isCurrentPathEqualTo('/tabs/onboarding')
       ) {
         this.tap++;
@@ -51,7 +51,7 @@ export class AppComponent {
     });
   }
 
-  intializeApp() {
+  initializeApp() {
     this.platform.ready().then(() => {
       StatusBar.setBackgroundColor({ color: '#0683a0' });
     });

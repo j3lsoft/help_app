@@ -7,6 +7,7 @@ import {
 } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Observable, catchError, from, switchMap, throwError } from 'rxjs';
+import { environment } from 'src/environments/environment';
 import { TokenRefreshService } from '../../features/auth/services/token-refresh.service';
 import { AUTH_STATE_TOKEN } from '../models/auth-state.interface';
 
@@ -38,7 +39,9 @@ export const authInterceptor: HttpInterceptorFn = (
             error.status === 401 &&
             !req.url.includes('/api/v1/auth/refresh')
           ) {
-            console.warn('[AuthInterceptor] 401 detected for', req.url);
+            if (!environment.production) {
+              console.warn('[AuthInterceptor] 401 detected for', req.url);
+            }
             return handle401Error(
               authReq,
               next,
@@ -61,7 +64,9 @@ const handle401Error = (
 ): Observable<HttpEvent<unknown>> => {
   if (!tokenRefreshService.refreshing) {
     tokenRefreshService.startRefresh();
-    console.log('[AuthInterceptor] Triggering session refresh...');
+    if (!environment.production) {
+      console.log('[AuthInterceptor] Triggering session refresh...');
+    }
 
     return from(authState.refreshSession()).pipe(
       switchMap(() => from(authState.getAccessToken())),

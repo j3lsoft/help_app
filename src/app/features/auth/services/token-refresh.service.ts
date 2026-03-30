@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { filter, take } from 'rxjs/operators';
+import { BehaviorSubject, Observable, filter, take } from 'rxjs';
 
 /**
  * Service to manage the token refresh state.

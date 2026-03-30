@@ -1,16 +1,34 @@
 import {
-    AfterViewInit,
-    Component,
-    ElementRef,
-    EventEmitter,
-    inject,
-    Input,
-    Output,
-    ViewChild,
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  EventEmitter,
+  inject,
+  Input,
+  Output,
+  ViewChild,
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { AnimationController, GestureController } from '@ionic/angular';
 import { IonImg, IonItem, IonText } from '@ionic/angular/standalone';
+
+export interface NotificationItem {
+  type: 'following' | 'likeMorePhotos' | 'likeOnePhoto' | 'mention' | 'likeByMore' | 'seeOldPost';
+  userProfilePic: string;
+  userName: string;
+  notificationTime: string;
+  likedPohotos: { photo: string }[];
+  likedPhoto: string;
+  mantionUserName: string;
+  comment: string;
+  mentionPhoto: string;
+  userProfilePics: { userProfilePic: string }[];
+  userProfileNames: string[];
+  postTime: string;
+  seeTime: string;
+  post: string;
+}
 
 @Component({
   selector: 'app-swipe-item',
@@ -20,10 +38,11 @@ import { IonImg, IonItem, IonText } from '@ionic/angular/standalone';
     '[style.--swipe-item-width.px]': 'width',
   },
   imports: [IonItem, IonImg, IonText],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SwipeItemComponent implements AfterViewInit {
-  @Input() noti: any;
-  @Input() ind: any;
+  @Input() noti!: NotificationItem;
+  @Input() ind!: number;
 
   @Output() delete = new EventEmitter<boolean>();
 

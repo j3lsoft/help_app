@@ -1,17 +1,17 @@
 import {
-    ChangeDetectionStrategy,
-    Component,
-    inject,
-    signal,
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  signal,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { NavController } from '@ionic/angular';
 import {
-    IonContent,
-    IonIcon,
-    IonInput,
-    IonText,
+  IonContent,
+  IonIcon,
+  IonInput,
+  IonText,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { eyeOffOutline, eyeOutline } from 'ionicons/icons';
@@ -21,8 +21,8 @@ import { AppStorageService } from 'src/app/core/services/storage/app-storage.ser
 import { STORAGE_KEYS } from 'src/app/core/services/storage/storage-keys';
 import { birthDateMinAgeValidator } from 'src/app/shared/validators/birth-date.validators';
 import {
-    matchPasswordsValidator,
-    passwordStrengthValidator,
+  matchPasswordsValidator,
+  passwordStrengthValidator,
 } from 'src/app/shared/validators/password.validators';
 import { usernameValidator } from 'src/app/shared/validators/username.validators';
 import { environment } from 'src/environments/environment';
