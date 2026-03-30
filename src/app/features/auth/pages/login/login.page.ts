@@ -1,11 +1,20 @@
 import {
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
+  computed,
   inject,
   signal,
 } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  ReactiveFormsModule,
+  Validators,
+  AbstractControl,
+  ValidationErrors,
+} from '@angular/forms';
 import { Router } from '@angular/router';
+import { ViewWillEnter } from '@ionic/angular';
 import {
   IonContent,
   IonIcon,
@@ -21,6 +30,23 @@ import { AuthPrimaryButtonComponent } from '../../components/auth-primary-button
 import { AuthSocialButtonsComponent } from '../../components/auth-social-buttons/auth-social-buttons.component';
 import { AuthApiService } from '../../services/auth-api.service';
 import { AuthService } from '../../services/auth.service';
+
+function emailOrUsernameValidator(
+  control: AbstractControl
+): ValidationErrors | null {
+  const value = control.value?.trim() || '';
+
+  if (!value) return null;
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+
+  if (emailRegex.test(value) || usernameRegex.test(value)) {
+    return null;
+  }
+
+  return { invalidEmailOrUsername: true };
+}
 
 @Component({
   selector: 'app-login',
@@ -50,7 +76,10 @@ export class LoginPage {
   serverError = signal<string | null>(null);
 
   form = this.fb.group({
-    emailOrUsername: this.fb.nonNullable.control('', [Validators.required]),
+    emailOrUsername: this.fb.nonNullable.control('', [
+      Validators.required,
+      emailOrUsernameValidator,
+    ]),
     password: this.fb.nonNullable.control('', [Validators.required]),
   });
 
@@ -92,6 +121,7 @@ export class LoginPage {
       );
 
       await this.authService.login(response);
+      this.form.reset();
       await this.router.navigateByUrl('/tabs/home');
     } catch (e) {
       this.serverError.set(this.errorHandler.mapAuthError(e, 'login'));

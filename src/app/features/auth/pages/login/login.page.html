@@ -11,7 +11,7 @@
         mode="ios"
         class="whiteColor18Regular auth-form__input"
         inputmode="email"
-        autocomplete="username"
+        autocomplete="off"
       ></ion-input>
       <div class="auth-form__divider"></div>
       @if (isInvalid('emailOrUsername')) {
@@ -32,7 +32,7 @@
           class="whiteColor18Regular auth-form__input auth-form__input--password"
           clearOnEdit="false"
           inputmode="password"
-          autocomplete="current-password"
+          autocomplete="off"
           [type]="showPassword()?'text':'password'"
         ></ion-input>
         <ion-icon
@@ -57,7 +57,7 @@
     </ion-text>
     }
 
-    <div class="ion-text-right auth-form__forgot-link">
+    <div class="ion-text-right auth-form__forgot-link" [style.margin-top]="serverError() ? '15px' : '-15px'">
       <ion-text
         class="lightGrayColor14Regular"
         (click)="goTo('/auth/forgot-password')"
