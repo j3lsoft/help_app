@@ -1,20 +1,17 @@
 import {
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
-  computed,
   inject,
   signal,
 } from '@angular/core';
 import {
+  AbstractControl,
   FormBuilder,
   ReactiveFormsModule,
-  Validators,
-  AbstractControl,
   ValidationErrors,
+  Validators,
 } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ViewWillEnter } from '@ionic/angular';
 import {
   IonContent,
   IonIcon,
@@ -24,10 +21,11 @@ import {
 import { addIcons } from 'ionicons';
 import { eyeOffOutline, eyeOutline } from 'ionicons/icons';
 import { firstValueFrom } from 'rxjs';
-import { ErrorHandlerService } from 'src/app/core/services/error-handler.service';
+import { isInvalid } from 'src/app/shared/utils/form.utils';
 import { AuthHeaderComponent } from '../../components/auth-header/auth-header.component';
 import { AuthPrimaryButtonComponent } from '../../components/auth-primary-button/auth-primary-button.component';
 import { AuthSocialButtonsComponent } from '../../components/auth-social-buttons/auth-social-buttons.component';
+import { AuthErrorMapper } from '../../errors/auth-error-mapper';
 import { AuthApiService } from '../../services/auth-api.service';
 import { AuthService } from '../../services/auth.service';
 
@@ -69,7 +67,6 @@ export class LoginPage {
   private readonly fb = inject(FormBuilder);
   private readonly authApi = inject(AuthApiService);
   private readonly authService = inject(AuthService);
-  private readonly errorHandler = inject(ErrorHandlerService);
 
   showPassword = signal(false);
   isSubmitting = signal(false);
@@ -94,10 +91,10 @@ export class LoginPage {
     this.router.navigateByUrl(screen);
   }
 
-  isInvalid(controlName: keyof LoginPage['form']['controls']): boolean {
+  isInvalid = (controlName: keyof LoginPage['form']['controls']): boolean => {
     const control = this.form.controls[controlName];
-    return control.invalid && (control.dirty || control.touched);
-  }
+    return isInvalid(control);
+  };
 
   async onSubmit(): Promise<void> {
     this.serverError.set(null);
@@ -124,7 +121,7 @@ export class LoginPage {
       this.form.reset();
       await this.router.navigateByUrl('/tabs/home');
     } catch (e) {
-      this.serverError.set(this.errorHandler.mapAuthError(e, 'login'));
+      this.serverError.set(AuthErrorMapper.map(e, 'login'));
     } finally {
       this.isSubmitting.set(false);
     }

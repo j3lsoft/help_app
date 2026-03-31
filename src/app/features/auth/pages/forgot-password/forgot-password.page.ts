@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -12,8 +11,10 @@ import { IonContent, IonInput, IonText } from '@ionic/angular/standalone';
 import { firstValueFrom } from 'rxjs';
 import { AppStorageService } from 'src/app/core/services/storage/app-storage.service';
 import { STORAGE_KEYS } from 'src/app/core/services/storage/storage-keys';
+import { isInvalid } from 'src/app/shared/utils/form.utils';
 import { AuthHeaderComponent } from '../../components/auth-header/auth-header.component';
 import { AuthPrimaryButtonComponent } from '../../components/auth-primary-button/auth-primary-button.component';
+import { AuthErrorMapper } from '../../errors/auth-error-mapper';
 import { AuthApiService } from '../../services/auth-api.service';
 
 @Component({
@@ -51,12 +52,12 @@ export class ForgotPasswordPage {
     this.navCtrl.back();
   }
 
-  isInvalid(
+  isInvalid = (
     controlName: keyof ForgotPasswordPage['form']['controls']
-  ): boolean {
+  ): boolean => {
     const control = this.form.controls[controlName];
-    return control.invalid && (control.dirty || control.touched);
-  }
+    return isInvalid(control);
+  };
 
   async onSubmit(): Promise<void> {
     this.serverError.set(null);
@@ -83,25 +84,9 @@ export class ForgotPasswordPage {
         queryParams: { email },
       });
     } catch (e) {
-      this.serverError.set(this.mapError(e));
+      this.serverError.set(AuthErrorMapper.map(e, 'password-reset'));
     } finally {
       this.isSubmitting.set(false);
     }
-  }
-
-  private mapError(error: unknown): string {
-    if (error instanceof HttpErrorResponse) {
-      if (error.status === 0) {
-        return 'Network error. Please try again.';
-      }
-      if (error.status === 422) {
-        return 'Please enter a valid email.';
-      }
-      if (error.status === 429) {
-        return 'Too many requests. Please try again later.';
-      }
-      return 'Something went wrong. Please try again.';
-    }
-    return 'Something went wrong. Please try again.';
   }
 }

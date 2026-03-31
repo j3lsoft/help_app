@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -6,28 +5,29 @@ import {
   signal,
 } from '@angular/core';
 import {
-  AbstractControl,
   FormBuilder,
   ReactiveFormsModule,
-  ValidationErrors,
-  ValidatorFn,
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { NavController, ToastController } from '@ionic/angular';
+import { NavController } from '@ionic/angular';
 import {
   IonContent,
   IonIcon,
   IonInput,
-  IonText
+  IonText,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { eyeOffOutline, eyeOutline } from 'ionicons/icons';
 import { firstValueFrom } from 'rxjs';
+import { NotificationService } from 'src/app/core/services/notification.service';
 import { AppStorageService } from 'src/app/core/services/storage/app-storage.service';
 import { STORAGE_KEYS } from 'src/app/core/services/storage/storage-keys';
+import { matchPasswordsValidator, passwordStrengthValidator } from 'src/app/shared/validators/password.validators';
+import { isInvalid } from 'src/app/shared/utils/form.utils';
 import { AuthHeaderComponent } from '../../components/auth-header/auth-header.component';
 import { AuthPrimaryButtonComponent } from '../../components/auth-primary-button/auth-primary-button.component';
+import { AuthErrorMapper } from '../../errors/auth-error-mapper';
 import { AuthApiService } from '../../services/auth-api.service';
 import { AuthService } from '../../services/auth.service';
 
@@ -54,7 +54,7 @@ export class ResetPasswordPage {
   private readonly authApi = inject(AuthApiService);
   private readonly authService = inject(AuthService);
   private readonly storage = inject(AppStorageService);
-  private readonly toastCtrl = inject(ToastController);
+  private readonly notification = inject(NotificationService);
 
   showLoadingDialog = signal(false);
   email = signal('');
@@ -108,10 +108,10 @@ export class ResetPasswordPage {
     this.navCtrl.back();
   }
 
-  isInvalid(controlName: keyof ResetPasswordPage['form']['controls']): boolean {
+  isInvalid = (controlName: keyof ResetPasswordPage['form']['controls']): boolean => {
     const control = this.form.controls[controlName];
-    return control.invalid && (control.dirty || control.touched);
-  }
+    return isInvalid(control);
+  };
 
   onSubmit(): void {
     void this.changePassword();
@@ -150,64 +150,12 @@ export class ResetPasswordPage {
       await this.storage.remove(STORAGE_KEYS.pendingChangePasswordToken);
       await this.authService.logout();
 
-      const toast = await this.toastCtrl.create({
-        message: 'Password updated successfully.',
-        duration: 2000,
-        position: 'bottom',
-      });
-      await toast.present();
-      await toast.onDidDismiss();
-
+      await this.notification.showSuccess('Password updated successfully.');
       await this.router.navigateByUrl('/auth/sign-in', { replaceUrl: true });
     } catch (e) {
-      this.errorMessage.set(this.mapError(e));
+      this.errorMessage.set(AuthErrorMapper.map(e, 'password-change'));
     } finally {
       this.isSubmitting.set(false);
     }
   }
-
-  private mapError(error: unknown): string {
-    if (error instanceof HttpErrorResponse) {
-      if (error.status === 400) {
-        return 'Invalid or expired change token.';
-      }
-      if (error.status === 422) {
-        return 'Validation failed.';
-      }
-      if (error.status === 429) {
-        return 'Too many requests. Please try again later.';
-      }
-      if (error.status === 0) {
-        return 'Network error. Please try again.';
-      }
-      return 'Something went wrong. Please try again.';
-    }
-    return 'Something went wrong. Please try again.';
-  }
-}
-
-function matchPasswordsValidator(
-  passwordKey: string,
-  confirmKey: string
-): ValidatorFn {
-  return (group: AbstractControl): ValidationErrors | null => {
-    const password = group.get(passwordKey)?.value;
-    const confirm = group.get(confirmKey)?.value;
-    if (!password || !confirm) {
-      return null;
-    }
-    return password === confirm ? null : { passwordsMismatch: true };
-  };
-}
-
-function passwordStrengthValidator(): ValidatorFn {
-  return (control: AbstractControl): ValidationErrors | null => {
-    const value = String(control.value ?? '');
-    if (!value) {
-      return null;
-    }
-    const hasNumber = /\d/.test(value);
-    const hasSpecial = /[^a-zA-Z0-9]/.test(value);
-    return hasNumber && hasSpecial ? null : { weakPassword: true };
-  };
 }

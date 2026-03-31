@@ -5,7 +5,11 @@ import { AuthState } from 'src/app/core/models/auth-state.interface';
 import { AppStorageService } from 'src/app/core/services/storage/app-storage.service';
 import { SecureStorageService } from 'src/app/core/services/storage/secure-storage.service';
 import { STORAGE_KEYS } from 'src/app/core/services/storage/storage-keys';
-import { LoginResponseDto, LoginUserResponseDto } from '../models/auth.dto';
+import {
+  LoginResponseDto,
+  LoginUserResponseDto,
+  MeResponseDto,
+} from '../models/auth.dto';
 import { AuthApiService } from './auth-api.service';
 
 @Injectable({
@@ -17,7 +21,7 @@ export class AuthService implements AuthState {
   private readonly authApi = inject(AuthApiService);
   private readonly router = inject(Router);
 
-  private readonly _currentUser = signal<LoginUserResponseDto | null>(null);
+  private readonly _currentUser = signal<MeResponseDto | null>(null);
   readonly currentUser = this._currentUser.asReadonly();
   readonly isAuthenticated = computed(() => !!this._currentUser());
 
@@ -29,11 +33,23 @@ export class AuthService implements AuthState {
     );
 
     if (response.user) {
-      this._currentUser.set(response.user);
+      const user: MeResponseDto = {
+        id: response.user.id,
+        email: response.user.email,
+        emailVerified: response.user.emailVerified,
+        username: response.user.username,
+        displayName: response.user.displayName,
+        avatarUrl: typeof response.user.avatarUrl === 'string' 
+          ? response.user.avatarUrl 
+          : null,
+        birthDate: null,
+        bio: null,
+      };
+      this._currentUser.set(user);
       // Non-sensitive user profile data stays in regular storage
       await this.storage.setString(
         STORAGE_KEYS.userData,
-        JSON.stringify(response.user)
+        JSON.stringify(user)
       );
     }
   }
@@ -75,7 +91,7 @@ export class AuthService implements AuthState {
     }
   }
 
-  async fetchUserProfile(): Promise<LoginUserResponseDto> {
+  async fetchUserProfile(): Promise<MeResponseDto> {
     const user = await firstValueFrom(this.authApi.getMe());
     this._currentUser.set(user);
     // Sync with storage

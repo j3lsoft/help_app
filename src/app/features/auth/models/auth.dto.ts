@@ -7,7 +7,7 @@
  */
 
 export interface RegisterDto {
-  name: string;
+  displayName: string;
   username: string;
   birthDate: string;
   email: string;
@@ -64,14 +64,26 @@ export interface LoginDto {
 
 export interface LoginUserResponseDto {
   id: string;
-  name: string;
   email: string;
-  image: unknown | null;
+  avatarUrl: unknown | null;
   emailVerified: boolean;
+  username: string;
+  displayName: string;
 }
 
 export interface LoginResponseDto {
   accessToken: string;
   accessTokenExpiresAt: string;
   user?: LoginUserResponseDto;
+}
+
+export interface MeResponseDto {
+  id: string;
+  email: string;
+  emailVerified: boolean;
+  username: string | null;
+  displayName: string | null;
+  avatarUrl: string | null;
+  birthDate: string | null;
+  bio: string | null;
 }

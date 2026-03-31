@@ -10,6 +10,7 @@ import { Observable, catchError, from, switchMap, throwError } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { TokenRefreshService } from '../../features/auth/services/token-refresh.service';
 import { AUTH_STATE_TOKEN } from '../models/auth-state.interface';
+import { LoggerService } from '../services/logger.service';
 
 export const authInterceptor: HttpInterceptorFn = (
   req: HttpRequest<unknown>,
@@ -17,20 +18,17 @@ export const authInterceptor: HttpInterceptorFn = (
 ): Observable<HttpEvent<unknown>> => {
   const authState = inject(AUTH_STATE_TOKEN);
   const tokenRefreshService = inject(TokenRefreshService);
+  const logger = inject(LoggerService);
 
   return from(authState.getAccessToken()).pipe(
     switchMap((token) => {
-      let authReq = req.clone({
+      const isRefreshRequest = req.url.includes('/api/v1/auth/refresh');
+      const authReq = req.clone({
         withCredentials: true,
+        setHeaders: token && !isRefreshRequest
+          ? { Authorization: `Bearer ${token}` }
+          : undefined,
       });
-
-      if (token && !req.url.includes('/api/v1/auth/refresh')) {
-        authReq = req.clone({
-          setHeaders: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-      }
 
       return next(authReq).pipe(
         catchError((error) => {
@@ -40,7 +38,7 @@ export const authInterceptor: HttpInterceptorFn = (
             !req.url.includes('/api/v1/auth/refresh')
           ) {
             if (!environment.production) {
-              console.warn('[AuthInterceptor] 401 detected for', req.url);
+              logger.warn('401 detected', { context: 'AuthInterceptor', data: { url: req.url } });
             }
             return handle401Error(
               authReq,
@@ -65,7 +63,8 @@ const handle401Error = (
   if (!tokenRefreshService.refreshing) {
     tokenRefreshService.startRefresh();
     if (!environment.production) {
-      console.log('[AuthInterceptor] Triggering session refresh...');
+      const logger = inject(LoggerService);
+      logger.debug('Triggering session refresh', { context: 'AuthInterceptor' });
     }
 
     return from(authState.refreshSession()).pipe(

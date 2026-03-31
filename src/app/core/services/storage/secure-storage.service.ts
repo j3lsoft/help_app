@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { SecureStoragePlugin } from 'capacitor-secure-storage-plugin';
-import { environment } from 'src/environments/environment';
+import { LoggerService } from '../logger.service';
 
 /**
  * SecureStorageService wraps capacitor-secure-storage-plugin.
@@ -15,6 +15,7 @@ import { environment } from 'src/environments/environment';
   providedIn: 'root',
 })
 export class SecureStorageService {
+  private readonly logger = inject(LoggerService);
   async get(key: string): Promise<string | null> {
     try {
       const { value } = await SecureStoragePlugin.get({ key });
@@ -42,12 +43,9 @@ export class SecureStorageService {
   }
 
   private logError(operation: string, key: string, error: unknown): void {
-    if (!environment.production) {
-      // eslint-disable-next-line no-console
-      console.error(
-        `[SecureStorageService] ${operation} failed for key '${key}':`,
-        error
-      );
-    }
+    this.logger.error(`${operation} failed for key '${key}'`, {
+      context: 'SecureStorageService',
+      data: { key, error: error instanceof Error ? error.message : String(error) },
+    });
   }
 }

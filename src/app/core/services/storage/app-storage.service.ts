@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Preferences } from '@capacitor/preferences';
-import { environment } from 'src/environments/environment';
+import { LoggerService } from '../logger.service';
 
 /**
  * Service for non-sensitive data storage using Capacitor Preferences.
@@ -10,6 +10,7 @@ import { environment } from 'src/environments/environment';
   providedIn: 'root',
 })
 export class AppStorageService {
+  private readonly logger = inject(LoggerService);
   async getString(key: string): Promise<string | null> {
     try {
       const { value } = await Preferences.get({ key });
@@ -46,12 +47,9 @@ export class AppStorageService {
   }
 
   private logError(operation: string, key: string, error: unknown): void {
-    if (!environment.production) {
-      // eslint-disable-next-line no-console
-      console.error(
-        `[AppStorageService] ${operation} failed for key '${key}':`,
-        error
-      );
-    }
+    this.logger.error(`${operation} failed for key '${key}'`, {
+      context: 'AppStorageService',
+      data: { key, error: error instanceof Error ? error.message : String(error) },
+    });
   }
 }

@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -6,11 +5,8 @@ import {
   signal,
 } from '@angular/core';
 import {
-  AbstractControl,
   FormBuilder,
   ReactiveFormsModule,
-  ValidationErrors,
-  ValidatorFn,
   Validators,
 } from '@angular/forms';
 import { NavController, ToastController } from '@ionic/angular';
@@ -25,6 +21,9 @@ import {
 import { addIcons } from 'ionicons';
 import { chevronBack, eyeOffOutline, eyeOutline } from 'ionicons/icons';
 import { firstValueFrom } from 'rxjs';
+import { matchPasswordsValidator, passwordStrengthValidator } from 'src/app/shared/validators/password.validators';
+import { isInvalid } from 'src/app/shared/utils/form.utils';
+import { AuthErrorMapper } from 'src/app/features/auth/errors/auth-error-mapper';
 import { AuthApiService } from 'src/app/features/auth/services/auth-api.service';
 
 @Component({
@@ -82,12 +81,12 @@ export class ChangePasswordPage {
     this.navCtrl.back();
   }
 
-  isInvalid(
+  isInvalid = (
     controlName: keyof ChangePasswordPage['form']['controls']
-  ): boolean {
+  ): boolean => {
     const control = this.form.controls[controlName];
-    return control.invalid && (control.dirty || control.touched);
-  }
+    return isInvalid(control);
+  };
 
   onSubmit(): void {
     void this.changePassword();
@@ -126,52 +125,9 @@ export class ChangePasswordPage {
       this.form.reset();
       this.goBack();
     } catch (e) {
-      this.serverError.set(this.mapError(e));
+      this.serverError.set(AuthErrorMapper.map(e, 'password-change'));
     } finally {
       this.isSubmitting.set(false);
     }
   }
-
-  private mapError(error: unknown): string {
-    if (error instanceof HttpErrorResponse) {
-      if (error.status === 0) {
-        return 'Network error. Please try again.';
-      }
-      if (error.status === 400 || error.status === 401) {
-        return 'Current password is incorrect.';
-      }
-      if (error.status === 422) {
-        return 'Validation failed.';
-      }
-      return 'Something went wrong. Please try again.';
-    }
-
-    return 'Something went wrong. Please try again.';
-  }
-}
-
-function matchPasswordsValidator(
-  passwordKey: string,
-  confirmKey: string
-): ValidatorFn {
-  return (group: AbstractControl): ValidationErrors | null => {
-    const password = group.get(passwordKey)?.value;
-    const confirm = group.get(confirmKey)?.value;
-    if (!password || !confirm) {
-      return null;
-    }
-    return password === confirm ? null : { passwordsMismatch: true };
-  };
-}
-
-function passwordStrengthValidator(): ValidatorFn {
-  return (control: AbstractControl): ValidationErrors | null => {
-    const value = String(control.value ?? '');
-    if (!value) {
-      return null;
-    }
-    const hasNumber = /\d/.test(value);
-    const hasSpecial = /[^a-zA-Z0-9]/.test(value);
-    return hasNumber && hasSpecial ? null : { weakPassword: true };
-  };
 }

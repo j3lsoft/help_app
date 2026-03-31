@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -19,6 +18,7 @@ import { AppStorageService } from 'src/app/core/services/storage/app-storage.ser
 import { STORAGE_KEYS } from 'src/app/core/services/storage/storage-keys';
 import { AuthHeaderComponent } from '../../components/auth-header/auth-header.component';
 import { AuthPrimaryButtonComponent } from '../../components/auth-primary-button/auth-primary-button.component';
+import { AuthErrorMapper } from '../../errors/auth-error-mapper';
 import { AuthApiService } from '../../services/auth-api.service';
 
 @Component({
@@ -103,7 +103,7 @@ export class VerifyResetOtpPage {
         this.email()
       );
     } catch (e) {
-      this.errorMessage.set(this.mapVerifyOtpError(e));
+      this.errorMessage.set(AuthErrorMapper.map(e, 'password-reset'));
     } finally {
       this.showLoadingDialog.set(false);
     }
@@ -140,28 +140,9 @@ export class VerifyResetOtpPage {
         });
       }, 100);
     } catch (e) {
-      this.errorMessage.set(this.mapVerifyOtpError(e));
+      this.errorMessage.set(AuthErrorMapper.map(e, 'password-reset'));
     } finally {
       this.showLoadingDialog.set(false);
     }
-  }
-
-  private mapVerifyOtpError(error: unknown): string {
-    if (error instanceof HttpErrorResponse) {
-      if (error.status === 0) {
-        return 'Network error. Please try again.';
-      }
-      if (error.status === 400) {
-        return 'Invalid or expired code.';
-      }
-      if (error.status === 422) {
-        return 'Validation failed.';
-      }
-      if (error.status === 429) {
-        return 'Too many requests. Please try again later.';
-      }
-      return 'Something went wrong. Please try again.';
-    }
-    return 'Something went wrong. Please try again.';
   }
 }

@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -19,6 +18,7 @@ import { AppStorageService } from 'src/app/core/services/storage/app-storage.ser
 import { STORAGE_KEYS } from 'src/app/core/services/storage/storage-keys';
 import { AuthHeaderComponent } from '../../components/auth-header/auth-header.component';
 import { AuthPrimaryButtonComponent } from '../../components/auth-primary-button/auth-primary-button.component';
+import { AuthErrorMapper } from '../../errors/auth-error-mapper';
 import { AuthApiService } from '../../services/auth-api.service';
 import { AuthService } from '../../services/auth.service';
 
@@ -97,7 +97,7 @@ export class VerifyAccountPage {
         this.authApi.resendVerification({ email: this.email() })
       );
     } catch (e) {
-      this.errorMessage.set(this.mapVerifyError(e));
+      this.errorMessage.set(AuthErrorMapper.map(e, 'verification'));
     } finally {
       this.showLoadingDialog.set(false);
     }
@@ -128,31 +128,9 @@ export class VerifyAccountPage {
         await this.router.navigateByUrl('/tabs/home');
       }, 100);
     } catch (e) {
-      this.errorMessage.set(this.mapVerifyError(e));
+      this.errorMessage.set(AuthErrorMapper.map(e, 'verification'));
     } finally {
       this.showLoadingDialog.set(false);
     }
-  }
-
-  private mapVerifyError(error: unknown): string {
-    if (error instanceof HttpErrorResponse) {
-      if (error.status === 400) {
-        return 'Invalid or expired code.';
-      }
-      if (error.status === 422) {
-        return 'Validation failed.';
-      }
-      if (error.status === 401) {
-        return 'Invalid credentials.';
-      }
-      if (error.status === 403) {
-        return 'Email not verified or account locked.';
-      }
-      return 'Something went wrong. Please try again.';
-    }
-    if (error instanceof Error) {
-      return error.message;
-    }
-    return 'Something went wrong. Please try again.';
   }
 }

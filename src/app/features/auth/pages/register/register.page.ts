@@ -16,9 +16,10 @@ import {
 import { addIcons } from 'ionicons';
 import { eyeOffOutline, eyeOutline } from 'ionicons/icons';
 import { firstValueFrom } from 'rxjs';
-import { ErrorHandlerService } from 'src/app/core/services/error-handler.service';
+import { LoggerService } from 'src/app/core/services/logger.service';
 import { AppStorageService } from 'src/app/core/services/storage/app-storage.service';
 import { STORAGE_KEYS } from 'src/app/core/services/storage/storage-keys';
+import { isInvalid } from 'src/app/shared/utils/form.utils';
 import { birthDateMinAgeValidator } from 'src/app/shared/validators/birth-date.validators';
 import {
   matchPasswordsValidator,
@@ -29,6 +30,7 @@ import { environment } from 'src/environments/environment';
 import { AuthHeaderComponent } from '../../components/auth-header/auth-header.component';
 import { AuthPrimaryButtonComponent } from '../../components/auth-primary-button/auth-primary-button.component';
 import { AuthSocialButtonsComponent } from '../../components/auth-social-buttons/auth-social-buttons.component';
+import { AuthErrorMapper } from '../../errors/auth-error-mapper';
 import { AuthApiService } from '../../services/auth-api.service';
 
 @Component({
@@ -53,7 +55,7 @@ export class RegisterPage {
   private readonly fb = inject(FormBuilder);
   private readonly authApi = inject(AuthApiService);
   private readonly storage = inject(AppStorageService);
-  private readonly errorHandler = inject(ErrorHandlerService);
+  private readonly logger = inject(LoggerService);
 
   showPassword = signal(false);
   showConfirmPwd = signal(false);
@@ -108,10 +110,12 @@ export class RegisterPage {
     this.router.navigateByUrl(screen);
   }
 
-  isInvalid(controlName: keyof RegisterPage['form']['controls']): boolean {
+  isInvalid = (
+    controlName: keyof RegisterPage['form']['controls']
+  ): boolean => {
     const control = this.form.controls[controlName];
-    return control.invalid && (control.dirty || control.touched);
-  }
+    return isInvalid(control);
+  };
 
   async onSubmit(): Promise<void> {
     this.serverError.set(null);
@@ -136,7 +140,7 @@ export class RegisterPage {
     try {
       await firstValueFrom(
         this.authApi.register({
-          name: value.name.trim(),
+          displayName: value.name.trim(),
           username: value.username.trim(),
           birthDate: value.birthDate,
           email: value.email.trim(),
@@ -155,9 +159,11 @@ export class RegisterPage {
         },
       });
     } catch (e) {
-      // eslint-disable-next-line no-console
-      console.error('Register error', e);
-      this.serverError.set(this.errorHandler.mapAuthError(e, 'register'));
+      this.logger.error('Register failed', {
+        context: 'RegisterPage',
+        data: { error: e instanceof Error ? e.message : String(e) },
+      });
+      this.serverError.set(AuthErrorMapper.map(e, 'register'));
     } finally {
       this.isSubmitting.set(false);
     }
