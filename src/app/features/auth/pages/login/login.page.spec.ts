@@ -1,8 +1,9 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
+import { AppError } from 'src/app/core/models/app-error.model';
+import { AuthErrorFacade } from '../../errors/auth-error.facade';
 import { AuthApiService } from '../../services/auth-api.service';
 import { AuthService } from '../../services/auth.service';
 import { LoginPage } from './login.page';
@@ -13,11 +14,16 @@ describe('LoginPage', () => {
   let authApiMock: jasmine.SpyObj<AuthApiService>;
   let authServiceMock: jasmine.SpyObj<AuthService>;
   let routerMock: jasmine.SpyObj<Router>;
+  let authErrorFacadeMock: jasmine.SpyObj<AuthErrorFacade>;
 
   beforeEach(async () => {
     authApiMock = jasmine.createSpyObj('AuthApiService', ['login']);
     authServiceMock = jasmine.createSpyObj('AuthService', ['login']);
     routerMock = jasmine.createSpyObj('Router', ['navigateByUrl']);
+    authErrorFacadeMock = jasmine.createSpyObj('AuthErrorFacade', [
+      'handle',
+      'getMessage',
+    ]);
 
     await TestBed.configureTestingModule({
       imports: [ReactiveFormsModule, LoginPage],
@@ -25,6 +31,7 @@ describe('LoginPage', () => {
         { provide: AuthApiService, useValue: authApiMock },
         { provide: AuthService, useValue: authServiceMock },
         { provide: Router, useValue: routerMock },
+        { provide: AuthErrorFacade, useValue: authErrorFacadeMock },
       ],
     }).compileComponents();
 
@@ -41,11 +48,12 @@ describe('LoginPage', () => {
     expect(component.form.invalid).toBeTrue();
   });
 
-  it('should show error on failed login', async () => {
-    const errorResponse = new HttpErrorResponse({
+  it('should delegate error to facade on failed login', async () => {
+    const errorResponse: AppError = {
       status: 401,
-      error: { message: 'Invalid email or password.' },
-    });
+      message: 'Invalid email or password.',
+      handled: false,
+    };
     authApiMock.login.and.returnValue(throwError(() => errorResponse));
 
     component.form.patchValue({
@@ -55,7 +63,7 @@ describe('LoginPage', () => {
 
     await component.onSubmit();
 
-    expect(component.serverError()).toBe('Invalid email or password.');
+    expect(authErrorFacadeMock.handle).toHaveBeenCalled();
     expect(component.isSubmitting()).toBeFalse();
   });
 
@@ -64,10 +72,11 @@ describe('LoginPage', () => {
       accessToken: 'token',
       user: {
         id: '1',
-        name: 'Test',
         email: 'test@test.com',
+        avatarUrl: null,
         emailVerified: true,
-        image: null,
+        username: 'test',
+        displayName: 'Test',
       },
       accessTokenExpiresAt: '',
     };

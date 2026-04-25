@@ -1,9 +1,11 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
-import { NavController, ToastController } from '@ionic/angular';
+import { NavController } from '@ionic/angular';
 import { of, throwError } from 'rxjs';
+import { AppError } from 'src/app/core/models/app-error.model';
+import { NotificationService } from 'src/app/core/services/notification.service';
 import { AppStorageService } from 'src/app/core/services/storage/app-storage.service';
+import { AuthErrorFacade } from '../../errors/auth-error.facade';
 import { AuthApiService } from '../../services/auth-api.service';
 import { AuthService } from '../../services/auth.service';
 import { ResetPasswordPage } from './reset-password.page';
@@ -15,7 +17,7 @@ describe('ResetPasswordPage', () => {
   let authServiceMock: jasmine.SpyObj<AuthService>;
   let storageMock: jasmine.SpyObj<AppStorageService>;
   let routerMock: jasmine.SpyObj<Router>;
-  let toastCtrlMock: jasmine.SpyObj<ToastController>;
+  let authErrorFacadeMock: jasmine.SpyObj<AuthErrorFacade>;
 
   beforeEach(async () => {
     authApiMock = jasmine.createSpyObj('AuthApiService', [
@@ -29,15 +31,10 @@ describe('ResetPasswordPage', () => {
     ]);
     routerMock = jasmine.createSpyObj('Router', ['navigateByUrl']);
 
-    const toastSpy = jasmine.createSpyObj('HTMLIonToastElement', [
-      'present',
-      'onDidDismiss',
+    authErrorFacadeMock = jasmine.createSpyObj('AuthErrorFacade', [
+      'handle',
+      'getMessage',
     ]);
-    toastSpy.present.and.returnValue(Promise.resolve());
-    toastSpy.onDidDismiss.and.returnValue(Promise.resolve());
-
-    toastCtrlMock = jasmine.createSpyObj('ToastController', ['create']);
-    toastCtrlMock.create.and.returnValue(Promise.resolve(toastSpy));
 
     const routeMock = {
       snapshot: {
@@ -65,7 +62,14 @@ describe('ResetPasswordPage', () => {
         { provide: AppStorageService, useValue: storageMock },
         { provide: Router, useValue: routerMock },
         { provide: ActivatedRoute, useValue: routeMock },
-        { provide: ToastController, useValue: toastCtrlMock },
+        {
+          provide: NotificationService,
+          useValue: jasmine.createSpyObj('NotificationService', [
+            'showError',
+            'showSuccess',
+          ]),
+        },
+        { provide: AuthErrorFacade, useValue: authErrorFacadeMock },
         {
           provide: NavController,
           useValue: jasmine.createSpyObj('NavController', ['back']),
@@ -76,10 +80,11 @@ describe('ResetPasswordPage', () => {
     fixture = TestBed.createComponent(ResetPasswordPage);
     component = fixture.componentInstance;
     fixture.detectChanges();
+    await fixture.whenStable();
   });
 
-  it('should set error message on invalid change token (400)', async () => {
-    const errorResponse = new HttpErrorResponse({ status: 400 });
+  it('should delegate API errors to auth facade', async () => {
+    const errorResponse: AppError = { status: 400, handled: false };
     authApiMock.changePasswordWithToken.and.returnValue(
       throwError(() => errorResponse)
     );
@@ -92,7 +97,23 @@ describe('ResetPasswordPage', () => {
     component.onSubmit();
     await Promise.resolve();
 
-    expect(component.errorMessage()).toBe('Invalid or expired change token.');
+    expect(authErrorFacadeMock.handle).toHaveBeenCalledWith(
+      errorResponse,
+      'password-change'
+    );
+  });
+
+  it('should not lock submission when token is missing', async () => {
+    component.changePasswordToken.set(null);
+    component.form.setValue({
+      newPassword: 'Password123!',
+      confirmPassword: 'Password123!',
+    });
+
+    component.onSubmit();
+    await Promise.resolve();
+
+    expect(component.isSubmitting()).toBeFalse();
   });
 
   it('should navigate to sign-in on success', async () => {
@@ -106,7 +127,8 @@ describe('ResetPasswordPage', () => {
     });
 
     component.onSubmit();
-    await Promise.resolve();
+    await new Promise((r) => setTimeout(r, 0));
+    await new Promise((r) => setTimeout(r, 0));
 
     expect(routerMock.navigateByUrl).toHaveBeenCalledWith('/auth/sign-in', {
       replaceUrl: true,

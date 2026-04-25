@@ -7,7 +7,6 @@ import {
 } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Observable, catchError, from, switchMap, throwError } from 'rxjs';
-import { environment } from 'src/environments/environment';
 import { TokenRefreshService } from '../../features/auth/services/token-refresh.service';
 import { AUTH_STATE_TOKEN } from '../models/auth-state.interface';
 import { LoggerService } from '../services/logger.service';
@@ -25,9 +24,10 @@ export const authInterceptor: HttpInterceptorFn = (
       const isRefreshRequest = req.url.includes('/api/v1/auth/refresh');
       const authReq = req.clone({
         withCredentials: true,
-        setHeaders: token && !isRefreshRequest
-          ? { Authorization: `Bearer ${token}` }
-          : undefined,
+        setHeaders:
+          token && !isRefreshRequest
+            ? { Authorization: `Bearer ${token}` }
+            : undefined,
       });
 
       return next(authReq).pipe(
@@ -35,16 +35,20 @@ export const authInterceptor: HttpInterceptorFn = (
           if (
             error instanceof HttpErrorResponse &&
             error.status === 401 &&
-            !req.url.includes('/api/v1/auth/refresh')
+            !req.url.includes('/api/v1/auth/refresh') &&
+            !req.url.includes('/api/v1/auth/login')
           ) {
-            if (!environment.production) {
-              logger.warn('401 detected', { context: 'AuthInterceptor', data: { url: req.url } });
-            }
+            logger.warn('401 detected', {
+              context: 'AuthInterceptor',
+              data: { url: req.url },
+            });
+
             return handle401Error(
               authReq,
               next,
               authState,
-              tokenRefreshService
+              tokenRefreshService,
+              logger
             );
           }
           return throwError(() => error);
@@ -58,14 +62,15 @@ const handle401Error = (
   request: HttpRequest<unknown>,
   next: HttpHandlerFn,
   authState: import('../models/auth-state.interface').AuthState,
-  tokenRefreshService: TokenRefreshService
+  tokenRefreshService: TokenRefreshService,
+  logger: LoggerService
 ): Observable<HttpEvent<unknown>> => {
   if (!tokenRefreshService.refreshing) {
     tokenRefreshService.startRefresh();
-    if (!environment.production) {
-      const logger = inject(LoggerService);
-      logger.debug('Triggering session refresh', { context: 'AuthInterceptor' });
-    }
+
+    logger.debug('Triggering session refresh', {
+      context: 'AuthInterceptor',
+    });
 
     return from(authState.refreshSession()).pipe(
       switchMap(() => from(authState.getAccessToken())),

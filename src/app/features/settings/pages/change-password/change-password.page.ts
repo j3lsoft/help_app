@@ -4,27 +4,29 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import {
-  FormBuilder,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
-import { NavController, ToastController } from '@ionic/angular';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { NavController } from '@ionic/angular';
 import {
   IonContent,
-  IonHeader,
   IonIcon,
   IonInput,
   IonText,
-  IonToolbar,
 } from '@ionic/angular/standalone';
+import { BackHeaderComponent } from '@shared/components/back-header/back-header.component';
 import { addIcons } from 'ionicons';
 import { chevronBack, eyeOffOutline, eyeOutline } from 'ionicons/icons';
-import { firstValueFrom } from 'rxjs';
-import { matchPasswordsValidator, passwordStrengthValidator } from 'src/app/shared/validators/password.validators';
-import { isInvalid } from 'src/app/shared/utils/form.utils';
-import { AuthErrorMapper } from 'src/app/features/auth/errors/auth-error-mapper';
+import { catchError, EMPTY, finalize, tap } from 'rxjs';
+import { AppError } from 'src/app/core/models/app-error.model';
+import { NotificationService } from 'src/app/core/services/notification.service';
+import { handleInlineFormError } from 'src/app/core/utils/form-error-handler.utils';
+import { clearServerFieldErrors } from 'src/app/core/utils/server-validation-errors.utils';
+import { AuthErrorFacade } from 'src/app/features/auth/errors/auth-error.facade';
 import { AuthApiService } from 'src/app/features/auth/services/auth-api.service';
+import { isInvalid } from 'src/app/shared/utils/form.utils';
+import {
+  matchPasswordsValidator,
+  passwordStrengthValidator,
+} from 'src/app/shared/validators/password.validators';
 
 @Component({
   selector: 'app-change-password',
@@ -32,23 +34,22 @@ import { AuthApiService } from 'src/app/features/auth/services/auth-api.service'
   styleUrls: ['./change-password.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    IonHeader,
-    IonToolbar,
     IonContent,
     IonIcon,
     IonText,
     IonInput,
     ReactiveFormsModule,
+    BackHeaderComponent,
   ],
 })
 export class ChangePasswordPage {
   private readonly navCtrl = inject(NavController);
   private readonly fb = inject(FormBuilder);
   private readonly authApi = inject(AuthApiService);
-  private readonly toastCtrl = inject(ToastController);
+  private readonly notifications = inject(NotificationService);
+  private readonly authErrorFacade = inject(AuthErrorFacade);
 
   isSubmitting = signal(false);
-  serverError = signal<string | null>(null);
 
   showCurrentPassword = signal(false);
   showNewPassword = signal(false);
@@ -89,16 +90,16 @@ export class ChangePasswordPage {
   };
 
   onSubmit(): void {
-    void this.changePassword();
-  }
-
-  private async changePassword(): Promise<void> {
-    this.serverError.set(null);
+    clearServerFieldErrors(this.form);
 
     if (this.isSubmitting()) {
       return;
     }
 
+    void this.changePassword();
+  }
+
+  private async changePassword(): Promise<void> {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -107,27 +108,33 @@ export class ChangePasswordPage {
     this.isSubmitting.set(true);
     const value = this.form.getRawValue();
 
-    try {
-      await firstValueFrom(
-        this.authApi.changePassword({
-          currentPassword: value.currentPassword,
-          newPassword: value.newPassword,
+    this.authApi
+      .changePassword({
+        currentPassword: value.currentPassword,
+        newPassword: value.newPassword,
+      })
+      .pipe(
+        tap(() => {
+          void this.notifications.showSuccess(
+            'Password updated successfully.',
+            2000
+          );
+          this.form.reset();
+          this.goBack();
+        }),
+        catchError((error: AppError) => {
+          handleInlineFormError({
+            error,
+            form: this.form,
+            context: 'password-change',
+            facade: this.authErrorFacade,
+          });
+          return EMPTY;
+        }),
+        finalize(() => {
+          this.isSubmitting.set(false);
         })
-      );
-
-      const toast = await this.toastCtrl.create({
-        message: 'Password updated successfully.',
-        duration: 2000,
-        position: 'bottom',
-      });
-      await toast.present();
-
-      this.form.reset();
-      this.goBack();
-    } catch (e) {
-      this.serverError.set(AuthErrorMapper.map(e, 'password-change'));
-    } finally {
-      this.isSubmitting.set(false);
-    }
+      )
+      .subscribe();
   }
 }

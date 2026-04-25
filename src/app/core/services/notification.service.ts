@@ -1,5 +1,11 @@
 import { Injectable, inject } from '@angular/core';
 import { ToastController, ToastOptions } from '@ionic/angular';
+import {
+  alertCircle,
+  checkmarkCircle,
+  informationCircle,
+  warning,
+} from 'ionicons/icons';
 
 export type NotificationType = 'success' | 'error' | 'warning' | 'info';
 
@@ -70,14 +76,14 @@ export class NotificationService {
   private getIcon(type: NotificationType): string | undefined {
     switch (type) {
       case 'success':
-        return 'checkmark-circle';
+        return checkmarkCircle;
       case 'error':
-        return 'alert-circle';
+        return alertCircle;
       case 'warning':
-        return 'warning';
+        return warning;
       case 'info':
       default:
-        return 'information-circle';
+        return informationCircle;
     }
   }
 }

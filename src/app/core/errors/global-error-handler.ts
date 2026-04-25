@@ -1,4 +1,5 @@
 import { ErrorHandler, Injectable, inject } from '@angular/core';
+import { isAppError, isHandled } from '../utils/app-error.utils';
 import { LoggerService } from '../services/logger.service';
 import { NotificationService } from '../services/notification.service';
 
@@ -8,6 +9,11 @@ export class GlobalErrorHandler implements ErrorHandler {
   private readonly notificationService = inject(NotificationService);
 
   handleError(error: unknown): void {
+    if (isAppError(error) && isHandled(error)) {
+      // Already handled by a feature or interceptor; avoid duplicate UX noise.
+      return;
+    }
+
     if (error instanceof Error) {
       this.logger.logError(error, { context: 'GlobalErrorHandler' });
     } else {
@@ -17,7 +23,7 @@ export class GlobalErrorHandler implements ErrorHandler {
       });
     }
 
-    this.notificationService.showError(
+    void this.notificationService.showError(
       'An unexpected error occurred. Please try again.'
     );
   }

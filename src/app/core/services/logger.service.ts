@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { environment } from 'src/environments/environment';
+import { environment } from '@env/environment';
 
 export enum LogLevel {
   DEBUG = 0,
@@ -32,18 +32,33 @@ export interface LogOptions {
   providedIn: 'root',
 })
 export class LoggerService {
-  private level: LogLevel = environment.production ? LogLevel.OFF : LogLevel.DEBUG;
+  private level: LogLevel = environment.production
+    ? LogLevel.ERROR
+    : LogLevel.DEBUG;
   private isProduction = environment.production;
+  private readonly sensitiveKeys = [
+    'password',
+    'token',
+    'authorization',
+    'secret',
+    'apikey',
+    'credential',
+    'cookie',
+    'session',
+  ];
 
   debug(message: string, options?: LogOptions): void {
+    if (this.isProduction) return;
     this.log(LogLevel.DEBUG, message, options);
   }
 
   info(message: string, options?: LogOptions): void {
+    if (this.isProduction) return;
     this.log(LogLevel.INFO, message, options);
   }
 
   warn(message: string, options?: LogOptions): void {
+    if (this.isProduction) return;
     this.log(LogLevel.WARN, message, options);
   }
 
@@ -62,7 +77,7 @@ export class LoggerService {
       error: {
         name: error.name,
         message: error.message,
-        stack: this.isProduction ? undefined : error.stack,
+        stack: error.stack,
       },
     };
 
@@ -91,10 +106,6 @@ export class LoggerService {
   }
 
   private output(entry: LogEntry): void {
-    if (this.isProduction) {
-      return;
-    }
-
     const logFn = this.getConsoleMethod(entry.level);
     const formatted = this.formatEntry(entry);
 
@@ -106,18 +117,15 @@ export class LoggerService {
   }
 
   private getConsoleMethod(level: LogLevel): (...args: unknown[]) => void {
-    switch (level) {
-      case LogLevel.DEBUG:
-        return console.debug.bind(console);
-      case LogLevel.INFO:
-        return console.info.bind(console);
-      case LogLevel.WARN:
-        return console.warn.bind(console);
-      case LogLevel.ERROR:
-        return console.error.bind(console);
-      default:
-        return console.log.bind(console);
-    }
+    const consoleMethods: Partial<
+      Record<LogLevel, (...args: unknown[]) => void>
+    > = {
+      [LogLevel.DEBUG]: console.debug.bind(console),
+      [LogLevel.INFO]: console.info.bind(console),
+      [LogLevel.WARN]: console.warn.bind(console),
+      [LogLevel.ERROR]: console.error.bind(console),
+    };
+    return consoleMethods[level] || console.log.bind(console);
   }
 
   private formatEntry(entry: LogEntry): string {
@@ -125,21 +133,42 @@ export class LoggerService {
     return `[${levelPadding}] [${entry.context}] ${entry.message}`;
   }
 
-  private sanitizeData(data?: Record<string, unknown>): Record<string, unknown> | undefined {
+  private sanitizeData(
+    data?: Record<string, unknown>
+  ): Record<string, unknown> | undefined {
     if (!data) return undefined;
+    return this.sanitizeValue(data, 0) as Record<string, unknown>;
+  }
 
-    const sensitiveKeys = ['password', 'token', 'authorization', 'secret', 'apiKey', 'credential'];
-    const sanitized: Record<string, unknown> = {};
+  private sanitizeValue(value: unknown, depth: number): unknown {
+    const maxDepth = 4;
+    if (value == null || depth > maxDepth) return value;
 
-    for (const [key, value] of Object.entries(data)) {
-      const lowerKey = key.toLowerCase();
-      if (sensitiveKeys.some(sensitive => lowerKey.includes(sensitive))) {
-        sanitized[key] = '[REDACTED]';
-      } else {
-        sanitized[key] = value;
-      }
+    if (Array.isArray(value)) {
+      return value.map((entry) => this.sanitizeValue(entry, depth + 1));
     }
 
+    if (typeof value !== 'object') {
+      return value;
+    }
+
+    const sanitized: Record<string, unknown> = {};
+    for (const [key, entry] of Object.entries(
+      value as Record<string, unknown>
+    )) {
+      if (this.isSensitiveKey(key)) {
+        sanitized[key] = '[REDACTED]';
+        continue;
+      }
+      sanitized[key] = this.sanitizeValue(entry, depth + 1);
+    }
     return sanitized;
+  }
+
+  private isSensitiveKey(key: string): boolean {
+    const normalizedKey = key.toLowerCase();
+    return this.sensitiveKeys.some((sensitive) =>
+      normalizedKey.includes(sensitive)
+    );
   }
 }

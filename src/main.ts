@@ -23,10 +23,10 @@ import {
 } from '@ionic/angular/standalone';
 import { AppComponent } from './app/app.component';
 import { routes } from './app/app.routes';
+import { CORE_PROVIDERS } from './app/core/core.providers';
 import { GlobalErrorHandler } from './app/core/errors/global-error-handler';
 import { authInterceptor } from './app/core/interceptors/auth.interceptor';
 import { errorInterceptor } from './app/core/interceptors/error.interceptor';
-import { AUTH_STATE_TOKEN } from './app/core/models/auth-state.interface';
 import { AuthService } from './app/features/auth/services/auth.service';
 import { environment } from './environments/environment';
 
@@ -38,12 +38,12 @@ bootstrapApplication(AppComponent, {
   providers: [
     { provide: ErrorHandler, useClass: GlobalErrorHandler },
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
-    { provide: AUTH_STATE_TOKEN, useExisting: AuthService },
+    CORE_PROVIDERS,
     provideIonicAngular({ navAnimation: iosTransitionAnimation }),
     provideRouter(routes, withPreloading(PreloadAllModules)),
     provideHttpClient(
       withFetch(),
-      withInterceptors([authInterceptor, errorInterceptor])
+      withInterceptors([errorInterceptor, authInterceptor])
     ),
     provideAppInitializer(() => {
       const authService = inject(AuthService);

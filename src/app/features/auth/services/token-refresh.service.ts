@@ -45,9 +45,10 @@ export class TokenRefreshService {
    */
   failRefresh(error: Error): void {
     this.isRefreshing = false;
-    this.refreshTokenSubject.error(error);
-    // Reset the subject for future refresh attempts
+    // Notify error before resetting to ensure waiting requests receive it
+    const oldSubject = this.refreshTokenSubject;
     this.refreshTokenSubject = new BehaviorSubject<string | null>(null);
+    oldSubject.error(error);
   }
 
   /**

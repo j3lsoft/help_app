@@ -39,6 +39,11 @@
       <ion-text class="redColor14SemiBold">
         Please enter a valid username
       </ion-text>
+      } @if (form.controls.username.hasError('serverError') &&
+      (form.controls.username.touched || form.controls.username.dirty)) {
+      <ion-text class="redColor14SemiBold">
+        {{ form.controls.username.getError('serverError') }}
+      </ion-text>
       }
     </div>
 
@@ -53,9 +58,17 @@
         type="date"
       ></ion-input>
       <div class="auth-form__divider"></div>
-      @if (isInvalid('birthDate')) {
+      @if (isInvalid('birthDate') &&
+      !form.controls.birthDate.hasError('serverError')) {
       <ion-text class="redColor14SemiBold">
-        Please enter a valid birth date
+        @if (form.controls.birthDate.hasError('underAge')) { You must be at
+        least 13 years old to register } @else { Please enter a valid birth date
+        }
+      </ion-text>
+      } @if (form.controls.birthDate.hasError('serverError') &&
+      (form.controls.birthDate.touched || form.controls.birthDate.dirty)) {
+      <ion-text class="redColor14SemiBold">
+        {{ form.controls.birthDate.getError('serverError') }}
       </ion-text>
       }
     </div>
@@ -75,6 +88,11 @@
       @if (isInvalid('email')) {
       <ion-text class="redColor14SemiBold">
         Please enter a valid email
+      </ion-text>
+      } @if (form.controls.email.hasError('serverError') &&
+      (form.controls.email.touched || form.controls.email.dirty)) {
+      <ion-text class="redColor14SemiBold">
+        {{ form.controls.email.getError('serverError') }}
       </ion-text>
       }
     </div>
@@ -137,12 +155,6 @@
       <ion-text class="redColor14SemiBold"> Passwords do not match </ion-text>
       }
     </div>
-
-    @if (serverError()) {
-    <ion-text class="redColor14SemiBold center auth-form__error">
-      {{ serverError() }}
-    </ion-text>
-    }
 
     <app-auth-primary-button
       class="auth-form__submit"

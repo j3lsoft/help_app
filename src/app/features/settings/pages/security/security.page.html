@@ -1,19 +1,4 @@
-<ion-header mode="ios" [translucent]="false">
-  <ion-toolbar color="whiteColor" class="security-page__toolbar">
-    <div class="security-page__header">
-      <ion-icon
-        class="security-page__back"
-        name="chevron-back"
-        color="blackColor"
-        (click)="goBack()"
-        aria-label="Go back"
-      ></ion-icon>
-      <ion-text class="blackColor20SemiBold security-page__title">
-        Security
-      </ion-text>
-    </div>
-  </ion-toolbar>
-</ion-header>
+<app-back-header title="Security" (backClick)="goBack()"></app-back-header>
 
 <ion-content>
   <ion-list inset="true" mode="ios" class="security-page__list">

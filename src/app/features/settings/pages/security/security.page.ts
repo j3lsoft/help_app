@@ -3,14 +3,12 @@ import { Router } from '@angular/router';
 import { NavController } from '@ionic/angular';
 import {
   IonContent,
-  IonHeader,
   IonIcon,
   IonItem,
   IonLabel,
   IonList,
-  IonText,
-  IonToolbar,
 } from '@ionic/angular/standalone';
+import { BackHeaderComponent } from '@shared/components/back-header/back-header.component';
 import { addIcons } from 'ionicons';
 import { chevronBack, chevronForwardOutline, keyOutline } from 'ionicons/icons';
 
@@ -20,14 +18,12 @@ import { chevronBack, chevronForwardOutline, keyOutline } from 'ionicons/icons';
   styleUrls: ['./security.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    IonHeader,
-    IonToolbar,
     IonContent,
     IonIcon,
-    IonText,
     IonList,
     IonItem,
     IonLabel,
+    BackHeaderComponent,
   ],
 })
 export class SecurityPage {

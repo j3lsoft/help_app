@@ -5,7 +5,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { RegisterPage } from './register.page';
 import { AuthApiService } from '../../services/auth-api.service';
 import { AppStorageService } from 'src/app/core/services/storage/app-storage.service';
-import { of } from 'rxjs';
+import { throwError } from 'rxjs';
 
 describe('RegisterPage', () => {
   let component: RegisterPage;
@@ -55,5 +55,41 @@ describe('RegisterPage', () => {
 
     passwordControl.setValue('password123!');
     expect(passwordControl.errors).toBeNull();
+  });
+
+  it('should render dynamic birthDate message from server validation metadata', async () => {
+    authApiMock.register.and.returnValue(
+      throwError(() => ({
+        status: 422,
+        handled: false,
+        details: {
+          validation: {
+            fieldErrors: {
+              birthDate: [
+                {
+                  message: 'You must be at least 16 years old to register',
+                  meta: { minAge: 13 },
+                },
+              ],
+            },
+          },
+        },
+      }))
+    );
+
+    component.form.setValue({
+      name: 'John Doe',
+      username: 'johndoe',
+      birthDate: '2000-01-01',
+      email: 'john@example.com',
+      password: 'Password123!',
+      confirmPassword: 'Password123!',
+    });
+
+    await component.onSubmit();
+
+    expect(component.form.controls.birthDate.getError('serverError')).toBe(
+      'You must be at least 13 years old to register'
+    );
   });
 });

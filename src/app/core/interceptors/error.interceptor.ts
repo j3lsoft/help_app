@@ -7,44 +7,44 @@ import {
 } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Observable, catchError, retry, throwError, timer } from 'rxjs';
-import { ErrorHandlerService } from '../services/error-handler.service';
+import { HttpErrorAdapter } from '../adapters/http-error.adapter';
 import { LoggerService } from '../services/logger.service';
+import { NetworkService } from '../services/network.service';
 import { NotificationService } from '../services/notification.service';
-import {
-  getHttpErrorLogLevel,
-  HTTP_STATUS,
-  isRateLimitError,
-  isTechnicalError,
-} from '../utils/http.utils';
+import { markHandled } from '../utils/app-error.utils';
+import { classifyTechnicalError } from '../utils/error-handling.utils';
+import { getHttpErrorLogLevel, isTechnicalError } from '../utils/http.utils';
 
 export const errorInterceptor: HttpInterceptorFn = (
   req: HttpRequest<unknown>,
   next: HttpHandlerFn
 ): Observable<HttpEvent<unknown>> => {
   const notificationService = inject(NotificationService);
-  const errorHandler = inject(ErrorHandlerService);
   const logger = inject(LoggerService);
+  const network = inject(NetworkService);
 
   return next(req).pipe(
     retry({
       count: 2,
       delay: (error: HttpErrorResponse, retryCount: number) => {
-        if (isTechnicalError(error.status)) {
-          return timer(retryCount * 1000);
+        if (req.method !== 'GET' || !isTechnicalError(error.status)) {
+          return throwError(() => error);
         }
-        return throwError(() => error);
+        return timer(retryCount * 1000);
       },
     }),
     catchError((error: HttpErrorResponse) => {
-      const logLevel = getHttpErrorLogLevel(error.status);
-      const isNetworkError = error.status === HTTP_STATUS.NETWORK_ERROR;
-      const isOffline = isNetworkError && !navigator.onLine;
+      const appError = HttpErrorAdapter.adapt(error);
+      const logLevel = getHttpErrorLogLevel(appError.status);
+      const isOnline = network.isOnline();
+      const isOffline = appError.status === 0 && !isOnline;
 
       if (logLevel !== 'ignore') {
         const logData = {
           url: req.url,
           method: req.method,
-          status: error.status,
+          status: appError.status,
+          code: appError.code,
           offline: isOffline,
         };
 
@@ -61,22 +61,14 @@ export const errorInterceptor: HttpInterceptorFn = (
         }
       }
 
-      if (shouldShowNotification(error)) {
-        const errorMessage = isOffline
-          ? 'No internet connection. Please check your network and try again.'
-          : errorHandler.mapError(error);
-        notificationService.showError(errorMessage);
+      const technicalMessage = classifyTechnicalError(appError, { isOnline });
+      if (technicalMessage) {
+        // Only show global toasts for technical errors (not business/validation).
+        void notificationService.showError(technicalMessage);
+        markHandled(appError);
       }
 
-      return throwError(() => error);
+      return throwError(() => appError);
     })
   );
 };
-
-function shouldShowNotification(error: HttpErrorResponse): boolean {
-  return (
-    error.status === HTTP_STATUS.NETWORK_ERROR ||
-    error.status >= HTTP_STATUS.INTERNAL_SERVER_ERROR ||
-    isRateLimitError(error.status)
-  );
-}

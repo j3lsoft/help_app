@@ -23,13 +23,8 @@
     >
       Resend
     </ion-text>
-
-    @if (errorMessage()) {
-    <ion-text class="lightGrayColor14Regular auth-verify__error">
-      {{ errorMessage() }}
-    </ion-text>
-    }
   </div>
+
   <app-auth-primary-button
     [label]="'Continue'"
     (clicked)="onContinue()"

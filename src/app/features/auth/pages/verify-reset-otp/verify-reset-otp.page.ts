@@ -5,6 +5,9 @@ import {
   signal,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { AppError } from '@core/models/app-error.model';
+import { AppStorageService } from '@core/services/storage/app-storage.service';
+import { STORAGE_KEYS } from '@core/services/storage/storage-keys';
 import { NavController } from '@ionic/angular';
 import {
   IonContent,
@@ -13,12 +16,10 @@ import {
   IonText,
 } from '@ionic/angular/standalone';
 import { NgOtpInputConfig, NgOtpInputModule } from 'ng-otp-input';
-import { firstValueFrom } from 'rxjs';
-import { AppStorageService } from 'src/app/core/services/storage/app-storage.service';
-import { STORAGE_KEYS } from 'src/app/core/services/storage/storage-keys';
+import { catchError, EMPTY, finalize, tap } from 'rxjs';
 import { AuthHeaderComponent } from '../../components/auth-header/auth-header.component';
 import { AuthPrimaryButtonComponent } from '../../components/auth-primary-button/auth-primary-button.component';
-import { AuthErrorMapper } from '../../errors/auth-error-mapper';
+import { AuthErrorFacade } from '../../errors/auth-error.facade';
 import { AuthApiService } from '../../services/auth-api.service';
 
 @Component({
@@ -42,11 +43,11 @@ export class VerifyResetOtpPage {
   private readonly route = inject(ActivatedRoute);
   private readonly authApi = inject(AuthApiService);
   private readonly storage = inject(AppStorageService);
+  private readonly authErrorFacade = inject(AuthErrorFacade);
 
   showLoadingDialog = signal(false);
   otpValue = signal('');
   email = signal('');
-  errorMessage = signal<string | null>(null);
 
   config: NgOtpInputConfig = {
     length: 6,
@@ -83,9 +84,7 @@ export class VerifyResetOtpPage {
   }
 
   async onResend(): Promise<void> {
-    this.errorMessage.set(null);
     if (!this.email()) {
-      this.errorMessage.set('Please enter a valid email.');
       return;
     }
 
@@ -94,19 +93,24 @@ export class VerifyResetOtpPage {
     }
 
     this.showLoadingDialog.set(true);
-    try {
-      await firstValueFrom(
-        this.authApi.requestPasswordReset({ email: this.email() })
-      );
-      await this.storage.setString(
-        STORAGE_KEYS.pendingPasswordResetEmail,
-        this.email()
-      );
-    } catch (e) {
-      this.errorMessage.set(AuthErrorMapper.map(e, 'password-reset'));
-    } finally {
-      this.showLoadingDialog.set(false);
-    }
+    this.authApi
+      .requestPasswordReset({ email: this.email() })
+      .pipe(
+        tap(async () => {
+          await this.storage.setString(
+            STORAGE_KEYS.pendingPasswordResetEmail,
+            this.email()
+          );
+        }),
+        catchError((error: AppError) => {
+          this.authErrorFacade.handle(error, 'password-reset');
+          return EMPTY;
+        }),
+        finalize(() => {
+          this.showLoadingDialog.set(false);
+        })
+      )
+      .subscribe();
   }
 
   private async verifyOtp(): Promise<void> {
@@ -114,35 +118,36 @@ export class VerifyResetOtpPage {
       return;
     }
 
-    this.errorMessage.set(null);
     const otp = String(this.otpValue() ?? '').trim();
     if (!this.email() || otp.length !== 6) {
-      this.errorMessage.set('Please enter the 6-digit code.');
       return;
     }
 
     this.showLoadingDialog.set(true);
-    try {
-      const response = await firstValueFrom(
-        this.authApi.verifyPasswordResetOtp({ email: this.email(), otp })
-      );
+    this.authApi
+      .verifyPasswordResetOtp({ email: this.email(), otp })
+      .pipe(
+        tap(async (response) => {
+          await this.storage.setString(
+            STORAGE_KEYS.pendingChangePasswordToken,
+            response.changePasswordToken
+          );
 
-      await this.storage.setString(
-        STORAGE_KEYS.pendingChangePasswordToken,
-        response.changePasswordToken
-      );
-
-      this.showLoadingDialog.set(false);
-      // Give the popover time to start the dismissal process before navigation
-      setTimeout(async () => {
-        await this.router.navigate(['/auth/reset-password'], {
-          queryParams: { email: this.email() },
-        });
-      }, 100);
-    } catch (e) {
-      this.errorMessage.set(AuthErrorMapper.map(e, 'password-reset'));
-    } finally {
-      this.showLoadingDialog.set(false);
-    }
+          this.showLoadingDialog.set(false);
+          setTimeout(async () => {
+            await this.router.navigate(['/auth/reset-password'], {
+              queryParams: { email: this.email() },
+            });
+          }, 100);
+        }),
+        catchError((error: AppError) => {
+          this.authErrorFacade.handle(error, 'password-reset');
+          return EMPTY;
+        }),
+        finalize(() => {
+          this.showLoadingDialog.set(false);
+        })
+      )
+      .subscribe();
   }
 }

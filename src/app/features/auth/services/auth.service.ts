@@ -1,15 +1,12 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { AuthResponseAdapter } from '@core/adapters/auth-response.adapter';
+import { AuthState } from '@core/models/auth-state.interface';
+import { AppStorageService } from '@core/services/storage/app-storage.service';
+import { SecureStorageService } from '@core/services/storage/secure-storage.service';
+import { STORAGE_KEYS } from '@core/services/storage/storage-keys';
 import { firstValueFrom } from 'rxjs';
-import { AuthState } from 'src/app/core/models/auth-state.interface';
-import { AppStorageService } from 'src/app/core/services/storage/app-storage.service';
-import { SecureStorageService } from 'src/app/core/services/storage/secure-storage.service';
-import { STORAGE_KEYS } from 'src/app/core/services/storage/storage-keys';
-import {
-  LoginResponseDto,
-  LoginUserResponseDto,
-  MeResponseDto,
-} from '../models/auth.dto';
+import { LoginResponseDto, MeResponseDto } from '../models/auth.dto';
 import { AuthApiService } from './auth-api.service';
 
 @Injectable({
@@ -26,30 +23,21 @@ export class AuthService implements AuthState {
   readonly isAuthenticated = computed(() => !!this._currentUser());
 
   async login(response: LoginResponseDto): Promise<void> {
+    const transformedResponse =
+      AuthResponseAdapter.transformLoginResponse(response);
+
     // Access token goes to secure storage (Keychain / Keystore)
     await this.secureStorage.set(
       STORAGE_KEYS.accessToken,
-      response.accessToken
+      transformedResponse.accessToken
     );
 
-    if (response.user) {
-      const user: MeResponseDto = {
-        id: response.user.id,
-        email: response.user.email,
-        emailVerified: response.user.emailVerified,
-        username: response.user.username,
-        displayName: response.user.displayName,
-        avatarUrl: typeof response.user.avatarUrl === 'string' 
-          ? response.user.avatarUrl 
-          : null,
-        birthDate: null,
-        bio: null,
-      };
-      this._currentUser.set(user);
+    if (transformedResponse.user) {
+      this._currentUser.set(transformedResponse.user);
       // Non-sensitive user profile data stays in regular storage
       await this.storage.setString(
         STORAGE_KEYS.userData,
-        JSON.stringify(user)
+        JSON.stringify(transformedResponse.user)
       );
     }
   }
@@ -97,5 +85,10 @@ export class AuthService implements AuthState {
     // Sync with storage
     await this.storage.setString(STORAGE_KEYS.userData, JSON.stringify(user));
     return user;
+  }
+
+  async updateCurrentUser(user: MeResponseDto): Promise<void> {
+    this._currentUser.set(user);
+    await this.storage.setString(STORAGE_KEYS.userData, JSON.stringify(user));
   }
 }

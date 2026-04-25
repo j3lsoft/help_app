@@ -4,11 +4,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import {
-  FormBuilder,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NavController } from '@ionic/angular';
 import {
@@ -19,15 +15,19 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { eyeOffOutline, eyeOutline } from 'ionicons/icons';
-import { firstValueFrom } from 'rxjs';
+import { catchError, EMPTY, finalize, tap } from 'rxjs';
+import { AppError } from 'src/app/core/models/app-error.model';
 import { NotificationService } from 'src/app/core/services/notification.service';
 import { AppStorageService } from 'src/app/core/services/storage/app-storage.service';
 import { STORAGE_KEYS } from 'src/app/core/services/storage/storage-keys';
-import { matchPasswordsValidator, passwordStrengthValidator } from 'src/app/shared/validators/password.validators';
 import { isInvalid } from 'src/app/shared/utils/form.utils';
+import {
+  matchPasswordsValidator,
+  passwordStrengthValidator,
+} from 'src/app/shared/validators/password.validators';
 import { AuthHeaderComponent } from '../../components/auth-header/auth-header.component';
 import { AuthPrimaryButtonComponent } from '../../components/auth-primary-button/auth-primary-button.component';
-import { AuthErrorMapper } from '../../errors/auth-error-mapper';
+import { AuthErrorFacade } from '../../errors/auth-error.facade';
 import { AuthApiService } from '../../services/auth-api.service';
 import { AuthService } from '../../services/auth.service';
 
@@ -55,11 +55,11 @@ export class ResetPasswordPage {
   private readonly authService = inject(AuthService);
   private readonly storage = inject(AppStorageService);
   private readonly notification = inject(NotificationService);
+  private readonly authErrorFacade = inject(AuthErrorFacade);
 
   showLoadingDialog = signal(false);
   email = signal('');
   changePasswordToken = signal<string | null>(null);
-  errorMessage = signal<string | null>(null);
   showNewPassword = signal(false);
   showConfirmPwd = signal(false);
   isSubmitting = signal(false);
@@ -98,17 +98,15 @@ export class ResetPasswordPage {
       (await this.storage.getString(STORAGE_KEYS.pendingChangePasswordToken)) ??
       null;
     this.changePasswordToken.set(tokenFromStorage);
-
-    if (!tokenFromStorage) {
-      this.errorMessage.set('Please verify the code first.');
-    }
   }
 
   goBack(): void {
     this.navCtrl.back();
   }
 
-  isInvalid = (controlName: keyof ResetPasswordPage['form']['controls']): boolean => {
+  isInvalid = (
+    controlName: keyof ResetPasswordPage['form']['controls']
+  ): boolean => {
     const control = this.form.controls[controlName];
     return isInvalid(control);
   };
@@ -122,12 +120,8 @@ export class ResetPasswordPage {
       return;
     }
 
-    this.isSubmitting.set(true);
-    this.errorMessage.set(null);
-
     const token = this.changePasswordToken();
     if (!token) {
-      this.errorMessage.set('Please verify the code first.');
       return;
     }
 
@@ -136,26 +130,33 @@ export class ResetPasswordPage {
       return;
     }
 
+    this.isSubmitting.set(true);
     const value = this.form.getRawValue();
 
-    try {
-      await firstValueFrom(
-        this.authApi.changePasswordWithToken({
-          changePasswordToken: token,
-          newPassword: value.newPassword,
+    this.authApi
+      .changePasswordWithToken({
+        changePasswordToken: token,
+        newPassword: value.newPassword,
+      })
+      .pipe(
+        tap(async () => {
+          await this.storage.remove(STORAGE_KEYS.pendingPasswordResetEmail);
+          await this.storage.remove(STORAGE_KEYS.pendingChangePasswordToken);
+          await this.authService.logout();
+
+          await this.notification.showSuccess('Password updated successfully.');
+          await this.router.navigateByUrl('/auth/sign-in', {
+            replaceUrl: true,
+          });
+        }),
+        catchError((error: AppError) => {
+          this.authErrorFacade.handle(error, 'password-change');
+          return EMPTY;
+        }),
+        finalize(() => {
+          this.isSubmitting.set(false);
         })
-      );
-
-      await this.storage.remove(STORAGE_KEYS.pendingPasswordResetEmail);
-      await this.storage.remove(STORAGE_KEYS.pendingChangePasswordToken);
-      await this.authService.logout();
-
-      await this.notification.showSuccess('Password updated successfully.');
-      await this.router.navigateByUrl('/auth/sign-in', { replaceUrl: true });
-    } catch (e) {
-      this.errorMessage.set(AuthErrorMapper.map(e, 'password-change'));
-    } finally {
-      this.isSubmitting.set(false);
-    }
+      )
+      .subscribe();
   }
 }

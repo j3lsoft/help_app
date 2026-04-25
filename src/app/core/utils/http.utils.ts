@@ -32,14 +32,7 @@ export function isRateLimitError(status: number): boolean {
 }
 
 export function getHttpErrorLogLevel(status: number): 'error' | 'warn' | 'info' | 'ignore' {
-  if (isTechnicalError(status)) {
-    return 'error';
-  }
-  if (isRateLimitError(status)) {
-    return 'warn';
-  }
-  if (isExpectedHttpError(status)) {
-    return 'ignore';
-  }
+  if (isTechnicalError(status)) return 'error';
+  if (isRateLimitError(status)) return 'warn';
   return 'ignore';
 }

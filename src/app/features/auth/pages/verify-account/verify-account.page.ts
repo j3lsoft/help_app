@@ -13,12 +13,13 @@ import {
   IonText,
 } from '@ionic/angular/standalone';
 import { NgOtpInputConfig, NgOtpInputModule } from 'ng-otp-input';
-import { firstValueFrom } from 'rxjs';
+import { catchError, EMPTY, finalize, tap } from 'rxjs';
+import { AppError } from 'src/app/core/models/app-error.model';
 import { AppStorageService } from 'src/app/core/services/storage/app-storage.service';
 import { STORAGE_KEYS } from 'src/app/core/services/storage/storage-keys';
 import { AuthHeaderComponent } from '../../components/auth-header/auth-header.component';
 import { AuthPrimaryButtonComponent } from '../../components/auth-primary-button/auth-primary-button.component';
-import { AuthErrorMapper } from '../../errors/auth-error-mapper';
+import { AuthErrorFacade } from '../../errors/auth-error.facade';
 import { AuthApiService } from '../../services/auth-api.service';
 import { AuthService } from '../../services/auth.service';
 
@@ -44,11 +45,11 @@ export class VerifyAccountPage {
   private readonly authApi = inject(AuthApiService);
   private readonly authService = inject(AuthService);
   private readonly storage = inject(AppStorageService);
+  private readonly authErrorFacade = inject(AuthErrorFacade);
 
   showLoadingDialog = signal(false);
   otpValue = signal('0');
   email = signal('');
-  errorMessage = signal<string | null>(null);
 
   config: NgOtpInputConfig = {
     length: 6,
@@ -85,22 +86,23 @@ export class VerifyAccountPage {
   }
 
   async onResend(): Promise<void> {
-    this.errorMessage.set(null);
     if (!this.email()) {
-      this.errorMessage.set('Please enter a valid email.');
       return;
     }
 
     this.showLoadingDialog.set(true);
-    try {
-      await firstValueFrom(
-        this.authApi.resendVerification({ email: this.email() })
-      );
-    } catch (e) {
-      this.errorMessage.set(AuthErrorMapper.map(e, 'verification'));
-    } finally {
-      this.showLoadingDialog.set(false);
-    }
+    this.authApi
+      .resendVerification({ email: this.email() })
+      .pipe(
+        catchError((error: AppError) => {
+          this.authErrorFacade.handle(error, 'verification');
+          return EMPTY;
+        }),
+        finalize(() => {
+          this.showLoadingDialog.set(false);
+        })
+      )
+      .subscribe();
   }
 
   private async verifyAndLogin(): Promise<void> {
@@ -108,29 +110,31 @@ export class VerifyAccountPage {
       return;
     }
 
-    this.errorMessage.set(null);
     const code = String(this.otpValue() ?? '').trim();
     if (!this.email() || code.length !== 6) {
       return;
     }
 
     this.showLoadingDialog.set(true);
-    try {
-      const response = await firstValueFrom(
-        this.authApi.verifyEmail({ email: this.email(), code })
-      );
-
-      await this.authService.login(response);
-      await this.storage.remove(STORAGE_KEYS.pendingVerificationEmail);
-      this.showLoadingDialog.set(false);
-      // Give the popover time to start the dismissal process before navigation
-      setTimeout(async () => {
-        await this.router.navigateByUrl('/tabs/home');
-      }, 100);
-    } catch (e) {
-      this.errorMessage.set(AuthErrorMapper.map(e, 'verification'));
-    } finally {
-      this.showLoadingDialog.set(false);
-    }
+    this.authApi
+      .verifyEmail({ email: this.email(), code })
+      .pipe(
+        tap(async (response) => {
+          await this.authService.login(response);
+          await this.storage.remove(STORAGE_KEYS.pendingVerificationEmail);
+          this.showLoadingDialog.set(false);
+          setTimeout(async () => {
+            await this.router.navigateByUrl('/tabs/home');
+          }, 100);
+        }),
+        catchError((error: AppError) => {
+          this.authErrorFacade.handle(error, 'verification');
+          return EMPTY;
+        }),
+        finalize(() => {
+          this.showLoadingDialog.set(false);
+        })
+      )
+      .subscribe();
   }
 }

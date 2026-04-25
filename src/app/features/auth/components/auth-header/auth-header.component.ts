@@ -35,4 +35,3 @@ export class AuthHeaderComponent {
     this.back.emit();
   }
 }
-

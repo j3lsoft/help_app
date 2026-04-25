@@ -18,6 +18,12 @@
       <ion-text class="redColor14SemiBold">
         Please enter your email or username
       </ion-text>
+      } @if (form.controls.emailOrUsername.hasError('serverError') &&
+      (form.controls.emailOrUsername.touched ||
+      form.controls.emailOrUsername.dirty)) {
+      <ion-text class="redColor14SemiBold">
+        {{ form.controls.emailOrUsername.getError('serverError') }}
+      </ion-text>
       }
     </div>
 
@@ -51,13 +57,7 @@
       }
     </div>
 
-    @if (serverError()) {
-    <ion-text class="redColor14SemiBold center auth-form__error">
-      {{ serverError() }}
-    </ion-text>
-    }
-
-    <div class="ion-text-right auth-form__forgot-link" [style.margin-top]="serverError() ? '15px' : '-15px'">
+    <div class="ion-text-right auth-form__forgot-link">
       <ion-text
         class="lightGrayColor14Regular"
         (click)="goTo('/auth/forgot-password')"
