@@ -22,7 +22,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    bottom: 0;
+    bottom: 50px;
     align-self: center;
     position: absolute;
     background-color: var(--primaryColor);
@@ -37,12 +37,17 @@
     }
 
     &--md {
-      bottom: 30px;
+      // 60px tab-bar + safe-area-inset-bottom + 5px offset
+      bottom: calc(25px + env(safe-area-inset-bottom) + 5px);
     }
   }
 
   &__menu {
     --width: 70%;
+
+    &-row {
+      align-items: flex-start;
+    }
 
     &-header-wrapper {
       padding: 15px 20px;

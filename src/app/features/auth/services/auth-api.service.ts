@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { environment } from 'src/environments/environment';
+import { environment } from '@env/environment';
 import {
   ChangePasswordDto,
   ChangePasswordWithTokenDto,

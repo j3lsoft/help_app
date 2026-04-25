@@ -1,4 +1,3 @@
-import { NgClass } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -8,6 +7,7 @@ import {
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router } from '@angular/router';
+import { AuthService } from '@features/auth/services/auth.service';
 import {
   IonContent,
   IonHeader,
@@ -33,24 +33,23 @@ import {
   personOutline,
 } from 'ionicons/icons';
 import { filter } from 'rxjs';
-import { AuthService } from 'src/app/features/auth/services/auth.service';
 
 @Component({
   selector: 'app-tabs',
   templateUrl: './tabs.page.html',
   styleUrls: ['./tabs.page.scss'],
+  standalone: true,
   imports: [
-    IonTabs,
-    IonTabBar,
-    IonTabButton,
+    IonContent,
+    IonHeader,
     IonIcon,
     IonMenu,
-    IonHeader,
-    IonToolbar,
-    IonText,
-    IonContent,
     IonPopover,
-    NgClass,
+    IonTabBar,
+    IonTabButton,
+    IonTabs,
+    IonText,
+    IonToolbar,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

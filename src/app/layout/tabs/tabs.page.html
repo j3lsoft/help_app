@@ -34,7 +34,7 @@
     </ion-toolbar>
   </ion-header>
   <ion-content>
-    <div class="row margin20" style="align-items: flex-start">
+    <div class="row margin20 tabs__menu-row">
       <div
         (click)="closeDrawer(); goTo('user-activity')"
         class="rowAlignCenter"
@@ -46,7 +46,7 @@
       </div>
     </div>
 
-    <div class="row margin20" style="align-items: flex-start">
+    <div class="row margin20 tabs__menu-row">
       <div
         (click)="closeDrawer(); goTo('/tabs/notifications')"
         class="rowAlignCenter"
@@ -62,7 +62,7 @@
       </div>
     </div>
 
-    <div class="row margin20" style="align-items: flex-start">
+    <div class="row margin20 tabs__menu-row">
       <div
         (click)="closeDrawer(); goTo('account-privacy')"
         class="rowAlignCenter"
@@ -74,7 +74,7 @@
       </div>
     </div>
 
-    <div class="row margin20" style="align-items: flex-start">
+    <div class="row margin20 tabs__menu-row">
       <div (click)="closeDrawer(); goTo('security')" class="rowAlignCenter">
         <span class="material-icons tabs__menu-item-icon"> security </span>
         <ion-text class="blackColor16SemiBold tabs__menu-item-label">
@@ -83,7 +83,7 @@
       </div>
     </div>
 
-    <div class="row margin20" style="align-items: flex-start">
+    <div class="row margin20 tabs__menu-row">
       <div
         (click)="closeDrawer(); goTo('block-accounts')"
         class="rowAlignCenter"
@@ -99,7 +99,7 @@
       </div>
     </div>
 
-    <div class="row margin20" style="align-items: flex-start">
+    <div class="row margin20 tabs__menu-row">
       <div
         (click)="closeDrawer(); goTo('link-accounts')"
         class="rowAlignCenter"
@@ -111,7 +111,7 @@
       </div>
     </div>
 
-    <div class="row margin20" style="align-items: flex-start">
+    <div class="row margin20 tabs__menu-row">
       <div (click)="closeDrawer(); goTo('about')" class="rowAlignCenter">
         <span class="material-icons tabs__menu-item-icon"> info_outline </span>
         <ion-text class="blackColor16SemiBold tabs__menu-item-label">
@@ -120,7 +120,7 @@
       </div>
     </div>
 
-    <div class="row margin20" style="align-items: flex-start">
+    <div class="row margin20 tabs__menu-row">
       <div (click)="closeDrawer(); goTo('help')" class="rowAlignCenter">
         <span class="material-icons tabs__menu-item-icon"> help_outline </span>
         <ion-text class="blackColor16SemiBold tabs__menu-item-label">
@@ -129,10 +129,7 @@
       </div>
     </div>
 
-    <div
-      class="row margin20 tabs__menu-logout-section"
-      style="align-items: flex-start"
-    >
+    <div class="row margin20 tabs__menu-logout-section tabs__menu-row">
       <div (click)="showDialog.set(true)" class="rowAlignCenter">
         <span class="material-icons tabs__menu-item-icon--primary">
           logout
@@ -181,7 +178,7 @@
 <div
   (click)="goTo('tabs/create-post')"
   class="tabs__add-button center"
-  [ngClass]="platform.is('ios') ? 'tabs__add-button--ios' : 'tabs__add-button--md'"
+  [class]="platform.is('ios') ? 'tabs__add-button--ios' : 'tabs__add-button--md'"
 >
   <ion-icon icon="add" class="tabs__add-button-icon"></ion-icon>
 </div>
