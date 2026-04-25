@@ -29,7 +29,6 @@
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 // @import '@ionic/angular/css/palettes/dark.system.css';
 
-
 * {
   font-family: "OpenSans";
 }
@@ -117,4 +116,14 @@ ion-toast {
   transform: translateY(-60px);
   --box-shadow: 0 0 0;
   --border-radius: 5px;
+}
+
+// Use only on screens without a header.
+.safe-area-top-content {
+  --padding-top: env(safe-area-inset-top);
+}
+
+// Tab bar con safe area (solo para dispositivos modernos)
+ion-tab-bar {
+  padding-bottom: env(safe-area-inset-bottom);
 }

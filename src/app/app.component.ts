@@ -1,10 +1,11 @@
 import { Location } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, DestroyRef, inject } from '@angular/core';
 import { App } from '@capacitor/app';
-import { StatusBar } from '@capacitor/status-bar';
 import { NavController, Platform } from '@ionic/angular';
 import { IonApp, IonRouterOutlet, IonText } from '@ionic/angular/standalone';
 import { register } from 'swiper/element/bundle';
+import { APP_EXIT_ROUTES } from './core/constants/routes.constants';
+import { EdgeToEdgeService } from './core/services/edge-to-edge.service';
 
 register();
 
@@ -20,40 +21,44 @@ export class AppComponent {
   private readonly platform = inject(Platform);
   private readonly location = inject(Location);
   private readonly navCtrl = inject(NavController);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly edgeToEdgeService = inject(EdgeToEdgeService);
 
   constructor() {
-    this.initializeApp();
-    this.backButtonEvent();
+    void this.initializeApp();
+    this.setupBackButton();
   }
 
-  backButtonEvent(): void {
-    this.platform.backButton.subscribeWithPriority(10, () => {
-      if (
-        this.location.isCurrentPathEqualTo('/auth/login') ||
-        this.location.isCurrentPathEqualTo('/tabs/home') ||
-        this.location.isCurrentPathEqualTo('/tabs/notifications') ||
-        this.location.isCurrentPathEqualTo('/tabs/message') ||
-        this.location.isCurrentPathEqualTo('/tabs/profile') ||
-        this.location.isCurrentPathEqualTo('/auth/sign-in') ||
-        this.location.isCurrentPathEqualTo('/tabs/onboarding')
-      ) {
-        this.tap++;
-        if (this.tap === 2) {
-          App.exitApp();
+  private setupBackButton(): void {
+    const subscription = this.platform.backButton.subscribeWithPriority(
+      10,
+      () => {
+        if (
+          APP_EXIT_ROUTES.some((route: string) =>
+            this.location.isCurrentPathEqualTo(route)
+          )
+        ) {
+          this.tap++;
+          if (this.tap === 2) {
+            App.exitApp();
+          } else {
+            setTimeout(() => {
+              this.tap = 0;
+            }, 2000);
+          }
         } else {
-          setTimeout(() => {
-            this.tap = 0;
-          }, 2000);
+          this.navCtrl.back();
         }
-      } else {
-        this.navCtrl.back();
       }
+    );
+
+    this.destroyRef.onDestroy(() => {
+      subscription.unsubscribe();
     });
   }
 
-  initializeApp() {
-    this.platform.ready().then(() => {
-      StatusBar.setBackgroundColor({ color: '#0683a0' });
-    });
+  private async initializeApp(): Promise<void> {
+    await this.edgeToEdgeService.initialize();
+    await this.edgeToEdgeService.updateStyleFromTheme();
   }
 }
