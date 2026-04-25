@@ -1,0 +1,19 @@
+<app-back-header title="Edit Profile" (backClick)="goBack()"></app-back-header>
+
+<ion-content mode="ios">
+  <div class="edit-profile-page__content">
+    <app-edit-profile-avatar
+      [imageUrl]="userProfile().profileImage"
+      [name]="userProfile().displayName"
+      (imageChanged)="onImageChanged($event)"
+      (imageRemoved)="onImageRemoved()"
+    ></app-edit-profile-avatar>
+
+    <app-edit-profile-form
+      [initialData]="initialProfile()"
+      [isSubmitting]="isLoading()"
+      (formSubmit)="onProfileUpdate($event)"
+      (formChanges)="onFormChanges($event)"
+    ></app-edit-profile-form>
+  </div>
+</ion-content>

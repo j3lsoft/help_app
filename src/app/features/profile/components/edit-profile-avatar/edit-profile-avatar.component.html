@@ -1,0 +1,88 @@
+<div class="edit-profile-avatar">
+  <div class="edit-profile-avatar__container">
+    @if (hasValidImage()) {
+    <ion-img [src]="imageUrl()" class="edit-profile-avatar__image"></ion-img>
+    } @else {
+    <div class="edit-profile-avatar__initials">
+      {{ userInitials() }}
+    </div>
+    }
+    <button
+      type="button"
+      id="open-avatar-modal"
+      class="edit-profile-avatar__edit-button"
+      aria-label="Change profile photo"
+    >
+      <span class="edit-profile-avatar__plus-icon" aria-hidden="true">+</span>
+    </button>
+  </div>
+
+  <ion-modal
+    mode="md"
+    [initialBreakpoint]="1"
+    [breakpoints]="[0, 1]"
+    class="edit-profile-avatar__modal"
+    trigger="open-avatar-modal"
+    handle="false"
+    (ionModalWillPresent)="onModalWillPresent($event)"
+  >
+    <ng-template>
+      <div
+        class="edit-profile-avatar__options"
+        [class.edit-profile-avatar__options--ios]="isIos"
+        [class.edit-profile-avatar__options--android]="!isIos"
+      >
+        <ion-text class="edit-profile-avatar__title blackColor20SemiBold">
+          Choose Option
+        </ion-text>
+        <div class="edit-profile-avatar__list">
+          @if (isLoading()) {
+          <div class="edit-profile-avatar__loading">
+            <ion-spinner name="crescent" color="primary"></ion-spinner>
+            <ion-text class="blackColor16Regular">Processing...</ion-text>
+          </div>
+          } @else {
+          <button
+            type="button"
+            class="edit-profile-avatar__option"
+            (click)="onTakePhoto()"
+          >
+            <ion-icon
+              name="camera-outline"
+              class="edit-profile-avatar__option-icon"
+              aria-hidden="true"
+            ></ion-icon>
+            <ion-text class="blackColor16Regular">Take a picture</ion-text>
+          </button>
+          <button
+            type="button"
+            class="edit-profile-avatar__option"
+            (click)="onSelectFromGallery()"
+          >
+            <ion-icon
+              name="image-outline"
+              class="edit-profile-avatar__option-icon"
+              aria-hidden="true"
+            ></ion-icon>
+            <ion-text class="blackColor16Regular">Select from gallery</ion-text>
+          </button>
+          <button
+            type="button"
+            class="edit-profile-avatar__option"
+            (click)="removeImage()"
+          >
+            <ion-icon
+              name="trash-outline"
+              class="edit-profile-avatar__option-icon edit-profile-avatar__option-icon--danger"
+              aria-hidden="true"
+            ></ion-icon>
+            <ion-text class="blackColor16Regular"
+              >Remove profile picture</ion-text
+            >
+          </button>
+          }
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+</div>

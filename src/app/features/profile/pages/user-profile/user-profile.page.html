@@ -1,0 +1,128 @@
+<app-back-header
+  [title]="userProfile()?.username || 'Loading...'"
+  (backClick)="goBack()"
+></app-back-header>
+
+<ion-content>
+  @if (isLoading()) {
+  <div class="user-profile__loading-container">
+    <ion-spinner color="primary"></ion-spinner>
+    <ion-text class="user-profile__loading-text">Loading profile...</ion-text>
+  </div>
+  } @else if (error()) {
+  <div class="user-profile__error-container">
+    <ion-text class="user-profile__error-text">{{ error() }}</ion-text>
+  </div>
+  } @else if (userProfile(); as profile) {
+  <div class="user-profile__stats-row">
+    <div class="user-profile__stat-item">
+      <span class="user-profile__stat-value"
+        >{{ profile.postsCount | shortNumber }}</span
+      >
+      <span class="user-profile__stat-label">posts</span>
+    </div>
+    <div class="user-profile__stat-item">
+      <span class="user-profile__stat-value"
+        >{{ profile.videosCount | shortNumber }}</span
+      >
+      <span class="user-profile__stat-label">videos</span>
+    </div>
+    <div class="user-profile__stat-item" (click)="goTo('followers')">
+      <span class="user-profile__stat-value"
+        >{{ profile.followersCount | shortNumber }}</span
+      >
+      <span class="user-profile__stat-label">followers</span>
+    </div>
+    <div class="user-profile__stat-item" (click)="goTo('followings')">
+      <span class="user-profile__stat-value"
+        >{{ profile.followingCount | shortNumber }}</span
+      >
+      <span class="user-profile__stat-label">following</span>
+    </div>
+  </div>
+
+  <div class="user-profile__bio-section">
+    <div class="user-profile__bio-info">
+      <ion-text class="user-profile__display-name">
+        {{ profile.displayName }}
+      </ion-text>
+      <ion-text class="user-profile__bio-text"> {{ profile.bio }} </ion-text>
+    </div>
+
+    <div
+      (click)="profile.hasStory ? goTo('open-story') : null"
+      class="user-profile__avatar-container"
+      [class.user-profile__avatar-container--has-story]="profile.hasStory"
+    >
+      <img
+        [src]="profile.avatarUrl || 'assets/images/users/default-user.png'"
+        class="user-profile__avatar-img"
+        alt="Profile"
+      />
+    </div>
+  </div>
+
+  <div class="user-profile__actions">
+    <button
+      (click)="toggleFollow()"
+      class="user-profile__btn"
+      [class.user-profile__btn--following]="isFollowing()"
+      [class.user-profile__btn--primary]="!isFollowing()"
+    >
+      {{ isFollowing() ? "Following" : "Follow" }}
+    </button>
+
+    <button
+      (click)="goTo('message')"
+      class="user-profile__btn user-profile__btn--secondary"
+    >
+      Message
+    </button>
+  </div>
+
+  <div class="user-profile__tabs">
+    <ion-segment
+      (ionChange)="onTabChange($event)"
+      mode="md"
+      [value]="selectedTabValue()"
+      class="user-profile__segment"
+    >
+      <ion-segment-button value="All" class="user-profile__segment-btn">
+        <span class="material-icons">apps</span>
+      </ion-segment-button>
+      <ion-segment-button value="Videos" class="user-profile__segment-btn">
+        <span class="material-icons">airplay</span>
+      </ion-segment-button>
+      <ion-segment-button value="Tags" class="user-profile__segment-btn">
+        <span class="material-icons-outlined">person_pin</span>
+      </ion-segment-button>
+    </ion-segment>
+  </div>
+
+  <div class="user-profile__grid">
+    @for (item of filteredPosts(); track item.id) {
+    <div class="user-profile__grid-item">
+      @if (selectedTabValue() === 'Videos') {
+      <img
+        (click)="goTo('videos')"
+        [src]="item.image"
+        class="user-profile__grid-image"
+        alt="Video thumbnail"
+      />
+      <div class="user-profile__video-overlay" (click)="goTo('videos')">
+        <ion-icon name="play-outline"></ion-icon>
+        <span class="user-profile__video-views">{{ item.views }}</span>
+      </div>
+      } @else {
+      <img
+        (click)="goTo('user-posts')"
+        [src]="item.image"
+        class="user-profile__grid-image"
+        alt="Post"
+      />
+      }
+    </div>
+    }
+  </div>
+  }
+</ion-content>

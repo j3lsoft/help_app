@@ -3,6 +3,16 @@
   box-shadow: 0 2px 3px rgba(0, 0, 0, 0.15);
   margin-bottom: 2px;
   margin-top: 5px;
+
+  &__icon {
+    &--large {
+      font-size: 26px;
+    }
+
+    &--medium {
+      font-size: 24px;
+    }
+  }
 }
 
 ion-segment-button {

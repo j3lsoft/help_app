@@ -10,15 +10,14 @@ import { IonSegment, IonSegmentButton } from '@ionic/angular/standalone';
   selector: 'app-profile-tabs',
   templateUrl: './profile-tabs.component.html',
   styleUrls: ['./profile-tabs.component.scss'],
-  standalone: true,
   imports: [IonSegment, IonSegmentButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProfileTabsComponent {
-  selectedTab = input.required<string>();
-  tabChange = output<string>();
+  selectedTab = input.required<'All' | 'Videos' | 'Tags'>();
+  tabChange = output<'All' | 'Videos' | 'Tags'>();
 
   onTabChange(event: any) {
-    this.tabChange.emit(event.detail.value);
+    this.tabChange.emit(event.detail.value as 'All' | 'Videos' | 'Tags');
   }
 }

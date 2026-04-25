@@ -1,0 +1,93 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()" class="edit-profile-form">
+  <div class="edit-profile-form__field">
+    <ion-text
+      class="edit-profile-form__label"
+      id="edit-profile-label-displayName"
+      >Name</ion-text
+    >
+    <ion-input
+      formControlName="displayName"
+      placeholder="Name"
+      mode="ios"
+      class="edit-profile-form__input"
+      aria-labelledby="edit-profile-label-displayName"
+    ></ion-input>
+    @if (isInvalid('displayName')) {
+    <ion-text color="danger" class="edit-profile-form__error">
+      Please enter a valid name (2-50 characters)
+    </ion-text>
+    }
+  </div>
+
+  <div class="edit-profile-form__field">
+    <ion-text class="edit-profile-form__label" id="edit-profile-label-username"
+      >User Name</ion-text
+    >
+    <ion-input
+      formControlName="username"
+      placeholder="User Name"
+      mode="ios"
+      class="edit-profile-form__input"
+      aria-labelledby="edit-profile-label-username"
+    ></ion-input>
+    @if (isInvalid('username') &&
+    !form.controls.username.hasError('serverError')) {
+    <ion-text color="danger" class="edit-profile-form__error">
+      Please enter a valid username (3-30 alphanumeric characters)
+    </ion-text>
+    } @if (form.controls.username.hasError('serverError') &&
+    (form.controls.username.dirty || form.controls.username.touched)) {
+    <ion-text color="danger" class="edit-profile-form__error">
+      {{ form.controls.username.getError("serverError") }}
+    </ion-text>
+    }
+  </div>
+
+  <div class="edit-profile-form__field">
+    <ion-text class="edit-profile-form__label" id="edit-profile-label-birthDate"
+      >Birth date</ion-text
+    >
+    <ion-input
+      formControlName="birthDate"
+      placeholder="YYYY-MM-DD"
+      mode="ios"
+      class="edit-profile-form__input"
+      type="date"
+      [max]="maxDate()"
+      aria-labelledby="edit-profile-label-birthDate"
+    ></ion-input>
+  </div>
+
+  <div class="edit-profile-form__field">
+    <ion-text class="edit-profile-form__label" id="edit-profile-label-bio"
+      >Bio</ion-text
+    >
+    <ion-textarea
+      formControlName="bio"
+      placeholder="Bio"
+      mode="ios"
+      class="edit-profile-form__textarea"
+      rows="5"
+      aria-labelledby="edit-profile-label-bio"
+    ></ion-textarea>
+    @if (isInvalid('bio')) {
+    <ion-text color="danger" class="edit-profile-form__error">
+      Bio must be maximum 500 characters
+    </ion-text>
+    }
+    <ion-text color="medium" class="edit-profile-form__help">
+      {{ form.controls.bio.value.length || 0 }} / 500
+    </ion-text>
+  </div>
+
+  <div class="edit-profile-form__actions">
+    <ion-button
+      type="submit"
+      expand="block"
+      class="edit-profile-form__submit-button"
+      [disabled]="form.invalid || isSubmitting()"
+    >
+      Update Profile
+    </ion-button>
+  </div>
+</form>

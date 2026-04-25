@@ -1,4 +1,4 @@
-import { PostItem } from '../components/profile-post-grid/profile-post-grid.component';
+import { PostItem } from '../models/post-item.model';
 
 /**
  * Mock data for the profile feature.
@@ -24,18 +24,66 @@ export const MOCK_ALL_POSTS: PostItem[] = [
 ];
 
 export const MOCK_VIDEO_POSTS: PostItem[] = [
-  { id: 'v1', image: 'assets/images/videoThumbnails/thumbnail1.png', views: '190k' },
-  { id: 'v2', image: 'assets/images/videoThumbnails/thumbnail2.png', views: '200k' },
-  { id: 'v3', image: 'assets/images/videoThumbnails/thumbnail3.png', views: '120k' },
-  { id: 'v4', image: 'assets/images/videoThumbnails/thumbnail4.png', views: '190k' },
-  { id: 'v5', image: 'assets/images/videoThumbnails/thumbnail5.png', views: '200k' },
-  { id: 'v6', image: 'assets/images/videoThumbnails/thumbnail6.png', views: '120k' },
-  { id: 'v7', image: 'assets/images/videoThumbnails/thumbnail7.png', views: '190k' },
-  { id: 'v8', image: 'assets/images/videoThumbnails/thumbnail8.png', views: '200k' },
-  { id: 'v9', image: 'assets/images/videoThumbnails/thumbnail9.png', views: '120k' },
-  { id: 'v10', image: 'assets/images/videoThumbnails/thumbnail10.png', views: '190k' },
-  { id: 'v11', image: 'assets/images/videoThumbnails/thumbnail11.png', views: '190k' },
-  { id: 'v12', image: 'assets/images/videoThumbnails/thumbnail12.png', views: '200k' },
+  {
+    id: 'v1',
+    image: 'assets/images/videoThumbnails/thumbnail1.png',
+    views: '190k',
+  },
+  {
+    id: 'v2',
+    image: 'assets/images/videoThumbnails/thumbnail2.png',
+    views: '200k',
+  },
+  {
+    id: 'v3',
+    image: 'assets/images/videoThumbnails/thumbnail3.png',
+    views: '120k',
+  },
+  {
+    id: 'v4',
+    image: 'assets/images/videoThumbnails/thumbnail4.png',
+    views: '190k',
+  },
+  {
+    id: 'v5',
+    image: 'assets/images/videoThumbnails/thumbnail5.png',
+    views: '200k',
+  },
+  {
+    id: 'v6',
+    image: 'assets/images/videoThumbnails/thumbnail6.png',
+    views: '120k',
+  },
+  {
+    id: 'v7',
+    image: 'assets/images/videoThumbnails/thumbnail7.png',
+    views: '190k',
+  },
+  {
+    id: 'v8',
+    image: 'assets/images/videoThumbnails/thumbnail8.png',
+    views: '200k',
+  },
+  {
+    id: 'v9',
+    image: 'assets/images/videoThumbnails/thumbnail9.png',
+    views: '120k',
+  },
+  {
+    id: 'v10',
+    image: 'assets/images/videoThumbnails/thumbnail10.png',
+    views: '190k',
+  },
+  {
+    id: 'v11',
+    image: 'assets/images/videoThumbnails/thumbnail11.png',
+    views: '190k',
+  },
+  {
+    id: 'v12',
+    image: 'assets/images/videoThumbnails/thumbnail12.png',
+    views: '200k',
+  },
 ];
 
 export const MOCK_TAGGED_POSTS: PostItem[] = [
@@ -45,17 +93,3 @@ export const MOCK_TAGGED_POSTS: PostItem[] = [
   { id: 't4', image: 'assets/images/posts/post29.png' },
   { id: 't5', image: 'assets/images/gallery/gallery2.png' },
 ];
-
-export const MOCK_USER_PROFILE = {
-  username: 'samanthaofficial',
-  name: 'Samantha Smith',
-  category: 'Artist',
-  description: 'Art + Prints + Workshops',
-  socialHandle: 'samantha___',
-  website: 'www.officialtinashah.com',
-  profileImage: 'assets/images/users/user43.png',
-  postsCount: '105',
-  videosCount: '59',
-  followersCount: '850k',
-  followingCount: '542',
-};

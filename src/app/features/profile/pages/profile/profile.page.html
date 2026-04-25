@@ -1,26 +1,26 @@
-<ion-header mode="ios" [translucent]="false">
-  <ion-toolbar class="profile-page__toolbar" color="whiteColor">
-    <ion-text class="profile-page__username" style="margin-left: 20px">
-      {{ userProfile().username }}
-    </ion-text>
-    <ion-buttons slot="end">
-      <ion-menu-button mode="ios" color="blackColor"></ion-menu-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
+@if (userProfile(); as profile) {
+<app-top-bar [title]="profile.username">
+  <ion-buttons slot="end" class="profile-page__menu-buttons">
+    <ion-menu-button
+      mode="ios"
+      color="blackColor"
+      class="profile-page__menu-icon"
+    ></ion-menu-button>
+  </ion-buttons>
+</app-top-bar>
 
 <ion-content>
   <app-profile-header
-    [name]="userProfile().name"
-    [category]="userProfile().category"
-    [description]="userProfile().description"
-    [socialHandle]="userProfile().socialHandle"
-    [website]="userProfile().website"
-    [profileImage]="userProfile().profileImage"
-    [postsCount]="userProfile().postsCount"
-    [videosCount]="userProfile().videosCount"
-    [followersCount]="userProfile().followersCount"
-    [followingCount]="userProfile().followingCount"
+    [name]="profile.name"
+    category=""
+    [description]="profile.description"
+    socialHandle=""
+    website=""
+    [profileImage]="profile.profileImage"
+    [postsCount]="profile.postsCount"
+    [videosCount]="profile.videosCount"
+    [followersCount]="profile.followersCount"
+    [followingCount]="profile.followingCount"
     [storyAvailable]="isStoryAvailable()"
     (onFollowersClick)="goTo('followers')"
     (onFollowingClick)="goTo('followings')"
@@ -41,7 +41,16 @@
   ></app-profile-tabs>
 
   <app-profile-post-grid
-    [posts]="displayPosts()"
+    [posts]="filteredPosts()"
     (postClick)="goTo('user-posts')"
   ></app-profile-post-grid>
 </ion-content>
+} @else {
+<app-top-bar title="Profile"></app-top-bar>
+<ion-content class="ion-padding">
+  <div class="profile-page__loading">
+    <ion-spinner></ion-spinner>
+    <p>Loading profile...</p>
+  </div>
+</ion-content>
+}

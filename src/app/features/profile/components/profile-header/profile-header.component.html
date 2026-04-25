@@ -7,11 +7,11 @@
     <span class="profile-header__stat-value">{{ videosCount() }}</span>
     <span class="profile-header__stat-label">videos</span>
   </div>
-  <div class="profile-header__stat-item" (click)="followersClick.emit()">
+  <div class="profile-header__stat-item" (click)="onFollowersClick.emit()">
     <span class="profile-header__stat-value">{{ followersCount() }}</span>
     <span class="profile-header__stat-label">followers</span>
   </div>
-  <div class="profile-header__stat-item" (click)="followingClick.emit()">
+  <div class="profile-header__stat-item" (click)="onFollowingClick.emit()">
     <span class="profile-header__stat-value">{{ followingCount() }}</span>
     <span class="profile-header__stat-label">following</span>
   </div>
@@ -34,12 +34,18 @@
   <div
     class="profile-header__image-container"
     [class.profile-header__image-container--story]="storyAvailable()"
-    (click)="storyAvailable() ? storyClick.emit() : null"
+    (click)="storyAvailable() ? onStoryClick.emit() : null"
   >
+    @if (hasValidImage()) {
     <ion-img
       [src]="profileImage()"
       class="profile-header__image"
       alt="Profile picture"
     ></ion-img>
+    } @else {
+    <div class="profile-header__initials">
+      {{ userInitials() }}
+    </div>
+    }
   </div>
 </div>

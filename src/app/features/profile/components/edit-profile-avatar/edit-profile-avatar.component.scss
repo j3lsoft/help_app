@@ -1,0 +1,135 @@
+.edit-profile-avatar {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+
+  &__container {
+    position: relative;
+    width: 100px;
+    height: 100px;
+  }
+
+  &__image {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    overflow: hidden;
+  }
+
+  &__initials {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(
+      135deg,
+      var(--primaryColor),
+      var(--secondaryColor)
+    );
+    color: var(--whiteColor);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  &__edit-button {
+    position: absolute;
+    bottom: -5px;
+    right: 5px;
+    width: 28px;
+    height: 28px;
+    margin: 0;
+    padding: 0;
+    border-radius: 50%;
+    background-color: var(--primaryColor);
+    border: 2px solid var(--whiteColor);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+  }
+
+  &__plus-icon {
+    color: var(--whiteColor);
+    font-size: 18px;
+    font-weight: bold;
+  }
+
+  &__options {
+    background-color: var(--whiteColor);
+    padding: 15px 0;
+
+    &--ios {
+      padding-bottom: 30px;
+    }
+
+    &--android {
+      padding-bottom: 20px;
+    }
+  }
+
+  &__title {
+    display: flex;
+    justify-content: center;
+  }
+
+  &__list {
+    margin: 0 20px;
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  &__option {
+    padding: 12px 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid var(--lightGrayColor);
+    background: transparent;
+    font: inherit;
+    text-align: left;
+    color: inherit;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &-icon {
+      font-size: 22px;
+      margin-right: 15px;
+      color: var(--primaryColor);
+
+      &--danger {
+        color: var(--redColor, #ff4d4d);
+      }
+    }
+  }
+
+  &__loading {
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+
+    ion-spinner {
+      margin-bottom: 10px;
+    }
+  }
+
+  &__modal {
+    --height: auto;
+    --border-radius: 10px;
+  }
+}
