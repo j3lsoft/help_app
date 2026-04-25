@@ -10,7 +10,7 @@
           <ion-icon
             name="add"
             color="primaryColor"
-            style="font-size: 30px"
+            class="story-item__add-icon"
           ></ion-icon>
         </div>
         <ion-text class="blackColor10Regular story-item__name">
@@ -23,9 +23,8 @@
       <div class="story-item" (click)="storyClick.emit(item)">
         <div
           class="story-item__circle"
-          [style.border-color]="
-            item.storySeen ? 'var(--grayColor)' : 'var(--primaryColor)'
-          "
+          [class.story-item__circle--seen]="item.storySeen"
+          [class.story-item__circle--unseen]="!item.storySeen"
         >
           <ion-img
             [src]="item.userProfilePic"

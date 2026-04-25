@@ -1,39 +1,48 @@
 import {
-    ChangeDetectionStrategy,
-    Component,
-    inject,
-    signal,
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  signal,
 } from '@angular/core';
 import { Router } from '@angular/router';
-import { IonContent } from '@ionic/angular/standalone';
-import { HomeHeaderComponent } from '../../components/home-header/home-header.component';
 import {
-    Post,
-    PostCardComponent,
+  IonContent,
+  IonIcon,
+  IonImg,
+  IonText,
+} from '@ionic/angular/standalone';
+import { TopBarComponent } from '@shared/components/top-bar/top-bar.component';
+import { addIcons } from 'ionicons';
+import { search } from 'ionicons/icons';
+import {
+  Post,
+  PostCardComponent,
 } from '../../components/post-card/post-card.component';
 import {
-    StoryListComponent,
-    UserStory,
+  StoryListComponent,
+  UserStory,
 } from '../../components/story-list/story-list.component';
 import {
-    Suggestion,
-    SuggestionListComponent,
+  Suggestion,
+  SuggestionListComponent,
 } from '../../components/suggestion-list/suggestion-list.component';
 import {
-    MOCK_OLD_POSTS,
-    MOCK_SUGGESTIONS,
-    MOCK_TODAY_POSTS,
-    MOCK_USERS_STORIES,
+  MOCK_OLD_POSTS,
+  MOCK_SUGGESTIONS,
+  MOCK_TODAY_POSTS,
+  MOCK_USERS_STORIES,
 } from '../../data/home.mock';
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.page.html',
   styleUrls: ['./home.page.scss'],
-  standalone: true,
   imports: [
     IonContent,
-    HomeHeaderComponent,
+    IonIcon,
+    IonImg,
+    IonText,
+    TopBarComponent,
     StoryListComponent,
     PostCardComponent,
     SuggestionListComponent,
@@ -42,6 +51,10 @@ import {
 })
 export class HomePage {
   private router = inject(Router);
+
+  constructor() {
+    addIcons({ search });
+  }
 
   usersStories = signal<UserStory[]>(MOCK_USERS_STORIES);
 

@@ -33,14 +33,12 @@
         <div
           (click)="toggleFollow.emit(item)"
           class="suggestion-card__button"
-          [style.background]="
-            item.isFollow ? 'var(--whiteColor)' : 'var(--primaryColor)'
-          "
+          [class.suggestion-card__button--following]="item.isFollow"
+          [class.suggestion-card__button--follow]="!item.isFollow"
         >
           <ion-text
-            class="ellipseText"
+            class="ellipseText suggestion-card__button-text"
             [class]="item.isFollow ? 'primaryColor18Bold' : 'whiteColor18Bold'"
-            style="text-align: center"
           >
             {{ item.isFollow ? "Following" : "Follow" }}
           </ion-text>

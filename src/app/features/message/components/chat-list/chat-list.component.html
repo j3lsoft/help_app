@@ -1,0 +1,36 @@
+<div class="chat-list">
+  @for (item of chats(); track item.id) {
+  <div class="chat-list__item">
+    <div (click)="chatClick.emit(item.id)" class="rowAlignCenter">
+      <div class="chat-list__avatar-wrapper">
+        <ion-img
+          class="circleImage chat-list__avatar"
+          [src]="item.userProfilePic"
+        >
+        </ion-img>
+        @if (item.isActive) {
+        <div class="activeIndicatorBig"></div>
+        }
+      </div>
+      <div class="chat-list__content column">
+        <div class="row chat-list__header-row">
+          <ion-text
+            class="blackColor16SemiBold ellipseText chat-list__header-text chat-list__ellipsis"
+          >
+            {{ item.userProfileName }}
+          </ion-text>
+          <ion-text class="blackColor12SemiBold">
+            {{ item.lastMsgTime }}
+          </ion-text>
+        </div>
+        <ion-text
+          class="grayColor14Regular ellipseText chat-list__message chat-list__ellipsis"
+        >
+          {{ item.lastMsg }}
+        </ion-text>
+      </div>
+    </div>
+    <div class="divider"></div>
+  </div>
+  }
+</div>

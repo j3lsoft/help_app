@@ -1,0 +1,62 @@
+<div class="call-list">
+  @for (item of calls(); track item.id) {
+  <div class="call-list__item">
+    <div class="call-list__row row">
+      <div class="call-list__user-section rowAlignCenter">
+        <div class="call-list__avatar-wrapper">
+          <ion-img
+            class="circleImage call-list__avatar"
+            [src]="item.userProfilePic"
+          >
+          </ion-img>
+          @if (item.isActive) {
+          <div class="activeIndicatorBig"></div>
+          }
+        </div>
+        <div class="call-list__info column">
+          <ion-text
+            class="blackColor16SemiBold ellipseText call-list__ellipsis"
+          >
+            {{ item.userProfileName }}
+          </ion-text>
+          <div class="rowAlignCenter call-list__type-row">
+            <ion-text
+              class="ellipseText call-list__type call-list__ellipsis"
+              [class.redColor14SemiBold]="item.callingType === 'missed'"
+              [class.greenColor14SemiBold]="item.callingType === 'incoming'"
+              [class.orangeColor14SemiBold]="item.callingType === 'outgoing'"
+            >
+              {{
+                item.callingType === "missed"
+                  ? "Missed Call"
+                  : item.callingType === "incoming"
+                  ? "Incoming Call"
+                  : "OutgoingCall"
+              }}
+            </ion-text>
+            <ion-text class="grayColor14Regular call-list__time">
+              {{ item.callingTime }}
+            </ion-text>
+          </div>
+        </div>
+      </div>
+
+      <div class="call-list__actions row">
+        <div
+          (click)="videoClick.emit(item.id)"
+          class="center circle30 call-list__video-btn"
+        >
+          <span class="material-icons call-list__video-icon"> videocam </span>
+        </div>
+        <div
+          (click)="audioClick.emit(item.id)"
+          class="center circle30 call-list__audio-btn--spaced"
+        >
+          <span class="material-icons call-list__audio-icon"> call </span>
+        </div>
+      </div>
+    </div>
+    <div class="divider"></div>
+  </div>
+  }
+</div>

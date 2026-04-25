@@ -1,0 +1,19 @@
+<div class="active-users__scroll horizontalScroll">
+  @for (item of users(); track item.id) {
+    <div class="active-users__item">
+      <div class="center column active-users__user">
+        <div class="active-users__avatar-wrapper">
+          <ion-img
+            [src]="item.userProfilePic"
+            class="circleImage active-users__avatar"
+          >
+          </ion-img>
+          <div class="activeIndicatorSmall"></div>
+        </div>
+        <ion-text class="blackColor12Regular ellipseText activeUserName">
+          {{item.userName}}
+        </ion-text>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,17 @@
+.message-header__toolbar {
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.15);
+}
+
+.message-header__content {
+  justify-content: space-between;
+  padding: 15px 20px;
+  background-color: var(--whiteColor);
+}
+
+.message-header__title {
+  margin-left: 10px;
+}
+
+.message-header__search-icon {
+  font-size: 18px;
+}

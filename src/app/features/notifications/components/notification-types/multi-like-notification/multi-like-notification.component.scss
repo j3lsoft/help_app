@@ -1,0 +1,65 @@
+.multi-like-notification {
+  &__row {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__content-row {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__avatar-stack {
+    width: 50px;
+  }
+
+  &__avatar-stack-inner {
+    position: relative;
+  }
+
+  &__avatar-stack-primary {
+    width: 38px;
+    height: 38px;
+    border-radius: 19px;
+    overflow: hidden;
+    object-fit: cover;
+  }
+
+  &__avatar-stack-secondary {
+    width: 38px;
+    height: 38px;
+    border-radius: 19px;
+    position: absolute;
+    bottom: -20px;
+    right: 0px;
+    overflow: hidden;
+    object-fit: cover;
+  }
+
+  &__content {
+    flex: 1;
+    min-width: 0;
+    margin: 0 10px;
+  }
+
+  &__title {
+    margin-bottom: 4px;
+    display: block;
+  }
+
+  &__thumbnail {
+    width: 60px;
+    height: 60px;
+    border-radius: 5px;
+    object-fit: cover;
+    overflow: hidden;
+  }
+
+  &__time {
+    margin-top: 4px;
+    display: block;
+  }
+}

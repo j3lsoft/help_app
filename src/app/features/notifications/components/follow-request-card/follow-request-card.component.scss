@@ -1,0 +1,43 @@
+.follow-request-card {
+  display: flex;
+  align-items: center;
+  margin: 15px 20px;
+  margin-bottom: 15px;
+
+  &__avatar-wrapper {
+    position: relative;
+  }
+
+  &__avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 30px;
+    object-fit: cover;
+    overflow: hidden;
+  }
+
+  &__count-badge {
+    width: 30px;
+    height: 30px;
+    border-radius: 15px;
+    background-color: var(--primaryColor);
+    position: absolute;
+    bottom: -10px;
+    right: -5px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__count-text {
+    line-clamp: 1;
+    -webkit-line-clamp: 1;
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    margin-left: 18px;
+  }
+}

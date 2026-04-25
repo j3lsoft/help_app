@@ -1,0 +1,47 @@
+<app-top-bar [title]="'Message'">
+  <ion-icon
+    (click)="onSearchClick()"
+    name="search"
+    color="blackColor"
+    class="message__search-icon"
+  ></ion-icon>
+</app-top-bar>
+
+<ion-content scrollY="false">
+  <div class="message-segment-container">
+    <div>
+      <ion-segment
+        (ionChange)="onFilterUpdate($event)"
+        mode="md"
+        [value]="selectedTab()"
+        class="message-segment"
+      >
+        <ion-segment-button value="Chats">
+          <ion-text class="message-segment__label"> Chats </ion-text>
+        </ion-segment-button>
+        <ion-segment-button value="Call">
+          <ion-text class="message-segment__label"> Call </ion-text>
+        </ion-segment-button>
+      </ion-segment>
+    </div>
+  </div>
+
+  @if (selectedTab() === 'Chats') {
+  <app-active-users [users]="activeUsers()"></app-active-users>
+  } @if (selectedTab() === 'Chats') {
+  <ion-content class="message-content">
+    <app-chat-list
+      [chats]="users()"
+      (chatClick)="onChatClick($event)"
+    ></app-chat-list>
+  </ion-content>
+  } @if (selectedTab() === 'Call') {
+  <ion-content class="message-content--call">
+    <app-call-list
+      [calls]="calls()"
+      (videoClick)="onVideoCallClick($event)"
+      (audioClick)="onAudioCallClick($event)"
+    ></app-call-list>
+  </ion-content>
+  }
+</ion-content>

@@ -1,0 +1,31 @@
+.following-notification {
+  &__row {
+    width: 100%;
+    display: flex;
+    align-items: center;
+  }
+
+  &__avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 25px;
+    overflow: hidden;
+    object-fit: cover;
+  }
+
+  &__content {
+    flex: 1;
+    min-width: 0;
+    margin-left: 10px;
+  }
+
+  &__title {
+    margin-bottom: 4px;
+    display: block;
+  }
+
+  &__time {
+    margin-top: 4px;
+    display: block;
+  }
+}

@@ -12,7 +12,7 @@ export const MOCK_USERS_STORIES: UserStory[] = [
     id: '1',
     userProfilePic: '../../../../assets/images/users/user1.png',
     storySeen: false,
-    userName: 'Shree',
+    userName: 'ShreeTest',
   },
   {
     id: '2',

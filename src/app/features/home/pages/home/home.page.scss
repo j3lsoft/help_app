@@ -1,1 +1,28 @@
 /* Estilos específicos de la página Home que no corresponden a componentes hijos */
+
+.home {
+  &__logo-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__logo-image {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+  }
+
+  &__search-icon {
+    font-size: 18px;
+    cursor: pointer;
+  }
+
+  &__content {
+    --padding-bottom: 50px;
+  }
+
+  &__post-wrapper {
+    margin: 0 20px;
+  }
+}

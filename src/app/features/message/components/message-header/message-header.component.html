@@ -1,0 +1,15 @@
+<ion-header mode="ios" [translucent]="false">
+  <ion-toolbar class="message-header__toolbar ion-no-padding" color="whiteColor">
+    <div class="message-header__content rowAlignCenter">
+      <ion-text class="blackColor20SemiBold message-header__title">
+        {{ title() }}
+      </ion-text>
+      <ion-icon
+        (click)="searchClick.emit()"
+        name="search"
+        color="blackColor"
+        class="message-header__search-icon"
+      ></ion-icon>
+    </div>
+  </ion-toolbar>
+</ion-header>

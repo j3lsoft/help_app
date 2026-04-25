@@ -1,6 +1,25 @@
-<app-home-header (searchClick)="goTo('search')"></app-home-header>
+<app-top-bar>
+  <ng-template #leftContent>
+    <div class="home__logo-wrapper">
+      <ion-img
+        src="assets/images/homeAppLogo.png"
+        class="home__logo-image"
+      ></ion-img>
+      <ion-text class="primaryColor12ExtraBold">
+        Social <ion-text class="secondaryColor12ExtraBold">Media</ion-text>
+      </ion-text>
+    </div>
+  </ng-template>
 
-<ion-content style="--padding-bottom: 50px">
+  <ion-icon
+    (click)="goTo('search')"
+    name="search"
+    color="blackColor"
+    class="home__search-icon"
+  ></ion-icon>
+</app-top-bar>
+
+<ion-content class="home__content">
   <app-story-list
     [stories]="usersStories()"
     (shareStory)="goTo('create-story')"
@@ -8,7 +27,7 @@
   ></app-story-list>
 
   @for (item of todaysPostsList(); track item.id) {
-  <div style="margin: 0 20px">
+  <div class="home__post-wrapper">
     <app-post-card
       [post]="item"
       (userClick)="goTo('user-profile')"
@@ -25,7 +44,7 @@
   ></app-suggestion-list>
 
   @for (item of oldPostsList(); track item.id) {
-  <div style="margin: 0 20px">
+  <div class="home__post-wrapper">
     <app-post-card
       [post]="item"
       (userClick)="goTo('user-profile')"

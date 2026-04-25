@@ -41,9 +41,9 @@ export const routes: Routes = [
       },
       {
         path: 'notifications',
-        loadComponent: () =>
-          import('./screens/notifications/notifications.page').then(
-            (m) => m.NotificationsPage
+        loadChildren: () =>
+          import('./features/notifications/notifications.routes').then(
+            (m) => m.NOTIFICATIONS_ROUTES
           ),
       },
       {
@@ -55,8 +55,10 @@ export const routes: Routes = [
       },
       {
         path: 'message',
-        loadComponent: () =>
-          import('./screens/message/message.page').then((m) => m.MessagePage),
+        loadChildren: () =>
+          import('./features/message/message.routes').then(
+            (m) => m.MESSAGE_ROUTES
+          ),
       },
       {
         path: 'profile',
@@ -112,7 +114,7 @@ export const routes: Routes = [
     path: 'user-profile',
     canMatch: [authGuard],
     loadComponent: () =>
-      import('./screens/user-profile/user-profile.page').then(
+      import('./features/profile/pages/user-profile/user-profile.page').then(
         (m) => m.UserProfilePage
       ),
   },
@@ -206,7 +208,7 @@ export const routes: Routes = [
     path: 'edit-profile',
     canMatch: [authGuard],
     loadComponent: () =>
-      import('./screens/edit-profile/edit-profile.page').then(
+      import('./features/profile/pages/edit-profile/edit-profile.page').then(
         (m) => m.EditProfilePage
       ),
   },
@@ -238,9 +240,9 @@ export const routes: Routes = [
     path: 'change-password',
     canMatch: [authGuard],
     loadComponent: () =>
-      import('./features/settings/pages/change-password/change-password.page').then(
-        (m) => m.ChangePasswordPage
-      ),
+      import(
+        './features/settings/pages/change-password/change-password.page'
+      ).then((m) => m.ChangePasswordPage),
   },
   {
     path: 'block-accounts',
@@ -278,4 +280,4 @@ export const routes: Routes = [
         (m) => m.HelpDetailPage
       ),
   },
-];
+  ];

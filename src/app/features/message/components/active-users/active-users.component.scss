@@ -1,0 +1,47 @@
+.active-users__scroll {
+  padding: 0 15px;
+  margin-bottom: 10px;
+}
+
+.active-users__item {
+  display: inline-block;
+}
+
+.active-users__user {
+  margin: 0 5px;
+}
+
+.active-users__avatar-wrapper {
+  position: relative;
+}
+
+.active-users__avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+}
+
+// Clases compartidas para mantener consistencia visual con el diseño original
+.circleImage {
+  object-fit: cover;
+  overflow: hidden;
+}
+
+.activeIndicatorSmall {
+  position: absolute;
+  bottom: -2px;
+  right: 4px;
+  width: 9px;
+  height: 9px;
+  border-radius: 4.5px;
+  background-color: var(--greenColor);
+}
+
+.activeUserName {
+  text-align: center;
+  display: inline-block;
+  width: 40px;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  margin-top: 5px;
+}

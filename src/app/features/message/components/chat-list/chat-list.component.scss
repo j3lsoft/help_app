@@ -1,0 +1,64 @@
+.chat-list__item {
+  margin: 0 20px;
+}
+
+.chat-list__row {
+  flex: 1;
+  justify-content: space-between;
+}
+
+.chat-list__avatar-wrapper {
+  position: relative;
+}
+
+.chat-list__avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 25px;
+}
+
+.chat-list__content {
+  flex: 1;
+  margin-left: 15px;
+}
+
+.chat-list__header-row {
+  flex: 1;
+  justify-content: space-between;
+}
+
+.chat-list__header-text {
+  flex: 1;
+}
+
+.chat-list__ellipsis {
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+}
+
+.chat-list__message {
+  margin-top: 2px;
+}
+
+// Clases compartidas para mantener consistencia visual con el diseño original
+.circleImage {
+  object-fit: cover;
+  overflow: hidden;
+}
+
+.activeIndicatorBig {
+  position: absolute;
+  bottom: 0px;
+  right: 4px;
+  width: 11px;
+  height: 11px;
+  border-radius: 5.5px;
+  background-color: var(--greenColor);
+  border: 1px solid var(--whiteColor);
+}
+
+.divider {
+  background-color: var(--extraLightGrayColor);
+  height: 1.2px;
+  margin: 10px 0;
+}

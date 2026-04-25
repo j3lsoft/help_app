@@ -1,0 +1,21 @@
+.notification-item {
+  &__wrapper {
+    width: 100%;
+    position: absolute;
+    background-color: var(--redColor);
+  }
+
+  &__content-wrapper {
+    width: 100%;
+    background-color: var(--whiteColor);
+    margin: 0px 5px;
+    margin-top: 10px;
+    overflow: hidden;
+  }
+
+  &__divider {
+    background-color: var(--extraLightGrayColor);
+    height: 1px;
+    margin-top: 10px;
+  }
+}

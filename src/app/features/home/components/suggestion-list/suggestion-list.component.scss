@@ -82,5 +82,17 @@
     margin-top: 14px;
     border: 1.5px solid var(--primaryColor);
     cursor: pointer;
+
+    &--following {
+      background-color: var(--whiteColor);
+    }
+
+    &--follow {
+      background-color: var(--primaryColor);
+    }
+  }
+
+  &__button-text {
+    text-align: center;
   }
 }
