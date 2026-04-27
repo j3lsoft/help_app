@@ -80,6 +80,24 @@
     </ion-text>
   </div>
 
+  <div class="edit-profile-form__field">
+    <ion-text class="edit-profile-form__label" id="edit-profile-label-website"
+      >Website</ion-text
+    >
+    <ion-input
+      formControlName="website"
+      placeholder="yourwebsite.com"
+      mode="ios"
+      class="edit-profile-form__input"
+      aria-labelledby="edit-profile-label-website"
+    ></ion-input>
+    @if (isInvalid('website')) {
+    <ion-text color="danger" class="edit-profile-form__error">
+      Please enter a valid URL (e.g., yourwebsite.com)
+    </ion-text>
+    }
+  </div>
+
   <div class="edit-profile-form__actions">
     <ion-button
       type="submit"

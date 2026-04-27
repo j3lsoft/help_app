@@ -24,6 +24,16 @@
     margin-right: 5px;
   }
 
+  &__bio-text {
+    white-space: pre-wrap;
+  }
+
+  &__website {
+    color: var(--primaryColor);
+    font-size: 14px;
+    margin-top: 4px;
+  }
+
   &__avatar-container {
     width: 97px;
     height: 97px;

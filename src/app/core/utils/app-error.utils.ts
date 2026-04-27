@@ -11,8 +11,7 @@ export function isHandled(error: AppError): boolean {
 }
 
 export function markHandled<T extends AppError>(error: T): T {
-  error.handled = true;
-  return error;
+  return { ...error, handled: true };
 }
 
 export function toAppError(value: unknown): AppError {
@@ -38,4 +37,3 @@ export function toAppError(value: unknown): AppError {
     handled: false,
   };
 }
-

@@ -34,6 +34,10 @@ export class EditProfileFormComponent {
   formSubmit = output<UserProfileFormData>();
   formChanges = output<UserProfileFormData>();
 
+  // URL pattern that accepts domains with or without protocol
+  private readonly websitePattern =
+    /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
+
   form = this.fb.nonNullable.group({
     displayName: [
       '',
@@ -49,6 +53,10 @@ export class EditProfileFormComponent {
       ],
     ],
     bio: ['', [Validators.maxLength(500)]],
+    website: [
+      '',
+      [Validators.maxLength(100), Validators.pattern(this.websitePattern)],
+    ],
     birthDate: [''],
   });
 
@@ -78,6 +86,22 @@ export class EditProfileFormComponent {
   ): boolean {
     const control = this.form.controls[controlName];
     return control.invalid && (control.dirty || control.touched);
+  }
+
+  /** Exposes the form for parent components to apply server validation errors */
+  getForm(): typeof this.form {
+    return this.form;
+  }
+
+  /** Clears server errors before submitting (best practice) */
+  clearServerErrors(): void {
+    Object.keys(this.form.controls).forEach((key) => {
+      const control = this.form.get(key);
+      if (control?.hasError('serverError')) {
+        control.setErrors(null);
+        control.updateValueAndValidity({ emitEvent: false });
+      }
+    });
   }
 
   // Computed max date for birthDate picker (memoized)

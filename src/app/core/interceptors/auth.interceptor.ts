@@ -11,6 +11,12 @@ import { TokenRefreshService } from '../../features/auth/services/token-refresh.
 import { AUTH_STATE_TOKEN } from '../models/auth-state.interface';
 import { LoggerService } from '../services/logger.service';
 
+const SKIP_REFRESH_URLS = ['/api/v1/auth/refresh', '/api/v1/auth/login'];
+
+function isAuthBypassUrl(url: string): boolean {
+  return SKIP_REFRESH_URLS.some((path) => url.includes(path));
+}
+
 export const authInterceptor: HttpInterceptorFn = (
   req: HttpRequest<unknown>,
   next: HttpHandlerFn
@@ -35,8 +41,7 @@ export const authInterceptor: HttpInterceptorFn = (
           if (
             error instanceof HttpErrorResponse &&
             error.status === 401 &&
-            !req.url.includes('/api/v1/auth/refresh') &&
-            !req.url.includes('/api/v1/auth/login')
+            !isAuthBypassUrl(req.url)
           ) {
             logger.warn('401 detected', {
               context: 'AuthInterceptor',

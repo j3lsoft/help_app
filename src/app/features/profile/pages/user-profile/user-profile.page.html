@@ -47,6 +47,9 @@
         {{ profile.displayName }}
       </ion-text>
       <ion-text class="user-profile__bio-text"> {{ profile.bio }} </ion-text>
+      @if (profile.website) {
+      <ion-text class="user-profile__website"> {{ profile.website }} </ion-text>
+      }
     </div>
 
     <div

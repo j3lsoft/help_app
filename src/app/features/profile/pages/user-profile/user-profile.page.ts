@@ -7,7 +7,7 @@ import {
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { NavController } from '@ionic/angular';
+import { toAppError } from '@core/utils/app-error.utils';
 import {
   IonContent,
   IonIcon,
@@ -15,13 +15,13 @@ import {
   IonSegmentButton,
   IonSpinner,
   IonText,
+  NavController,
 } from '@ionic/angular/standalone';
 import { BackHeaderComponent } from '@shared/components/back-header/back-header.component';
+import { ShortNumberPipe } from '@shared/pipes/short-number.pipe';
 import { addIcons } from 'ionicons';
 import { chevronBack, playOutline } from 'ionicons/icons';
 import { catchError, map, of, switchMap, tap } from 'rxjs';
-import { toAppError } from 'src/app/core/utils/app-error.utils';
-import { ShortNumberPipe } from 'src/app/shared/pipes/short-number.pipe';
 import {
   MOCK_ALL_POSTS,
   MOCK_TAGGED_POSTS,
@@ -30,6 +30,7 @@ import {
 import { ProfileErrorFacade } from '../../errors/profile-error.facade';
 import { ProfileService } from '../../services/profile.service';
 import { filterPostsByTab, TabValue } from '../../utils/post-filter.utils';
+import { stripWebsiteProtocol } from '../../utils/website-url.utils';
 
 type SegmentValue = TabValue;
 
@@ -76,6 +77,10 @@ export class UserProfilePage {
           return of(null);
         }
         return this.profileService.getUserProfile(id).pipe(
+          map((profile) => ({
+            ...profile,
+            website: stripWebsiteProtocol(profile.website),
+          })),
           tap(() => {
             this.error.set(null);
             this.isLoading.set(false);

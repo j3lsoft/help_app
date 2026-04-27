@@ -1,9 +1,5 @@
 import { AbstractControl, FormGroup } from '@angular/forms';
-import {
-  AppError,
-  AppErrorDetails,
-  ServerValidationErrorItem,
-} from '../models/app-error.model';
+import { AppError, ServerValidationErrorItem } from '../models/app-error.model';
 
 export interface ServerValidationErrorBody {
   statusCode?: number;
@@ -18,17 +14,12 @@ export type ServerValidationErrorFieldEntry =
       meta?: unknown;
     };
 
-export interface AppErrorWithDetails extends AppError {
-  details?: AppErrorDetails;
-}
+const VALIDATION_STATUSES = new Set([400, 422]);
 
-export function isServerValidationError(
-  error: AppError
-): error is AppErrorWithDetails {
-  const e = error as AppErrorWithDetails;
+export function isServerValidationError(error: AppError): error is AppError {
+  const e = error;
   const validation = e.details?.validation;
-  const allowedStatuses = new Set([400, 422]);
-  if (!allowedStatuses.has(error.status)) return false;
+  if (!VALIDATION_STATUSES.has(error.status)) return false;
 
   if (!validation || typeof validation !== 'object') return false;
   if (!validation.fieldErrors || typeof validation.fieldErrors !== 'object') {
@@ -42,7 +33,10 @@ export function isServerValidationError(
       (items) =>
         Array.isArray(items) &&
         items.every(
-          (item) => !!item && typeof item.message === 'string' && item.message.length > 0
+          (item) =>
+            !!item &&
+            typeof item.message === 'string' &&
+            item.message.length > 0
         )
     )
   );
@@ -53,7 +47,7 @@ export interface ApplyServerValidationErrorsOptions {
    * Key used to attach server-side error messages to a control.
    * This codebase already uses `serverError` in some forms.
    */
-  controlErrorKey?: 'serverError';
+  controlErrorKey?: string;
   /**
    * Optional mapping between backend field names and form control names.
    * Example: { email: 'emailOrUsername' }
@@ -73,7 +67,7 @@ export interface ApplyServerValidationErrorsOptions {
 }
 
 export function applyServerValidationErrors<
-  TControls extends Record<string, AbstractControl>,
+  TControls extends Record<string, AbstractControl>
 >(
   form: FormGroup<TControls>,
   error: AppError,
@@ -109,7 +103,7 @@ export function applyServerValidationErrors<
 }
 
 export function clearServerFieldErrors<
-  TControls extends Record<string, AbstractControl>,
+  TControls extends Record<string, AbstractControl>
 >(
   form: FormGroup<TControls>,
   options: Pick<ApplyServerValidationErrorsOptions, 'controlErrorKey'> = {}
@@ -118,7 +112,10 @@ export function clearServerFieldErrors<
   const controlMetaKey = `${controlErrorKey}Meta`;
 
   for (const control of Object.values(form.controls)) {
-    if (!control?.errors?.[controlErrorKey] && !control?.errors?.[controlMetaKey])
+    if (
+      !control?.errors?.[controlErrorKey] &&
+      !control?.errors?.[controlMetaKey]
+    )
       continue;
     const next = { ...(control.errors ?? {}) } as Record<string, unknown>;
     delete next[controlErrorKey];
@@ -126,4 +123,3 @@ export function clearServerFieldErrors<
     control.setErrors(Object.keys(next).length ? next : null);
   }
 }
-

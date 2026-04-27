@@ -22,13 +22,11 @@
     <h2 class="profile-header__name">{{ name() }}</h2>
     <p class="profile-header__category">{{ category() }}</p>
     <p class="profile-header__description">{{ description() }}</p>
-    <p class="profile-header__social">
-      Find me on
-      <span class="profile-header__link">@{{ socialHandle() }}</span>
-    </p>
+    @if (website()) {
     <p class="profile-header__website">
       Website: <span class="profile-header__link">{{ website() }}</span>
     </p>
+    }
   </div>
 
   <div

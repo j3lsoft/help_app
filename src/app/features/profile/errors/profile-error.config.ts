@@ -5,6 +5,9 @@ export type ProfileErrorContext =
   | 'update-profile'
   | 'avatar-upload';
 
+/** Shared error messages to avoid duplication */
+const SESSION_EXPIRED_MESSAGE = 'Session expired. Please login again.';
+
 export const PROFILE_ERROR_MAP: Record<ProfileErrorContext, ErrorMapConfig> = {
   profile: {
     byCode: {
@@ -12,8 +15,8 @@ export const PROFILE_ERROR_MAP: Record<ProfileErrorContext, ErrorMapConfig> = {
       USER_NOT_FOUND: 'User not found.',
     },
     byStatus: {
-      401: 'Session expired. Please login again.',
-      403: 'Session expired. Please login again.',
+      401: SESSION_EXPIRED_MESSAGE,
+      403: SESSION_EXPIRED_MESSAGE,
       404: 'Profile not found.',
     },
     fallback: 'Failed to load profile. Please try again.',
@@ -26,9 +29,9 @@ export const PROFILE_ERROR_MAP: Record<ProfileErrorContext, ErrorMapConfig> = {
       INVALID_BIO: 'Bio is too long. Maximum 500 characters.',
     },
     byStatus: {
-      401: 'Session expired. Please login again.',
+      401: SESSION_EXPIRED_MESSAGE,
       422: 'Invalid data. Please check your information.',
-      409: 'Username already exists.',
+      409: 'Username is already taken.',
     },
     fallback: 'Failed to update profile. Please try again.',
   },

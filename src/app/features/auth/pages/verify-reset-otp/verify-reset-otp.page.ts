@@ -8,12 +8,12 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AppError } from '@core/models/app-error.model';
 import { AppStorageService } from '@core/services/storage/app-storage.service';
 import { STORAGE_KEYS } from '@core/services/storage/storage-keys';
-import { NavController } from '@ionic/angular';
 import {
   IonContent,
   IonPopover,
   IonSpinner,
   IonText,
+  NavController,
 } from '@ionic/angular/standalone';
 import { NgOtpInputConfig, NgOtpInputModule } from 'ng-otp-input';
 import { catchError, EMPTY, finalize, tap } from 'rxjs';
@@ -124,22 +124,10 @@ export class VerifyResetOtpPage {
     }
 
     this.showLoadingDialog.set(true);
+
     this.authApi
       .verifyPasswordResetOtp({ email: this.email(), otp })
       .pipe(
-        tap(async (response) => {
-          await this.storage.setString(
-            STORAGE_KEYS.pendingChangePasswordToken,
-            response.changePasswordToken
-          );
-
-          this.showLoadingDialog.set(false);
-          setTimeout(async () => {
-            await this.router.navigate(['/auth/reset-password'], {
-              queryParams: { email: this.email() },
-            });
-          }, 100);
-        }),
         catchError((error: AppError) => {
           this.authErrorFacade.handle(error, 'password-reset');
           return EMPTY;
@@ -148,6 +136,20 @@ export class VerifyResetOtpPage {
           this.showLoadingDialog.set(false);
         })
       )
-      .subscribe();
+      .subscribe({
+        next: async (response) => {
+          await this.storage.setString(
+            STORAGE_KEYS.pendingChangePasswordToken,
+            response.changePasswordToken
+          );
+
+          // Allow the Ionic popover to finish its dismiss animation before tearing down the page
+          setTimeout(() => {
+            void this.router.navigate(['/auth/reset-password'], {
+              queryParams: { email: this.email() },
+            });
+          }, 300);
+        },
+      });
   }
 }

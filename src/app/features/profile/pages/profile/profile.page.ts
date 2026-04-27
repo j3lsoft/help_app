@@ -11,16 +11,23 @@ import { ProfileHeaderComponent } from '@features/profile/components/profile-hea
 import { ProfilePostGridComponent } from '@features/profile/components/profile-post-grid/profile-post-grid.component';
 import { ProfileTabsComponent } from '@features/profile/components/profile-tabs/profile-tabs.component';
 import { DEFAULT_PROFILE_IMAGE_PATH } from '@features/profile/constants/profile.constants';
-import { NavController } from '@ionic/angular';
+import { ProfileService } from '@features/profile/services/profile.service';
 import {
   IonButtons,
   IonContent,
   IonMenuButton,
   IonSpinner,
+  NavController,
 } from '@ionic/angular/standalone';
 import { TopBarComponent } from '@shared/components/top-bar/top-bar.component';
+import { firstValueFrom } from 'rxjs';
+import {
+  MOCK_ALL_POSTS,
+  MOCK_TAGGED_POSTS,
+  MOCK_VIDEO_POSTS,
+} from '../../data/profile.mock';
 import { filterPostsByTab } from '../../utils/post-filter.utils';
-import { MOCK_ALL_POSTS, MOCK_TAGGED_POSTS, MOCK_VIDEO_POSTS } from '../../data/profile.mock';
+import { stripWebsiteProtocol } from '../../utils/website-url.utils';
 
 @Component({
   selector: 'app-profile',
@@ -42,14 +49,25 @@ export class ProfilePage {
   private navCtrl = inject(NavController);
   private router = inject(Router);
   private authService = inject(AuthService);
+  private profileService = inject(ProfileService);
 
   // State Signals
   selectedTab = signal<'All' | 'Videos' | 'Tags'>('All');
   isStoryAvailable = signal<boolean>(false);
+  isLoadingProfile = signal<boolean>(false);
 
   constructor() {
-    if (!this.authService.currentUser()) {
-      this.authService.fetchUserProfile();
+    // Stale-while-revalidate: fetch profile in background
+    // If cached, display immediately. Always refresh.
+    this.loadProfile();
+  }
+
+  private async loadProfile(): Promise<void> {
+    this.isLoadingProfile.set(true);
+    try {
+      await firstValueFrom(this.profileService.getMyProfile());
+    } finally {
+      this.isLoadingProfile.set(false);
     }
   }
 
@@ -63,16 +81,25 @@ export class ProfilePage {
     );
   });
 
-  // User Profile Data (from API only, no mock mixing)
+  // User Profile Data
+  // Uses cached profile (with bio/website) if available, falls back to auth user
   userProfile = computed(() => {
-    const profile = this.authService.currentUser();
-    if (!profile) return null;
+    const authUser = this.authService.currentUser();
+    const fullProfile = this.profileService.currentProfile();
+
+    // No auth user at all
+    if (!authUser) return null;
+
+    // Use full profile if available (has bio/website), otherwise auth user
+    const source = fullProfile ?? authUser;
 
     return {
-      username: profile.username ?? '',
-      name: profile.displayName ?? '',
-      description: profile.bio ?? '',
-      profileImage: profile.avatarUrl ?? DEFAULT_PROFILE_IMAGE_PATH,
+      username: source.username ?? '',
+      name: source.displayName ?? '',
+      // bio and website only from full profile
+      description: fullProfile?.bio ?? '',
+      website: stripWebsiteProtocol(fullProfile?.website ?? ''),
+      profileImage: source.avatarUrl ?? DEFAULT_PROFILE_IMAGE_PATH,
       // Stats should come from API in the future
       postsCount: '0',
       videosCount: '0',

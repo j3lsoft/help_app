@@ -86,4 +86,18 @@ export interface MeResponseDto {
   avatarUrl: string | null;
   birthDate: string | null;
   bio: string | null;
+  website: string | null;
+}
+
+/**
+ * Minimal user data for auth state (stored in storage).
+ * Excludes bio, website, birthDate - those are fetched on-demand by ProfileService.
+ */
+export interface AuthUserDto {
+  id: string;
+  email: string;
+  emailVerified: boolean;
+  username: string | null;
+  displayName: string | null;
+  avatarUrl: string | null;
 }

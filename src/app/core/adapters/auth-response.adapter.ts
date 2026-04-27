@@ -1,7 +1,7 @@
 import {
+  AuthUserDto,
   LoginResponseDto,
   LoginUserResponseDto,
-  MeResponseDto,
 } from '../../features/auth/models/auth.dto';
 
 /**
@@ -11,17 +11,17 @@ import {
 export class AuthResponseAdapter {
   static transformLoginResponse(response: LoginResponseDto): {
     accessToken: string;
-    user: MeResponseDto | null;
+    user: AuthUserDto | null;
   } {
     return {
       accessToken: response.accessToken,
-      user: response.user ? this.transformLoginUserToMe(response.user) : null,
+      user: response.user ? this.transformLoginUserToAuth(response.user) : null,
     };
   }
 
-  static transformLoginUserToMe(
+  static transformLoginUserToAuth(
     loginUser: LoginUserResponseDto
-  ): MeResponseDto {
+  ): AuthUserDto {
     return {
       id: loginUser.id,
       email: loginUser.email,
@@ -30,8 +30,6 @@ export class AuthResponseAdapter {
       displayName: loginUser.displayName,
       avatarUrl:
         typeof loginUser.avatarUrl === 'string' ? loginUser.avatarUrl : null,
-      birthDate: null,
-      bio: null,
     };
   }
 }

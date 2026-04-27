@@ -6,8 +6,12 @@ import {
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { NavController } from '@ionic/angular';
-import { IonContent, IonInput, IonText } from '@ionic/angular/standalone';
+import {
+  IonContent,
+  IonInput,
+  IonText,
+  NavController,
+} from '@ionic/angular/standalone';
 import { catchError, EMPTY, finalize, tap } from 'rxjs';
 import { AppError } from 'src/app/core/models/app-error.model';
 import { AppStorageService } from 'src/app/core/services/storage/app-storage.service';

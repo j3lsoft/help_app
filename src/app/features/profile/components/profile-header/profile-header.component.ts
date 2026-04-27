@@ -6,7 +6,10 @@ import {
   output,
 } from '@angular/core';
 import { IonImg } from '@ionic/angular/standalone';
-import { DEFAULT_PROFILE_IMAGE_PATH } from '../../constants/profile.constants';
+import {
+  getUserInitials,
+  isValidUserImage,
+} from '../../utils/user-display.utils';
 
 @Component({
   selector: 'app-profile-header',
@@ -19,7 +22,6 @@ export class ProfileHeaderComponent {
   name = input.required<string>();
   category = input<string>('');
   description = input<string>('');
-  socialHandle = input<string>('');
   website = input<string>('');
   profileImage = input.required<string>();
   postsCount = input.required<string | number>();
@@ -32,23 +34,7 @@ export class ProfileHeaderComponent {
   onFollowingClick = output<void>();
   onStoryClick = output<void>();
 
-  hasValidImage = computed(() => {
-    const image = this.profileImage();
-    return (
-      image &&
-      image !== DEFAULT_PROFILE_IMAGE_PATH &&
-      !image.includes('default-user')
-    );
-  });
+  hasValidImage = computed(() => isValidUserImage(this.profileImage()));
 
-  userInitials = computed(() => {
-    const name = this.name();
-    if (!name) return '?';
-    return name
-      .split(' ')
-      .map((word) => word[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  });
+  userInitials = computed(() => getUserInitials(this.name()));
 }

@@ -38,6 +38,7 @@ describe('EditProfilePage', () => {
     avatarUrl: 'https://cdn.example.com/a.png',
     birthDate: '1990-01-01',
     bio: 'Hello',
+    website: null,
   };
 
   beforeEach(async () => {
@@ -90,9 +91,6 @@ describe('EditProfilePage', () => {
           provide: AuthService,
           useValue: {
             currentUser: authUser.asReadonly(),
-            fetchUserProfile: jasmine
-              .createSpy('fetchUserProfile')
-              .and.returnValue(Promise.resolve(mockUser)),
           },
         },
         { provide: ProfileService, useValue: profileServiceSpy },

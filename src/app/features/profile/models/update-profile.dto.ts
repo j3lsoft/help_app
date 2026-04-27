@@ -4,6 +4,7 @@ export interface UpdateProfileDto {
   birthDate?: string;
   avatarUrl?: string | null;
   bio?: string;
+  website?: string;
 }
 
 export interface ProfileValidationError {

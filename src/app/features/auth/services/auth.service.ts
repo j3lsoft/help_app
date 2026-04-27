@@ -6,7 +6,11 @@ import { AppStorageService } from '@core/services/storage/app-storage.service';
 import { SecureStorageService } from '@core/services/storage/secure-storage.service';
 import { STORAGE_KEYS } from '@core/services/storage/storage-keys';
 import { firstValueFrom } from 'rxjs';
-import { LoginResponseDto, MeResponseDto } from '../models/auth.dto';
+import {
+  AuthUserDto,
+  LoginResponseDto,
+  MeResponseDto,
+} from '../models/auth.dto';
 import { AuthApiService } from './auth-api.service';
 
 @Injectable({
@@ -18,7 +22,7 @@ export class AuthService implements AuthState {
   private readonly authApi = inject(AuthApiService);
   private readonly router = inject(Router);
 
-  private readonly _currentUser = signal<MeResponseDto | null>(null);
+  private readonly _currentUser = signal<AuthUserDto | null>(null);
   readonly currentUser = this._currentUser.asReadonly();
   readonly isAuthenticated = computed(() => !!this._currentUser());
 
@@ -46,6 +50,9 @@ export class AuthService implements AuthState {
     await this.secureStorage.remove(STORAGE_KEYS.accessToken);
     await this.storage.remove(STORAGE_KEYS.userData);
     this._currentUser.set(null);
+    // Note: ProfileService cache is in-memory only and will be cleared
+    // automatically when the app restarts. No need to explicitly clear it here
+    // to avoid circular dependency.
     await this.router.navigateByUrl('/auth/sign-in', { replaceUrl: true });
   }
 
@@ -65,6 +72,27 @@ export class AuthService implements AuthState {
     }
   }
 
+  /**
+   * Update auth user fields that are shared with profile.
+   * Called when profile is updated.
+   */
+  async updateAuthUserFromProfile(profile: MeResponseDto): Promise<void> {
+    const current = this._currentUser();
+    if (!current) return;
+
+    const updated: AuthUserDto = {
+      ...current,
+      username: profile.username,
+      displayName: profile.displayName,
+      avatarUrl: profile.avatarUrl,
+    };
+    this._currentUser.set(updated);
+    await this.storage.setString(
+      STORAGE_KEYS.userData,
+      JSON.stringify(updated)
+    );
+  }
+
   async getAccessToken(): Promise<string | null> {
     return await this.secureStorage.get(STORAGE_KEYS.accessToken);
   }
@@ -77,18 +105,5 @@ export class AuthService implements AuthState {
       await this.logout();
       throw error;
     }
-  }
-
-  async fetchUserProfile(): Promise<MeResponseDto> {
-    const user = await firstValueFrom(this.authApi.getMe());
-    this._currentUser.set(user);
-    // Sync with storage
-    await this.storage.setString(STORAGE_KEYS.userData, JSON.stringify(user));
-    return user;
-  }
-
-  async updateCurrentUser(user: MeResponseDto): Promise<void> {
-    this._currentUser.set(user);
-    await this.storage.setString(STORAGE_KEYS.userData, JSON.stringify(user));
   }
 }

@@ -25,7 +25,10 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { cameraOutline, imageOutline, trashOutline } from 'ionicons/icons';
-import { DEFAULT_PROFILE_IMAGE_PATH } from '../../constants/profile.constants';
+import {
+  getUserInitials,
+  isValidUserImage,
+} from '../../utils/user-display.utils';
 
 @Component({
   selector: 'app-edit-profile-avatar',
@@ -48,25 +51,9 @@ export class EditProfileAvatarComponent implements OnDestroy {
   isLoading = signal(false);
   private modal: HTMLIonModalElement | null = null;
 
-  hasValidImage = computed(() => {
-    const image = this.imageUrl();
-    return (
-      image &&
-      image !== DEFAULT_PROFILE_IMAGE_PATH &&
-      !image.includes('default-user')
-    );
-  });
+  hasValidImage = computed(() => isValidUserImage(this.imageUrl()));
 
-  userInitials = computed(() => {
-    const name = this.name();
-    if (!name) return '?';
-    return name
-      .split(' ')
-      .map((word) => word[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  });
+  userInitials = computed(() => getUserInitials(this.name()));
 
   get isIos() {
     return this.platform.is('ios');

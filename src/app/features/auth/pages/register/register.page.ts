@@ -20,7 +20,6 @@ import {
   AppError,
   ServerValidationErrorItem,
 } from 'src/app/core/models/app-error.model';
-import { LoggerService } from 'src/app/core/services/logger.service';
 import { AppStorageService } from 'src/app/core/services/storage/app-storage.service';
 import { STORAGE_KEYS } from 'src/app/core/services/storage/storage-keys';
 import { handleInlineFormError } from 'src/app/core/utils/form-error-handler.utils';
@@ -61,7 +60,6 @@ export class RegisterPage {
   private readonly fb = inject(FormBuilder);
   private readonly authApi = inject(AuthApiService);
   private readonly storage = inject(AppStorageService);
-  private readonly logger = inject(LoggerService);
   private readonly authErrorFacade = inject(AuthErrorFacade);
 
   showPassword = signal(false);
@@ -112,7 +110,7 @@ export class RegisterPage {
     this.navCtrl.back();
   }
 
-  goTo(screen: any): void {
+  goTo(screen: string): void {
     this.router.navigateByUrl(screen);
   }
 
@@ -162,10 +160,6 @@ export class RegisterPage {
           });
         }),
         catchError((error: AppError) => {
-          this.logger.error('Register failed', {
-            context: 'RegisterPage',
-            data: { error: error.message },
-          });
           handleInlineFormError({
             error,
             form: this.form,

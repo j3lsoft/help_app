@@ -13,6 +13,7 @@ export interface UserProfileResponseDto {
   displayName: string;
   bio: string;
   avatarUrl: string;
+  website: string;
   postsCount: number;
   videosCount: number;
   followersCount: number;
@@ -48,6 +49,22 @@ export class ProfileApiService {
           return throwError(() => error);
         })
       );
+  }
+
+  getMe(): Observable<MeResponseDto> {
+    this.logger.debug('Fetching my profile', {
+      context: 'ProfileApiService',
+    });
+
+    return this.http.get<MeResponseDto>(`${this.baseUrl}/api/v1/users/me`).pipe(
+      catchError((error: unknown) => {
+        this.logger.error('Failed to fetch my profile', {
+          context: 'ProfileApiService',
+          data: { error },
+        });
+        return throwError(() => error);
+      })
+    );
   }
 
   getUserProfile(userId: string): Observable<UserProfileResponseDto> {

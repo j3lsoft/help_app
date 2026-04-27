@@ -62,13 +62,15 @@ export const errorInterceptor: HttpInterceptorFn = (
       }
 
       const technicalMessage = classifyTechnicalError(appError, { isOnline });
+      let finalError = appError;
+
       if (technicalMessage) {
         // Only show global toasts for technical errors (not business/validation).
         void notificationService.showError(technicalMessage);
-        markHandled(appError);
+        finalError = markHandled(appError);
       }
 
-      return throwError(() => appError);
+      return throwError(() => finalError);
     })
   );
 };
