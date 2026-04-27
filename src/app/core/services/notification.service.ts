@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { ToastController, ToastOptions } from '@ionic/angular';
+import { ToastController, ToastOptions } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
 import {
   alertCircle,
   checkmarkCircle,
@@ -14,6 +15,10 @@ export type NotificationType = 'success' | 'error' | 'warning' | 'info';
 })
 export class NotificationService {
   private readonly toastCtrl = inject(ToastController);
+
+  constructor() {
+    addIcons({ alertCircle, checkmarkCircle, informationCircle, warning });
+  }
 
   private readonly defaultOptions: ToastOptions = {
     duration: 3000,
@@ -76,14 +81,14 @@ export class NotificationService {
   private getIcon(type: NotificationType): string | undefined {
     switch (type) {
       case 'success':
-        return checkmarkCircle;
+        return 'checkmark-circle';
       case 'error':
-        return alertCircle;
+        return 'alert-circle';
       case 'warning':
-        return warning;
+        return 'warning';
       case 'info':
       default:
-        return informationCircle;
+        return 'information-circle';
     }
   }
 }

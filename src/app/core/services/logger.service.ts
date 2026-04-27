@@ -35,7 +35,6 @@ export class LoggerService {
   private level: LogLevel = environment.production
     ? LogLevel.ERROR
     : LogLevel.DEBUG;
-  private isProduction = environment.production;
   private readonly sensitiveKeys = [
     'password',
     'token',
@@ -48,17 +47,14 @@ export class LoggerService {
   ];
 
   debug(message: string, options?: LogOptions): void {
-    if (this.isProduction) return;
     this.log(LogLevel.DEBUG, message, options);
   }
 
   info(message: string, options?: LogOptions): void {
-    if (this.isProduction) return;
     this.log(LogLevel.INFO, message, options);
   }
 
   warn(message: string, options?: LogOptions): void {
-    if (this.isProduction) return;
     this.log(LogLevel.WARN, message, options);
   }
 
