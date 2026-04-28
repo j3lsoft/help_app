@@ -47,15 +47,22 @@
     <ion-text class="edit-profile-form__label" id="edit-profile-label-birthDate"
       >Birth date</ion-text
     >
-    <ion-input
-      formControlName="birthDate"
-      placeholder="YYYY-MM-DD"
-      mode="ios"
-      class="edit-profile-form__input"
-      type="date"
-      [max]="maxDate()"
-      aria-labelledby="edit-profile-label-birthDate"
-    ></ion-input>
+    <div
+      class="edit-profile-form__date-wrapper"
+      [class.edit-profile-form__date-wrapper--empty]="
+        !form.controls.birthDate.value
+      "
+    >
+      <ion-input
+        formControlName="birthDate"
+        placeholder="YYYY-MM-DD"
+        mode="ios"
+        class="edit-profile-form__input edit-profile-form__input--date"
+        type="date"
+        [max]="maxDate()"
+        aria-labelledby="edit-profile-label-birthDate"
+      ></ion-input>
+    </div>
   </div>
 
   <div class="edit-profile-form__field">

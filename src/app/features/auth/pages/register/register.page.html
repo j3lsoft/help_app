@@ -49,14 +49,19 @@
 
     <div class="margin20 auth-form__field">
       <ion-text class="grayColor16Regular"> Date of Birth </ion-text>
-      <ion-input
-        formControlName="birthDate"
-        name="birthDate"
-        placeholder="YYYY-MM-DD"
-        mode="ios"
-        class="whiteColor18Regular auth-form__input"
-        type="date"
-      ></ion-input>
+      <div
+        class="auth-form__date-wrapper"
+        [class.auth-form__date-wrapper--empty]="!form.controls.birthDate.value"
+      >
+        <ion-input
+          formControlName="birthDate"
+          name="birthDate"
+          placeholder="YYYY-MM-DD"
+          mode="ios"
+          class="whiteColor18Regular auth-form__input auth-form__input--date"
+          type="date"
+        ></ion-input>
+      </div>
       <div class="auth-form__divider"></div>
       @if (isInvalid('birthDate') &&
       !form.controls.birthDate.hasError('serverError')) {

@@ -22,6 +22,34 @@
     border-bottom: 1px solid var(--extraLightGrayColor);
   }
 
+  &__input--date {
+    position: relative;
+    z-index: 1;
+    background: transparent;
+  }
+
+  &__date-wrapper {
+    position: relative;
+    display: block;
+  }
+
+  &__date-wrapper--empty::before {
+    content: "YYYY-MM-DD";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--grayColor);
+    font-size: 18px;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 1;
+  }
+
+  &__date-wrapper--empty &__input--date {
+    color: transparent;
+  }
+
   &__textarea {
     --padding-start: 0;
     --padding-end: 0;
