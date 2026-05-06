@@ -1,6 +1,7 @@
 import { Location } from '@angular/common';
 import { Component, DestroyRef, inject } from '@angular/core';
 import { App } from '@capacitor/app';
+import { SplashScreen } from '@capacitor/splash-screen';
 import { NavController, Platform } from '@ionic/angular';
 import { IonApp, IonRouterOutlet, IonText } from '@ionic/angular/standalone';
 import { register } from 'swiper/element/bundle';
@@ -60,5 +61,7 @@ export class AppComponent {
   private async initializeApp(): Promise<void> {
     await this.edgeToEdgeService.initialize();
     await this.edgeToEdgeService.updateStyleFromTheme();
+    await this.platform.ready();
+    await SplashScreen.hide();
   }
 }

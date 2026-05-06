@@ -1,3 +1,5 @@
+/// <reference types="@capacitor/splash-screen" />
+
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
@@ -13,7 +15,11 @@ const config: CapacitorConfig = {
     },
     EdgeToEdge: {
       statusBarColor: '#0683a0',
-      navigationBarColor: '#000000',
+    },
+    SplashScreen: {
+      launchAutoHide: false,
+      showSpinner: false,
+      backgroundColor: '#041331',
     },
   },
 };

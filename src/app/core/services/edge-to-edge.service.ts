@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Capacitor } from '@capacitor/core';
+import { Device } from '@capacitor/device';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { EdgeToEdge } from '@capawesome/capacitor-android-edge-to-edge-support';
 
@@ -18,6 +19,7 @@ export class EdgeToEdgeService {
     await this.applyStatusBarOverlay();
     await this.applyStatusBarStyle();
     await this.applyEdgeToEdge(true);
+    await this.applyNavigationBarColor();
     this.initialized = true;
   }
 
@@ -62,6 +64,25 @@ export class EdgeToEdgeService {
     //   : false;
     // return prefersDarkTheme ? Style.Light : Style.Dark;
     return Style.Dark;
+  }
+
+  private async applyNavigationBarColor(): Promise<void> {
+    const color = await this.getNavigationBarColorForAndroidVersion();
+    await this.runSafely('EdgeToEdge.setNavigationBarColor()', async () => {
+      await EdgeToEdge.setNavigationBarColor({ color });
+    });
+  }
+
+  private async getNavigationBarColorForAndroidVersion(): Promise<string> {
+    const deviceInfo = await Device.getInfo();
+    const androidVersion = deviceInfo.androidSDKVersion ?? 0;
+
+    // Android 10+ (API 29+) supports light navigation bar buttons
+    // Android 9 and below only support dark buttons
+    if (androidVersion >= 29) {
+      return '#000000'; // Dark bar with light buttons (Android 10+)
+    }
+    return '#F5F5F5'; // Light bar with dark system buttons (Android 9-)
   }
 
   private async runSafely(

@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { noAuthGuard } from './core/guards/no-auth.guard';
 import { onboardingSeenGuard } from './core/guards/onboarding-seen.guard';
+import { splashGuard } from './core/guards/splash.guard';
 
 export const routes: Routes = [
   {
@@ -11,6 +12,7 @@ export const routes: Routes = [
   },
   {
     path: 'splash',
+    canMatch: [splashGuard],
     loadChildren: () =>
       import('./features/splash/splash.routes').then((m) => m.SPLASH_ROUTES),
   },
@@ -280,4 +282,4 @@ export const routes: Routes = [
         (m) => m.HelpDetailPage
       ),
   },
-  ];
+];
