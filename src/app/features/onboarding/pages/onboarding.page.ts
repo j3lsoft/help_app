@@ -41,7 +41,7 @@ export class OnboardingPage {
   readonly onboardingScreenList = signal([
     {
       id: '1',
-      onboardingImage: '../../../assets/images/onboarding/help-logo.png',
+      onboardingImage: '../../../assets/images/help-logo.png',
       onboardingTitle: 'We can help you !',
       onboardingDescription: '',
     },

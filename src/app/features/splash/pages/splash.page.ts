@@ -7,7 +7,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { ViewDidEnter } from '@ionic/angular';
-import { IonContent, IonImg, IonText } from '@ionic/angular/standalone';
+import { IonContent, IonImg } from '@ionic/angular/standalone';
 import { timer } from 'rxjs';
 import { AppStorageService } from '../../../core/services/storage/app-storage.service';
 import { STORAGE_KEYS } from '../../../core/services/storage/storage-keys';
@@ -17,7 +17,7 @@ import { STORAGE_KEYS } from '../../../core/services/storage/storage-keys';
   templateUrl: './splash.page.html',
   styleUrls: ['./splash.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IonImg, IonText, IonContent],
+  imports: [IonImg, IonContent],
 })
 export class SplashPage implements ViewDidEnter {
   private readonly router = inject(Router);

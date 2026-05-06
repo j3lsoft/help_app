@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.ionic.SocialMedia',
-  appName: 'ionic-SocialMedia',
+  appId: 'com.help.SocialMedia',
+  appName: 'Help',
   webDir: 'www/browser',
   plugins: {
     SystemBars: {

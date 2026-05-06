@@ -5,12 +5,7 @@ import {
   signal,
 } from '@angular/core';
 import { Router } from '@angular/router';
-import {
-  IonContent,
-  IonIcon,
-  IonImg,
-  IonText,
-} from '@ionic/angular/standalone';
+import { IonContent, IonIcon, IonImg } from '@ionic/angular/standalone';
 import { TopBarComponent } from '@shared/components/top-bar/top-bar.component';
 import { addIcons } from 'ionicons';
 import { search } from 'ionicons/icons';
@@ -41,7 +36,6 @@ import {
     IonContent,
     IonIcon,
     IonImg,
-    IonText,
     TopBarComponent,
     StoryListComponent,
     PostCardComponent,

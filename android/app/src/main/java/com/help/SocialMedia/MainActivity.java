@@ -1,4 +1,4 @@
-package com.ionic.SocialMedia;
+package com.help.SocialMedia;
 
 import com.getcapacitor.BridgeActivity;
 

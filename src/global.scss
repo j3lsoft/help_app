@@ -33,6 +33,12 @@
   font-family: "OpenSans";
 }
 
+// Prevent white flash during initial navigation (before Angular renders)
+body,
+ion-app {
+  background-color: #041331;
+}
+
 .ellipseText {
   overflow: hidden;
   text-overflow: ellipsis;
