@@ -12,32 +12,24 @@
   --placeholder-opacity: 1;
 }
 
-.auth-form__input--date {
-  position: relative;
-  z-index: 1;
-  background: transparent;
+.auth-form__date-item {
+  --background: transparent;
+  --padding-start: 0;
+  --padding-end: 0;
+  --inner-padding-end: 0;
+  --border-color: transparent;
+  cursor: pointer;
 }
 
-.auth-form__date-wrapper {
-  position: relative;
-  display: block;
-}
-
-.auth-form__date-wrapper--empty::before {
-  content: "YYYY-MM-DD";
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--whiteColor);
+.auth-form__date-value {
   font-size: 18px;
-  pointer-events: none;
-  z-index: 0;
-  opacity: 1;
+  color: var(--whiteColor);
 }
 
-.auth-form__date-wrapper--empty .auth-form__input--date {
-  color: transparent;
+ion-icon[slot="start"] {
+  margin-right: 12px;
+  color: var(--whiteColor);
+  font-size: 20px;
 }
 
 .auth-form__input--password {

@@ -49,19 +49,47 @@
 
     <div class="margin20 auth-form__field">
       <ion-text class="grayColor16Regular"> Date of Birth </ion-text>
-      <div
-        class="auth-form__date-wrapper"
-        [class.auth-form__date-wrapper--empty]="!form.controls.birthDate.value"
+      <ion-item
+        button="true"
+        id="open-birthdate-modal"
+        class="auth-form__date-item whiteColor18Regular"
+        lines="none"
+        mode="ios"
       >
-        <ion-input
-          formControlName="birthDate"
-          name="birthDate"
-          placeholder="YYYY-MM-DD"
-          mode="ios"
-          class="whiteColor18Regular auth-form__input auth-form__input--date"
-          type="date"
-        ></ion-input>
-      </div>
+        <ion-text class="auth-form__date-value">
+          {{ (form.controls.birthDate.value | date: 'MMM d, y') || 'Select birth
+          date' }}
+        </ion-text>
+      </ion-item>
+      <ion-modal mode="ios" trigger="open-birthdate-modal">
+        <ng-template>
+          <div class="modal-datetime-wrapper">
+            <ion-datetime
+              #datetime
+              formControlName="birthDate"
+              presentation="date"
+              [max]="maxBirthDate()"
+              [formatOptions]="{
+                date: {
+                  weekday: 'short',
+                  month: 'long',
+                  day: '2-digit',
+                }
+              }"
+              mode="ios"
+            >
+              <ion-buttons slot="buttons">
+                <ion-button color="medium" (click)="datetime.cancel(true)">
+                  Cancel
+                </ion-button>
+                <ion-button color="primary" (click)="datetime.confirm(true)">
+                  Done
+                </ion-button>
+              </ion-buttons>
+            </ion-datetime>
+          </div>
+        </ng-template>
+      </ion-modal>
       <div class="auth-form__divider"></div>
       @if (isInvalid('birthDate') &&
       !form.controls.birthDate.hasError('serverError')) {

@@ -1,15 +1,22 @@
+import { DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   signal,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import {
+  IonButton,
+  IonButtons,
   IonContent,
+  IonDatetime,
   IonIcon,
   IonInput,
+  IonItem,
+  IonModal,
   IonText,
   NavController,
 } from '@ionic/angular/standalone';
@@ -44,10 +51,16 @@ import { AuthApiService } from '../../services/auth-api.service';
   styleUrls: ['./register.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    IonButtons,
+    IonButton,
+    DatePipe,
+    IonItem,
     IonIcon,
     IonText,
     IonContent,
     IonInput,
+    IonDatetime,
+    IonModal,
     ReactiveFormsModule,
     AuthHeaderComponent,
     AuthPrimaryButtonComponent,
@@ -191,4 +204,11 @@ export class RegisterPage {
     }
     return item.message;
   }
+
+  // Computed max date for birthDate picker (13 years ago from today)
+  maxBirthDate = computed(() => {
+    const date = new Date();
+    date.setFullYear(date.getFullYear() - environment.minAgeYears);
+    return date.toISOString().split('T')[0];
+  });
 }

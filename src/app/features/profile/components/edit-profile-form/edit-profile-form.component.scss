@@ -22,32 +22,48 @@
     border-bottom: 1px solid var(--extraLightGrayColor);
   }
 
-  &__input--date {
-    position: relative;
-    z-index: 1;
-    background: transparent;
+  &__input--readonly {
+    opacity: 0.8;
+    --background: var(--ion-color-light);
+    border-radius: 8px;
+    padding: 8px 12px;
+    border-bottom: none;
+    
+    &:focus {
+      --background: var(--ion-color-light);
+      outline: none;
+    }
   }
 
-  &__date-wrapper {
-    position: relative;
-    display: block;
+  &__date-item {
+    --background: transparent;
+    --padding-start: 0;
+    --padding-end: 0;
+    --inner-padding-end: 0;
+    --border-color: transparent;
+    cursor: pointer;
   }
 
-  &__date-wrapper--empty::before {
-    content: "YYYY-MM-DD";
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--grayColor);
+  &__date-value {
     font-size: 18px;
-    pointer-events: none;
-    z-index: 0;
-    opacity: 1;
+    color: var(--blackColor);
   }
 
-  &__date-wrapper--empty &__input--date {
-    color: transparent;
+  &__date-text {
+    color: var(--blackColor);
+    font-size: 18px;
+  }
+
+  &__divider {
+    background-color: var(--extraLightGrayColor);
+    height: 1px;
+    margin-top: 8px;
+  }
+
+  ion-icon[slot="start"] {
+    margin-right: 12px;
+    color: var(--blackColor);
+    font-size: 20px;
   }
 
   &__textarea {

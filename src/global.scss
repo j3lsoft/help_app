@@ -133,3 +133,52 @@ ion-toast {
 ion-tab-bar {
   padding-bottom: env(safe-area-inset-bottom);
 }
+
+// Global styles for datetime modals
+.modal-datetime-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+ion-modal {
+  --backdrop-opacity: 0.4;
+  --background: transparent;
+
+  &::part(content) {
+    backdrop-filter: blur(6px);
+    border-radius: 16px;
+  }
+
+  ion-datetime {
+    border-radius: 10px;
+  }
+}
+
+// Shared auth form styles (used by login, register, change-password, etc.)
+.auth-form__divider {
+  background-color: var(--extraLightGrayColor);
+  height: 1px;
+  margin-top: 8px;
+}
+
+.auth-form__input {
+  height: 25px;
+  min-height: 25px;
+  margin-top: 4px;
+  --placeholder-color: var(--whiteColor);
+  --placeholder-opacity: 1;
+}
+
+.auth-form__input--password {
+  flex: 1;
+}
+
+.auth-form__field {
+  margin-top: 25px;
+}
+
+.auth-form__toggle-icon {
+  font-size: 20px;
+}

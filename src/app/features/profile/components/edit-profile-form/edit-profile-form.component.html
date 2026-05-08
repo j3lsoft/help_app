@@ -44,28 +44,6 @@
   </div>
 
   <div class="edit-profile-form__field">
-    <ion-text class="edit-profile-form__label" id="edit-profile-label-birthDate"
-      >Birth date</ion-text
-    >
-    <div
-      class="edit-profile-form__date-wrapper"
-      [class.edit-profile-form__date-wrapper--empty]="
-        !form.controls.birthDate.value
-      "
-    >
-      <ion-input
-        formControlName="birthDate"
-        placeholder="YYYY-MM-DD"
-        mode="ios"
-        class="edit-profile-form__input edit-profile-form__input--date"
-        type="date"
-        [max]="maxDate()"
-        aria-labelledby="edit-profile-label-birthDate"
-      ></ion-input>
-    </div>
-  </div>
-
-  <div class="edit-profile-form__field">
     <ion-text class="edit-profile-form__label" id="edit-profile-label-bio"
       >Bio</ion-text
     >
@@ -103,6 +81,22 @@
       Please enter a valid URL (e.g., yourwebsite.com)
     </ion-text>
     }
+  </div>
+
+  <div class="edit-profile-form__field">
+    <ion-text class="edit-profile-form__label" id="edit-profile-label-birthDate"
+      >Birth date</ion-text
+    >
+    <ion-input
+      [value]="(form.controls.birthDate.value | date: 'MMMM d, y') || 'Not specified'"
+      readonly
+      mode="ios"
+      class="edit-profile-form__input edit-profile-form__input--readonly"
+      aria-labelledby="edit-profile-label-birthDate"
+      aria-readonly="true"
+    >
+      <ion-icon slot="end" name="calendar-outline" color="medium"></ion-icon>
+    </ion-input>
   </div>
 
   <div class="edit-profile-form__actions">

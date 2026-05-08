@@ -1,3 +1,4 @@
+import { DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -12,17 +13,28 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
   IonButton,
+  IonIcon,
   IonInput,
   IonText,
   IonTextarea,
 } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { calendarOutline } from 'ionicons/icons';
 import { UserProfileFormData } from '../../models/profile-form.model';
 
 @Component({
   selector: 'app-edit-profile-form',
   templateUrl: './edit-profile-form.component.html',
   styleUrls: ['./edit-profile-form.component.scss'],
-  imports: [ReactiveFormsModule, IonText, IonInput, IonTextarea, IonButton],
+  imports: [
+    IonButton,
+    DatePipe,
+    ReactiveFormsModule,
+    IonText,
+    IonInput,
+    IonTextarea,
+    IonIcon
+],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EditProfileFormComponent {
@@ -61,6 +73,8 @@ export class EditProfileFormComponent {
   });
 
   constructor() {
+    addIcons({ calendarOutline });
+
     effect(() => {
       const data = this.initialData();
       this.form.patchValue(data, { emitEvent: false });
@@ -103,7 +117,4 @@ export class EditProfileFormComponent {
       }
     });
   }
-
-  // Computed max date for birthDate picker (memoized)
-  maxDate = computed(() => new Date().toISOString().split('T')[0]);
 }
