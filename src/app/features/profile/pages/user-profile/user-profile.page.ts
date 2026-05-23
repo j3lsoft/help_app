@@ -5,7 +5,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { toAppError } from '@core/utils/app-error.utils';
 import {
@@ -21,7 +21,7 @@ import { BackHeaderComponent } from '@shared/components/back-header/back-header.
 import { ShortNumberPipe } from '@shared/pipes/short-number.pipe';
 import { addIcons } from 'ionicons';
 import { chevronBack, playOutline } from 'ionicons/icons';
-import { catchError, map, of, switchMap, tap } from 'rxjs';
+import { catchError, map, of, switchMap } from 'rxjs';
 import {
   MOCK_ALL_POSTS,
   MOCK_TAGGED_POSTS,
@@ -32,7 +32,6 @@ import { ProfileService } from '../../services/profile.service';
 import { filterPostsByTab, TabValue } from '../../utils/post-filter.utils';
 import { stripWebsiteProtocol } from '../../utils/website-url.utils';
 
-type SegmentValue = TabValue;
 
 @Component({
   selector: 'app-user-profile',
@@ -57,23 +56,14 @@ export class UserProfilePage {
   private readonly profileService = inject(ProfileService);
   private readonly profileErrorFacade = inject(ProfileErrorFacade);
 
-  // Router param as signal
-  private readonly userId$ = this.route.paramMap.pipe(
-    map((params) => params.get('id') || '')
-  );
-
-  isLoading = signal<boolean>(true);
-  error = signal<string | null>(null);
   selectedTabValue = signal<TabValue>('All');
 
-  // Reactive data loading
-  readonly userProfile = toSignal(
-    this.userId$.pipe(
-      tap(() => this.isLoading.set(true)),
-      switchMap((id) => {
+  // Reactive data loading with rxResource
+  readonly userProfile = rxResource({
+    stream: () => this.route.paramMap.pipe(
+      map((params) => params.get('id') || ''),
+      switchMap((id: string) => {
         if (!id) {
-          this.error.set('Invalid user ID');
-          this.isLoading.set(false);
           return of(null);
         }
         return this.profileService.getUserProfile(id).pipe(
@@ -81,19 +71,14 @@ export class UserProfilePage {
             ...profile,
             website: stripWebsiteProtocol(profile.website),
           })),
-          tap(() => {
-            this.error.set(null);
-            this.isLoading.set(false);
-          }),
           catchError((error: unknown) => {
             this.profileErrorFacade.handle(toAppError(error), 'profile');
-            this.isLoading.set(false);
             return of(null);
           })
         );
       })
-    )
-  );
+    ),
+  });
 
   isFollowing = signal<boolean>(false);
 

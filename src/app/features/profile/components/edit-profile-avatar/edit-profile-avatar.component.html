@@ -1,7 +1,13 @@
 <div class="edit-profile-avatar">
   <div class="edit-profile-avatar__container">
     @if (hasValidImage()) {
-    <ion-img [src]="imageUrl()" class="edit-profile-avatar__image"></ion-img>
+    <img
+      [ngSrc]="imageUrl()"
+      class="edit-profile-avatar__image"
+      alt="Profile"
+      width="120"
+      height="120"
+    />
     } @else {
     <div class="edit-profile-avatar__initials">
       {{ userInitials() }}

@@ -5,6 +5,7 @@ import {
   output,
 } from '@angular/core';
 import { IonSegment, IonSegmentButton } from '@ionic/angular/standalone';
+import type { TabValue } from '../../utils/post-filter.utils';
 
 @Component({
   selector: 'app-profile-tabs',
@@ -14,10 +15,10 @@ import { IonSegment, IonSegmentButton } from '@ionic/angular/standalone';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProfileTabsComponent {
-  selectedTab = input.required<'All' | 'Videos' | 'Tags'>();
-  tabChange = output<'All' | 'Videos' | 'Tags'>();
+  selectedTab = input.required<TabValue>();
+  tabChange = output<TabValue>();
 
-  onTabChange(event: any) {
-    this.tabChange.emit(event.detail.value as 'All' | 'Videos' | 'Tags');
+  onTabChange(event: CustomEvent) {
+    this.tabChange.emit(event.detail.value as TabValue);
   }
 }

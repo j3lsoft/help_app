@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -17,7 +17,6 @@ import { LoggerService } from '@core/services/logger.service';
 import { NotificationService } from '@core/services/notification.service';
 import {
   IonIcon,
-  IonImg,
   IonModal,
   IonSpinner,
   IonText,
@@ -35,7 +34,7 @@ import {
   templateUrl: './edit-profile-avatar.component.html',
   styleUrls: ['./edit-profile-avatar.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, IonImg, IonText, IonModal, IonIcon, IonSpinner],
+  imports: [CommonModule, IonText, IonModal, IonIcon, IonSpinner, NgOptimizedImage],
 })
 export class EditProfileAvatarComponent implements OnDestroy {
   imageUrl = input.required<string>();

@@ -16,7 +16,6 @@ import { UploadFacade } from 'src/app/core/services/media/upload/services/upload
 import { NotificationService } from 'src/app/core/services/notification.service';
 import { MeResponseDto } from 'src/app/features/auth/models/auth.dto';
 import { AuthService } from 'src/app/features/auth/services/auth.service';
-import { DEFAULT_PROFILE_IMAGE_PATH } from '../../constants/profile.constants';
 import { ProfileErrorFacade } from '../../errors/profile-error.facade';
 import { ProfileService } from '../../services/profile.service';
 import { EditProfilePage } from './edit-profile.page';
@@ -154,9 +153,7 @@ describe('EditProfilePage', () => {
 
   it('should send avatarUrl null when user removes a remote avatar', async () => {
     component.onImageRemoved();
-    expect(component.userProfile().profileImage).toBe(
-      DEFAULT_PROFILE_IMAGE_PATH
-    );
+    expect(component.userProfile().profileImage).toBe('');
 
     profileServiceSpy.updateProfile.and.returnValue(
       of({ ...mockUser, avatarUrl: null })

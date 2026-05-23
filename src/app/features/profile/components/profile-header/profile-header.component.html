@@ -35,11 +35,14 @@
     (click)="storyAvailable() ? onStoryClick.emit() : null"
   >
     @if (hasValidImage()) {
-    <ion-img
-      [src]="profileImage()"
+    <img
+      [ngSrc]="profileImage()"
       class="profile-header__image"
       alt="Profile picture"
-    ></ion-img>
+      width="120"
+      height="120"
+      priority
+    />
     } @else {
     <div class="profile-header__initials">
       {{ userInitials() }}

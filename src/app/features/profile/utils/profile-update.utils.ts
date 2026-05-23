@@ -1,4 +1,3 @@
-import { DEFAULT_PROFILE_IMAGE_PATH } from '../constants/profile.constants';
 import { UserProfileFormData } from '../models/profile-form.model';
 import { UpdateProfileDto } from '../models/update-profile.dto';
 import { normalizeWebsiteUrl } from './website-url.utils';
@@ -74,7 +73,7 @@ function buildAvatarPatch(
     url.startsWith('http://') || url.startsWith('https://');
 
   const removed =
-    currentImage === DEFAULT_PROFILE_IMAGE_PATH &&
+    currentImage === '' &&
     isRemoteUrl(initial.profileImage);
 
   if (removed) {

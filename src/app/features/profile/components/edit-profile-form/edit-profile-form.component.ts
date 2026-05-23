@@ -47,8 +47,9 @@ export class EditProfileFormComponent {
   formChanges = output<UserProfileFormData>();
 
   // URL pattern that accepts domains with or without protocol
+  // Supports modern TLDs (2+ chars) and internationalized domains
   private readonly websitePattern =
-    /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
+    /^(https?:\/\/)?([\da-zA-Z.-]+)\.([a-zA-Z.]{2,})([/\w .-]*)*\/?$/;
 
   form = this.fb.nonNullable.group({
     displayName: [

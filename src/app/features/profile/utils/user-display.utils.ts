@@ -1,34 +1,33 @@
-import { DEFAULT_PROFILE_IMAGE_PATH } from '../constants/profile.constants';
-
 /**
  * Generates user initials from their display name
- * Returns '?' if name is empty
- * @param name - The user's display name
- * @returns Up to 2 uppercase initials (e.g., "John Doe" -> "JD")
+ *
+ * @param displayName - The user's display name
+ * @returns Initials (up to 2 characters) in uppercase
  */
-export function getUserInitials(name: string | null | undefined): string {
-  if (!name || name.trim() === '') return '?';
+export function getUserInitials(displayName: string | undefined | null): string {
+  if (!displayName) return '?';
 
-  return name
-    .split(' ')
-    .map((word) => word[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
+  const words = displayName.trim().split(/\s+/);
+  if (words.length === 1) {
+    return words[0].charAt(0).toUpperCase();
+  }
+
+  return (words[0].charAt(0) + words[words.length - 1].charAt(0)).toUpperCase();
 }
 
 /**
- * Checks if a user image URL is valid (not null, not default placeholder)
- * @param imageUrl - The image URL to validate
- * @returns true if the image is valid and not a placeholder
+ * Checks if the provided image URL is valid for display
+ *
+ * @param imageUrl - The image URL to check
+ * @returns True if the image is valid for display
  */
-export function isValidUserImage(imageUrl: string | null | undefined): boolean {
-  if (!imageUrl || imageUrl.trim() === '') {
+export function isValidUserImage(imageUrl: string | undefined | null): boolean {
+  if (!imageUrl) {
     return false;
   }
 
   return (
-    imageUrl !== DEFAULT_PROFILE_IMAGE_PATH &&
+    imageUrl !== '' &&
     !imageUrl.includes('default-user')
   );
 }

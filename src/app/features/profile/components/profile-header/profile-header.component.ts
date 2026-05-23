@@ -5,7 +5,7 @@ import {
   input,
   output,
 } from '@angular/core';
-import { IonImg } from '@ionic/angular/standalone';
+import { NgOptimizedImage } from '@angular/common';
 import {
   getUserInitials,
   isValidUserImage,
@@ -15,7 +15,7 @@ import {
   selector: 'app-profile-header',
   templateUrl: './profile-header.component.html',
   styleUrls: ['./profile-header.component.scss'],
-  imports: [IonImg],
+  imports: [NgOptimizedImage],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProfileHeaderComponent {

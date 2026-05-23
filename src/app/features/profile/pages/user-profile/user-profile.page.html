@@ -1,19 +1,19 @@
 <app-back-header
-  [title]="userProfile()?.username || 'Loading...'"
+  [title]="userProfile.value()?.username || 'Loading...'"
   (backClick)="goBack()"
 ></app-back-header>
 
 <ion-content>
-  @if (isLoading()) {
+  @if (userProfile.isLoading()) {
   <div class="user-profile__loading-container">
     <ion-spinner color="primary"></ion-spinner>
     <ion-text class="user-profile__loading-text">Loading profile...</ion-text>
   </div>
-  } @else if (error()) {
+  } @else if (userProfile.error()) {
   <div class="user-profile__error-container">
-    <ion-text class="user-profile__error-text">{{ error() }}</ion-text>
+    <ion-text class="user-profile__error-text">Failed to load profile</ion-text>
   </div>
-  } @else if (userProfile(); as profile) {
+  } @else if (userProfile.value(); as profile) {
   <div class="user-profile__stats-row">
     <div class="user-profile__stat-item">
       <span class="user-profile__stat-value"

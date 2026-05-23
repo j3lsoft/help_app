@@ -4,11 +4,12 @@ import {
   Component,
   DestroyRef,
   Injector,
-  ViewChild,
   computed,
   effect,
   inject,
+  linkedSignal,
   signal,
+  viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { UploadStatus, UploadTask } from '@core/services/media/upload/models';
@@ -16,6 +17,7 @@ import { UploadFacade } from '@core/services/media/upload/services/upload-facade
 import { NotificationService } from '@core/services/notification.service';
 import { toAppError } from '@core/utils/app-error.utils';
 import { handleInlineFormError } from '@core/utils/form-error-handler.utils';
+import { clearServerFieldErrors } from '@core/utils/server-validation-errors.utils';
 import { AuthService } from '@features/auth/services/auth.service';
 import {
   AlertController,
@@ -30,7 +32,6 @@ import { checkmarkCircle, chevronBack } from 'ionicons/icons';
 import { filter, firstValueFrom, from, map, switchMap, take, tap } from 'rxjs';
 import { EditProfileAvatarComponent } from '../../components/edit-profile-avatar/edit-profile-avatar.component';
 import { EditProfileFormComponent } from '../../components/edit-profile-form/edit-profile-form.component';
-import { DEFAULT_PROFILE_IMAGE_PATH } from '../../constants/profile.constants';
 import { ProfileErrorFacade } from '../../errors/profile-error.facade';
 import { UserProfileFormData } from '../../models/profile-form.model';
 import { UpdateProfileDto } from '../../models/update-profile.dto';
@@ -38,10 +39,7 @@ import { ProfileService } from '../../services/profile.service';
 import { buildUpdatePayload } from '../../utils/profile-update.utils';
 import { stripWebsiteProtocol } from '../../utils/website-url.utils';
 
-interface ProfileFormState {
-  initial: UserProfileFormData & { profileImage: string };
-  current: UserProfileFormData & { profileImage: string };
-}
+type ProfileFormData = UserProfileFormData & { profileImage: string };
 
 @Component({
   selector: 'app-edit-profile',
@@ -68,40 +66,40 @@ export class EditProfilePage {
   private readonly destroyRef = inject(DestroyRef);
   private readonly profileErrorFacade = inject(ProfileErrorFacade);
 
-  /** Access to form component for server error handling */
-  @ViewChild(EditProfileFormComponent)
-  private formComponent!: EditProfileFormComponent;
+  private readonly defaultProfile: ProfileFormData = {
+    displayName: '',
+    username: '',
+    bio: '',
+    website: '',
+    birthDate: '',
+    profileImage: '',
+  };
 
   /** Avoid overwriting the form if `currentUser` refreshes while editing. */
   private readonly hasInitialDataLoaded = signal(false);
 
-  private readonly formState = signal<ProfileFormState>({
-    initial: {
-      displayName: '',
-      username: '',
-      bio: '',
-      website: '',
-      birthDate: '',
-      profileImage: DEFAULT_PROFILE_IMAGE_PATH,
-    },
-    current: {
-      displayName: '',
-      username: '',
-      bio: '',
-      website: '',
-      birthDate: '',
-      profileImage: DEFAULT_PROFILE_IMAGE_PATH,
-    },
-  });
+  // Access to form component for server error handling
+  private readonly formComponent = viewChild(EditProfileFormComponent);
 
-  // Exposed read-only signals for template
-  initialProfile = computed(() => this.formState().initial);
-  userProfile = computed(() => this.formState().current);
+  // Initial profile data - source of truth for detecting changes
+  initialProfile = signal<ProfileFormData>(this.defaultProfile);
+
+  // Current profile data - linked to initial, but can diverge when user edits
+  userProfile = linkedSignal(() => this.initialProfile());
 
   isLoading = signal(false);
+
   hasUnsavedChanges = computed(() => {
-    const { initial, current } = this.formState();
-    return JSON.stringify(initial) !== JSON.stringify(current);
+    const initial = this.initialProfile();
+    const current = this.userProfile();
+    return (
+      initial.displayName !== current.displayName ||
+      initial.username !== current.username ||
+      initial.bio !== current.bio ||
+      initial.website !== current.website ||
+      initial.birthDate !== current.birthDate ||
+      initial.profileImage !== current.profileImage
+    );
   });
 
   constructor() {
@@ -130,9 +128,9 @@ export class EditProfilePage {
         birthDate: profile?.birthDate
           ? new Date(profile.birthDate).toISOString().split('T')[0]
           : '',
-        profileImage: source.avatarUrl ?? DEFAULT_PROFILE_IMAGE_PATH,
+        profileImage: source.avatarUrl ?? '',
       };
-      this.formState.set({ initial: profileData, current: profileData });
+      this.initialProfile.set(profileData);
       this.hasInitialDataLoaded.set(true);
     });
   }
@@ -149,10 +147,7 @@ export class EditProfilePage {
   }
 
   onFormChanges(formData: UserProfileFormData) {
-    this.formState.update((state) => ({
-      ...state,
-      current: { ...state.current, ...formData },
-    }));
+    this.userProfile.update((current) => ({ ...current, ...formData }));
   }
 
   goBack() {
@@ -183,7 +178,11 @@ export class EditProfilePage {
     this.isLoading.set(true);
 
     // Clear server errors before submitting (best practice per error-handling.md)
-    this.formComponent?.clearServerErrors();
+    const form = this.formComponent()?.getForm();
+    if (form) {
+      clearServerFieldErrors(form);
+      this.formComponent()?.clearServerErrors();
+    }
 
     const loading = await this.showLoadingIndicator();
 
@@ -205,16 +204,18 @@ export class EditProfilePage {
       await this.notification.showSuccess('Profile updated successfully');
       this.navCtrl.back();
     } catch (error) {
-      const appError = toAppError(error);
-      handleInlineFormError({
-        error: appError,
-        form: this.formComponent.getForm(),
-        context: 'update-profile',
-        facade: this.profileErrorFacade,
-        validationOptions: {
-          controlNameByServerField: { email: 'username' }, // adjust if needed
-        },
-      });
+      const form = this.formComponent()?.getForm();
+      if (form) {
+        handleInlineFormError({
+          error,
+          form,
+          context: 'update-profile',
+          facade: this.profileErrorFacade,
+          validationOptions: {
+            controlNameByServerField: { email: 'username' }, // adjust if needed
+          },
+        });
+      }
     } finally {
       this.isLoading.set(false);
       await loading?.dismiss();
@@ -280,16 +281,10 @@ export class EditProfilePage {
   }
 
   onImageChanged(newImageUrl: string) {
-    this.formState.update((state) => ({
-      ...state,
-      current: { ...state.current, profileImage: newImageUrl },
-    }));
+    this.userProfile.update((current) => ({ ...current, profileImage: newImageUrl }));
   }
 
   onImageRemoved() {
-    this.formState.update((state) => ({
-      ...state,
-      current: { ...state.current, profileImage: DEFAULT_PROFILE_IMAGE_PATH },
-    }));
+    this.userProfile.update((current) => ({ ...current, profileImage: "" }));
   }
 }
