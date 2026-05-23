@@ -1,8 +1,9 @@
 {
-  "name": "ionic-SocialMedia",
+  "name": "help",
   "version": "0.0.1",
-  "author": "Ionic Framework",
-  "homepage": "https://ionicframework.com/",
+  "author": "Help team",
+  "homepage": "",
+  "description": "Social media",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -72,6 +73,5 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
     "typescript": "~5.8.3"
-  },
-  "description": "An Ionic project"
+  }
 }

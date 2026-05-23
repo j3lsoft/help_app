@@ -62,6 +62,10 @@ export class AppComponent {
     await this.edgeToEdgeService.initialize();
     await this.edgeToEdgeService.updateStyleFromTheme();
     await this.platform.ready();
+
+    // Give the browser a moment to paint the first frame
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
     await SplashScreen.hide();
   }
 }
