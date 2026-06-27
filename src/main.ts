@@ -23,11 +23,11 @@ import {
 } from '@ionic/angular/standalone';
 import { AppComponent } from './app/app.component';
 import { routes } from './app/app.routes';
-import { CORE_PROVIDERS } from './app/core/core.providers';
+import { AUTH_STATE_TOKEN } from './app/core/models/auth-state.interface';
 import { GlobalErrorHandler } from './app/core/errors/global-error-handler';
 import { authInterceptor } from './app/core/interceptors/auth.interceptor';
 import { errorInterceptor } from './app/core/interceptors/error.interceptor';
-import { AuthService } from './app/features/auth/services/auth.service';
+import { AUTH_PROVIDERS } from './app/features/auth/auth.providers';
 import { environment } from './environments/environment';
 
 if (environment.production) {
@@ -38,7 +38,7 @@ bootstrapApplication(AppComponent, {
   providers: [
     { provide: ErrorHandler, useClass: GlobalErrorHandler },
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
-    CORE_PROVIDERS,
+    AUTH_PROVIDERS,
     provideIonicAngular({ navAnimation: iosTransitionAnimation }),
     provideRouter(routes, withPreloading(PreloadAllModules)),
     provideHttpClient(
@@ -46,8 +46,8 @@ bootstrapApplication(AppComponent, {
       withInterceptors([errorInterceptor, authInterceptor])
     ),
     provideAppInitializer(() => {
-      const authService = inject(AuthService);
-      return authService.restoreSession();
+      const authState = inject(AUTH_STATE_TOKEN);
+      return authState.restoreSession();
     }),
   ],
 });

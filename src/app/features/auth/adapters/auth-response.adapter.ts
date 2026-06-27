@@ -2,7 +2,7 @@ import {
   AuthUserDto,
   LoginResponseDto,
   LoginUserResponseDto,
-} from '../../features/auth/models/auth.dto';
+} from '../models/auth.dto';
 
 /**
  * Adapter for transforming authentication API responses to internal models.

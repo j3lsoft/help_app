@@ -17,3 +17,10 @@ export type AppErrorDetails = {
   validation?: ValidationErrorDetails;
   [key: string]: unknown;
 };
+
+/** AppError with server validation details guaranteed at runtime. */
+export type ServerValidationAppError = AppError & {
+  details: NonNullable<AppError['details']> & {
+    validation: ValidationErrorDetails;
+  };
+};

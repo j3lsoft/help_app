@@ -1,5 +1,11 @@
 import { Location } from '@angular/common';
-import { Component, DestroyRef, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  inject,
+  signal,
+} from '@angular/core';
 import { App } from '@capacitor/app';
 import { SplashScreen } from '@capacitor/splash-screen';
 import { NavController, Platform } from '@ionic/angular';
@@ -15,9 +21,10 @@ register();
   templateUrl: 'app.component.html',
   styleUrls: ['app.component.scss'],
   imports: [IonApp, IonRouterOutlet, IonText],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent {
-  tap = 0;
+  readonly tap = signal(0);
 
   private readonly platform = inject(Platform);
   private readonly location = inject(Location);
@@ -39,12 +46,12 @@ export class AppComponent {
             this.location.isCurrentPathEqualTo(route)
           )
         ) {
-          this.tap++;
-          if (this.tap === 2) {
+          this.tap.update((count) => count + 1);
+          if (this.tap() === 2) {
             App.exitApp();
           } else {
             setTimeout(() => {
-              this.tap = 0;
+              this.tap.set(0);
             }, 2000);
           }
         } else {

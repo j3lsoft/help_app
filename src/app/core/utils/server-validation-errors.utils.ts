@@ -1,5 +1,9 @@
 import { AbstractControl, FormGroup } from '@angular/forms';
-import { AppError, ServerValidationErrorItem } from '../models/app-error.model';
+import {
+  AppError,
+  ServerValidationAppError,
+  ServerValidationErrorItem,
+} from '../models/app-error.model';
 
 export interface ServerValidationErrorBody {
   statusCode?: number;
@@ -16,7 +20,9 @@ export type ServerValidationErrorFieldEntry =
 
 const VALIDATION_STATUSES = new Set([400, 422]);
 
-export function isServerValidationError(error: AppError): error is AppError {
+export function isServerValidationError(
+  error: AppError
+): error is ServerValidationAppError {
   const e = error;
   const validation = e.details?.validation;
   if (!VALIDATION_STATUSES.has(error.status)) return false;
@@ -81,7 +87,7 @@ export function applyServerValidationErrors<
     markTouched = true,
   } = options;
 
-  const fieldErrors = error.details?.validation?.fieldErrors ?? {};
+  const fieldErrors = error.details.validation.fieldErrors;
 
   for (const [serverField, messages] of Object.entries(fieldErrors)) {
     const controlName = controlNameByServerField[serverField] ?? serverField;

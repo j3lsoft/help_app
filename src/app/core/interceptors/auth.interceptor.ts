@@ -7,7 +7,7 @@ import {
 } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Observable, catchError, from, switchMap, throwError } from 'rxjs';
-import { TokenRefreshService } from '../../features/auth/services/token-refresh.service';
+import { TokenRefreshService } from '../services/token-refresh.service';
 import { AUTH_STATE_TOKEN } from '../models/auth-state.interface';
 import { LoggerService } from '../services/logger.service';
 

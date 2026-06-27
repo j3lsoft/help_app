@@ -1,6 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthResponseAdapter } from '@core/adapters/auth-response.adapter';
+import { AuthResponseAdapter } from '@features/auth/adapters/auth-response.adapter';
 import { AuthState } from '@core/models/auth-state.interface';
 import { AppStorageService } from '@core/services/storage/app-storage.service';
 import { SecureStorageService } from '@core/services/storage/secure-storage.service';
