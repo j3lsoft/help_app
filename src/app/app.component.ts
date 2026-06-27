@@ -19,7 +19,6 @@ register();
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
-  styleUrls: ['app.component.scss'],
   imports: [IonApp, IonRouterOutlet, IonText],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

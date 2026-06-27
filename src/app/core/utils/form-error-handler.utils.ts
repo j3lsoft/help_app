@@ -7,12 +7,7 @@ import {
   isServerValidationError,
 } from './server-validation-errors.utils';
 
-type WritableSignalLike<T> = {
-  set(value: T): void;
-};
-
 type ErrorMessageFacade<TContext> = {
-  getMessage(error: AppError, context: TContext): string;
   handle(error: AppError, context: TContext): void;
 };
 

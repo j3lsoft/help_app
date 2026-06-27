@@ -46,6 +46,15 @@ export class LoggerService {
     'session',
   ];
 
+  private readonly consoleMethods: Partial<
+    Record<LogLevel, (...args: unknown[]) => void>
+  > = {
+    [LogLevel.DEBUG]: console.debug.bind(console),
+    [LogLevel.INFO]: console.info.bind(console),
+    [LogLevel.WARN]: console.warn.bind(console),
+    [LogLevel.ERROR]: console.error.bind(console),
+  };
+
   debug(message: string, options?: LogOptions): void {
     this.log(LogLevel.DEBUG, message, options);
   }
@@ -113,15 +122,7 @@ export class LoggerService {
   }
 
   private getConsoleMethod(level: LogLevel): (...args: unknown[]) => void {
-    const consoleMethods: Partial<
-      Record<LogLevel, (...args: unknown[]) => void>
-    > = {
-      [LogLevel.DEBUG]: console.debug.bind(console),
-      [LogLevel.INFO]: console.info.bind(console),
-      [LogLevel.WARN]: console.warn.bind(console),
-      [LogLevel.ERROR]: console.error.bind(console),
-    };
-    return consoleMethods[level] || console.log.bind(console);
+    return this.consoleMethods[level] || console.log.bind(console);
   }
 
   private formatEntry(entry: LogEntry): string {

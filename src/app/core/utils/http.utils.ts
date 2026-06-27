@@ -11,15 +11,6 @@ export const HTTP_STATUS = {
   GATEWAY_TIMEOUT: 504,
 } as const;
 
-export function isExpectedHttpError(status: number): boolean {
-  return (
-    status === HTTP_STATUS.BAD_REQUEST ||
-    status === HTTP_STATUS.UNAUTHORIZED ||
-    status === HTTP_STATUS.FORBIDDEN ||
-    status === HTTP_STATUS.NOT_FOUND
-  );
-}
-
 export function isTechnicalError(status: number): boolean {
   return (
     status === HTTP_STATUS.NETWORK_ERROR ||
@@ -27,12 +18,8 @@ export function isTechnicalError(status: number): boolean {
   );
 }
 
-export function isRateLimitError(status: number): boolean {
-  return status === HTTP_STATUS.TOO_MANY_REQUESTS;
-}
-
-export function getHttpErrorLogLevel(status: number): 'error' | 'warn' | 'info' | 'ignore' {
+export function getHttpErrorLogLevel(status: number): 'error' | 'warn' | 'ignore' {
   if (isTechnicalError(status)) return 'error';
-  if (isRateLimitError(status)) return 'warn';
+  if (status === HTTP_STATUS.TOO_MANY_REQUESTS) return 'warn';
   return 'ignore';
 }
