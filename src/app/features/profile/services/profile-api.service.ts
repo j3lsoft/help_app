@@ -22,6 +22,22 @@ export interface UserProfileResponseDto {
   hasStory: boolean;
 }
 
+export interface UserRelationshipDto {
+  isFollowing: boolean;
+  followsYou: boolean;
+}
+
+export interface PublicProfileResponseDto {
+  id: string;
+  username: string;
+  displayName: string;
+  avatarUrl: string | null;
+  bio: string | null;
+  website: string | null;
+  location: string | null;
+  relationship: UserRelationshipDto | null;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -83,6 +99,27 @@ export class ProfileApiService {
               userId,
               error,
             },
+          });
+          return throwError(() => error);
+        })
+      );
+  }
+
+  getPublicProfile(username: string): Observable<PublicProfileResponseDto> {
+    this.logger.debug('Fetching public profile by username', {
+      context: 'ProfileApiService',
+      data: { username },
+    });
+
+    return this.http
+      .get<PublicProfileResponseDto>(
+        `${this.baseUrl}/api/v1/users/${username}/profile`
+      )
+      .pipe(
+        catchError((error: unknown) => {
+          this.logger.error('Failed to fetch public profile', {
+            context: 'ProfileApiService',
+            data: { username, error },
           });
           return throwError(() => error);
         })

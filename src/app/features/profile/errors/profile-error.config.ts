@@ -45,9 +45,13 @@ export const PROFILE_ERROR_MAP: Record<ProfileErrorContext, ErrorMapConfig> = {
       INVALID_FILE: 'File is invalid or does not meet requirements.',
       STORAGE_PROVIDER_ERROR: 'Storage service error.',
       INVALID_UPLOAD_STRATEGY: 'Upload strategy not enabled.',
+      PERMISSION_DENIED:
+        'Camera/Gallery permission denied. Please enable permissions in settings.',
+      CAMERA_ERROR: 'Failed to capture image.',
     },
     byStatus: {
       400: 'Invalid file format or size.',
+      403: 'Camera/Gallery permission denied.',
       413: 'File is too large.',
       500: 'Upload failed. Please try again.',
     },

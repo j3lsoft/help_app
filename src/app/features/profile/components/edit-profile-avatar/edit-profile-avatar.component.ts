@@ -14,7 +14,7 @@ import {
   CameraService,
 } from '@core/services/camera/camera.service';
 import { LoggerService } from '@core/services/logger.service';
-import { NotificationService } from '@core/services/notification.service';
+import { toAppError } from '@core/utils/app-error.utils';
 import {
   IonIcon,
   IonModal,
@@ -24,10 +24,12 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { cameraOutline, imageOutline, trashOutline } from 'ionicons/icons';
+import { ProfileErrorFacade } from '../../errors/profile-error.facade';
+import { AppError } from '@core/models/app-error.model';
 import {
   getUserInitials,
   isValidUserImage,
-} from '../../utils/user-display.utils';
+} from '@shared/utils/user-display.utils';
 
 @Component({
   selector: 'app-edit-profile-avatar',
@@ -45,7 +47,7 @@ export class EditProfileAvatarComponent implements OnDestroy {
   private platform = inject(Platform);
   private cameraService = inject(CameraService);
   private logger = inject(LoggerService);
-  private notificationService = inject(NotificationService);
+  private profileErrorFacade = inject(ProfileErrorFacade);
 
   isLoading = signal(false);
   private modal: HTMLIonModalElement | null = null;
@@ -104,28 +106,19 @@ export class EditProfileAvatarComponent implements OnDestroy {
   }
 
   private async handleCameraError(error: unknown) {
-    let message = 'Failed to capture image';
+    let appError: AppError;
 
     if (error instanceof CameraError) {
       if (error.isPermissionDenied) {
-        message =
-          'Camera/Gallery permission denied. Please enable permissions in settings.';
+        appError = { status: 403, code: 'PERMISSION_DENIED', handled: false };
       } else {
-        message = error.message || 'Failed to capture image';
+        appError = { status: 400, code: 'CAMERA_ERROR', message: error.message, handled: false };
       }
     } else {
-      // Log unexpected errors for debugging
-      this.logger.error('Unexpected camera error', {
-        context: 'EditProfileAvatarComponent',
-        data: { error },
-      });
+      appError = toAppError(error);
     }
 
-    await this.notificationService.showError(message);
-    this.logger.error('Camera error', {
-      context: 'EditProfileAvatarComponent',
-      data: { error },
-    });
+    this.profileErrorFacade.handle(appError, 'avatar-upload');
   }
 
   private async closeModal() {
@@ -142,7 +135,8 @@ export class EditProfileAvatarComponent implements OnDestroy {
     this.modal = null;
   }
 
-  removeImage() {
+  async removeImage() {
     this.imageRemoved.emit();
+    await this.closeModal();
   }
 }

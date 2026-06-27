@@ -1,0 +1,23 @@
+.follow-requests-page__content {
+  margin-top: 20px;
+}
+
+.follow-requests-page__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 20px;
+  text-align: center;
+}
+
+.follow-requests-page__empty-icon {
+  font-size: 48px;
+  color: var(--lightGrayColor);
+  margin-bottom: 12px;
+}
+
+.follow-requests-page__empty-text {
+  font-size: 16px;
+  color: var(--grayColor);
+}

@@ -9,7 +9,7 @@ import { NgOptimizedImage } from '@angular/common';
 import {
   getUserInitials,
   isValidUserImage,
-} from '../../utils/user-display.utils';
+} from '@shared/utils/user-display.utils';
 
 @Component({
   selector: 'app-profile-header',
@@ -20,9 +20,9 @@ import {
 })
 export class ProfileHeaderComponent {
   name = input.required<string>();
-  category = input<string>('');
   description = input<string>('');
   website = input<string>('');
+  fullWebsiteUrl = input<string>('');
   profileImage = input.required<string>();
   postsCount = input.required<string | number>();
   videosCount = input.required<string | number>();

@@ -1,5 +1,4 @@
 import { Post } from '../components/post-card/post-card.component';
-import { Suggestion } from '../components/suggestion-list/suggestion-list.component';
 import { UserStory } from '../components/story-list/story-list.component';
 
 /**
@@ -97,44 +96,6 @@ export const MOCK_TODAY_POSTS: Post[] = [
     postShares: '35',
     postImage: '../../../../assets/images/posts/post2.png',
     postLike: false,
-  },
-];
-
-export const MOCK_SUGGESTIONS: Suggestion[] = [
-  {
-    id: '1',
-    userProfilePic: '../../../../assets/images/users/user11.png',
-    userName: 'Tina Shah',
-    userAbout: 'realtinashah',
-    isFollow: false,
-  },
-  {
-    id: '2',
-    userProfilePic: '../../../../assets/images/users/user12.png',
-    userName: 'Jiya Patel',
-    userAbout: 'officialjiya',
-    isFollow: false,
-  },
-  {
-    id: '3',
-    userProfilePic: '../../../../assets/images/users/user13.png',
-    userName: 'Joy Jain',
-    userAbout: 'joyyyyy',
-    isFollow: false,
-  },
-  {
-    id: '4',
-    userProfilePic: '../../../../assets/images/users/user14.png',
-    userName: 'Ishan Patel',
-    userAbout: 'ishanpatel',
-    isFollow: false,
-  },
-  {
-    id: '5',
-    userProfilePic: '../../../../assets/images/users/user11.png',
-    userName: 'Tina Shah',
-    userAbout: 'realtinashah',
-    isFollow: false,
   },
 ];
 

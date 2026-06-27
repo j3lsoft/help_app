@@ -1,0 +1,51 @@
+@for (item of requests(); track item.id) {
+  <div class="follow-request-list__row">
+    <div class="follow-request-list__row-inner">
+      <div class="follow-request-list__row-inner">
+        <img
+          [src]="item.avatarUrl"
+          class="follow-request-list__avatar"
+          [alt]="item.displayName"
+        />
+        <div class="follow-request-list__info">
+          <ion-text class="blackColor16SemiBold ellipseText">
+            {{ item.displayName }}
+          </ion-text>
+          <ion-text class="grayColor14Regular ellipseText follow-request-list__subtitle">
+            {{ item.username }}
+          </ion-text>
+        </div>
+      </div>
+
+      @if (item.acceptRequest) {
+        <div
+          (click)="toggleFollow.emit(item.id)"
+          class="center follow-request-list__small-btn"
+          [style.background]="item.isFollow ? 'var(--whiteColor)' : 'var(--primaryColor)'"
+        >
+          <ion-text
+            [class]="item.isFollow ? 'primaryColor14Bold' : 'whiteColor14Bold'"
+          >
+            {{ item.isFollow ? 'Following' : 'Follow' }}
+          </ion-text>
+        </div>
+      } @else {
+        <div class="follow-request-list__actions">
+          <div
+            (click)="accept.emit(item.id)"
+            class="center follow-request-list__small-btn follow-request-list__accept-btn"
+          >
+            <ion-text class="whiteColor14Bold"> Confirm </ion-text>
+          </div>
+          <div
+            (click)="delete.emit(item.id)"
+            class="center follow-request-list__small-btn follow-request-list__delete-btn"
+          >
+            <ion-text class="primaryColor14Bold"> Delete </ion-text>
+          </div>
+        </div>
+      }
+    </div>
+    <div class="follow-request-list__divider"></div>
+  </div>
+}

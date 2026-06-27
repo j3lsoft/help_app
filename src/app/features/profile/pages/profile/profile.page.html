@@ -12,18 +12,17 @@
 <ion-content>
   <app-profile-header
     [name]="profile.name"
-    category=""
     [description]="profile.description"
-    socialHandle=""
     [website]="profile.website"
+    [fullWebsiteUrl]="profile.fullWebsiteUrl"
     [profileImage]="profile.profileImage"
     [postsCount]="profile.postsCount"
     [videosCount]="profile.videosCount"
     [followersCount]="profile.followersCount"
     [followingCount]="profile.followingCount"
     [storyAvailable]="isStoryAvailable()"
-    (onFollowersClick)="goTo('followers')"
-    (onFollowingClick)="goTo('followings')"
+    (onFollowersClick)="goToFollowers()"
+    (onFollowingClick)="goToFollowings()"
     (onStoryClick)="goTo('open-story')"
   ></app-profile-header>
 
@@ -44,6 +43,21 @@
     [posts]="filteredPosts()"
     (postClick)="goTo('user-posts')"
   ></app-profile-post-grid>
+</ion-content>
+} @else if (isLoadingProfile()) {
+<app-top-bar title="Profile"></app-top-bar>
+<ion-content class="ion-padding">
+  <div class="profile-page__loading">
+    <ion-spinner></ion-spinner>
+    <p>Loading profile...</p>
+  </div>
+</ion-content>
+} @else if (showProfileError()) {
+<app-top-bar title="Profile"></app-top-bar>
+<ion-content class="ion-padding">
+  <div class="profile-page__error">
+    <ion-text class="profile-page__error-text">Failed to load profile</ion-text>
+  </div>
 </ion-content>
 } @else {
 <app-top-bar title="Profile"></app-top-bar>

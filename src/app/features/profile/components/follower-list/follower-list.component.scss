@@ -1,0 +1,23 @@
+.follower-list__row-inner {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.follower-list__info {
+  margin: 0 10px;
+}
+
+.follower-list__content {
+  flex: 1;
+}
+
+.follower-list__divider {
+  height: 1px;
+  background-color: var(--extraLightGrayColor);
+  margin: 10px 0;
+}
+
+.follower-list__row {
+  margin: 0 20px;
+}

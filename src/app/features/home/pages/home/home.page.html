@@ -28,7 +28,7 @@
   <div class="home__post-wrapper">
     <app-post-card
       [post]="item"
-      (userClick)="goTo('user-profile')"
+      (userClick)="goToUserProfile($event)"
       (likeClick)="handlePostLike('today', item.id)"
       (commentClick)="goTo('comments')"
     ></app-post-card>
@@ -39,13 +39,14 @@
     [suggestions]="suggestionsList()"
     (toggleFollow)="handleFollowToggle($event)"
     (seeAllClick)="goTo('search-detail')"
+    (userClick)="goToUserProfile($event)"
   ></app-suggestion-list>
 
   @for (item of oldPostsList(); track item.id) {
   <div class="home__post-wrapper">
     <app-post-card
       [post]="item"
-      (userClick)="goTo('user-profile')"
+      (userClick)="goToUserProfile($event)"
       (likeClick)="handlePostLike('old', item.id)"
       (commentClick)="goTo('comments')"
     ></app-post-card>

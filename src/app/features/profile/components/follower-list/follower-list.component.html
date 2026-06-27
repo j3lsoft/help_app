@@ -1,0 +1,29 @@
+@for (item of items(); track item.id) {
+  <div class="follower-list__row">
+    <div class="follower-list__row-inner">
+      <div
+        class="follower-list__row-inner follower-list__content"
+        (click)="userClick.emit(item.username)"
+      >
+        <app-social-user-avatar
+          [avatarUrl]="item.avatarUrl"
+          [displayName]="item.displayName"
+        />
+        <div class="follower-list__info">
+          <ion-text class="blackColor16SemiBold ellipseText">
+            {{ item.displayName }}
+          </ion-text>
+          <ion-text class="grayColor14Regular ellipseText">
+            {{ item.username }}
+          </ion-text>
+        </div>
+      </div>
+      <app-follow-button
+        variant="list"
+        [isFollowing]="item.isFollow"
+        (followClick)="toggleFollow.emit(item)"
+      />
+    </div>
+    <div class="follower-list__divider"></div>
+  </div>
+}

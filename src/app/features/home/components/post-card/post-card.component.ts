@@ -37,7 +37,7 @@ export interface Post {
 })
 export class PostCardComponent {
   post = input.required<Post>();
-  userClick = output<void>();
+  userClick = output<string>();
   likeClick = output<void>();
   commentClick = output<void>();
   shareClick = output<void>();

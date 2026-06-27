@@ -1,0 +1,56 @@
+.follow-request-list__row-inner {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.follow-request-list__avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  overflow: hidden;
+  object-fit: cover;
+}
+
+.follow-request-list__small-btn {
+  border-radius: 5px;
+  padding: 6px 12px;
+  border: 1.2px solid var(--primaryColor);
+}
+
+.follow-request-list__divider {
+  height: 1px;
+  background-color: var(--extraLightGrayColor);
+  margin: 10px 0;
+}
+
+.follow-request-list__row {
+  margin: 0 20px;
+}
+
+.follow-request-list__info {
+  flex: 1;
+  margin: 0 10px;
+}
+
+.follow-request-list__actions {
+  display: flex;
+  flex-direction: row;
+}
+
+.follow-request-list__action-btn {
+  margin-left: 10px;
+}
+
+.follow-request-list__subtitle {
+  margin-top: 2px;
+}
+
+.follow-request-list__accept-btn {
+  background-color: var(--primaryColor);
+}
+
+.follow-request-list__delete-btn {
+  background-color: var(--whiteColor);
+  margin-left: 10px;
+}

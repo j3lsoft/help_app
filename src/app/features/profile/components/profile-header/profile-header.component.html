@@ -20,12 +20,14 @@
 <div class="profile-header__bio-section">
   <div class="profile-header__bio-content">
     <h2 class="profile-header__name">{{ name() }}</h2>
-    <p class="profile-header__category">{{ category() }}</p>
     <p class="profile-header__description">{{ description() }}</p>
     @if (website()) {
-    <p class="profile-header__website">
-      Website: <span class="profile-header__link">{{ website() }}</span>
-    </p>
+    <a class="profile-header__website"
+       [href]="fullWebsiteUrl()"
+       target="_blank"
+       rel="noopener noreferrer">
+      {{ website() }}
+    </a>
     }
   </div>
 

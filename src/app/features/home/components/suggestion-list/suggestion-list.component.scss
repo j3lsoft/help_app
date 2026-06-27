@@ -55,14 +55,6 @@
     align-items: center;
   }
 
-  &__avatar {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    overflow: hidden;
-    object-fit: cover;
-  }
-
   &__name {
     margin-top: 10px;
     text-align: center;
@@ -74,25 +66,8 @@
   }
 
   &__button {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 8px 5px;
-    border-radius: 10px;
+    display: block;
     margin-top: 14px;
-    border: 1.5px solid var(--primaryColor);
-    cursor: pointer;
-
-    &--following {
-      background-color: var(--whiteColor);
-    }
-
-    &--follow {
-      background-color: var(--primaryColor);
-    }
-  }
-
-  &__button-text {
-    text-align: center;
+    width: 100%;
   }
 }

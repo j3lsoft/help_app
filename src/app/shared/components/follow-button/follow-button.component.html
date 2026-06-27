@@ -1,0 +1,22 @@
+<button
+  type="button"
+  class="follow-button__control"
+  [attr.aria-pressed]="isFollowing()"
+  [disabled]="disabled()"
+  (click)="onClick($event)"
+>
+  <ion-text
+    class="ellipseText follow-button__text"
+    [class]="
+      isFollowing()
+        ? variant() === 'list'
+          ? 'primaryColor14Bold'
+          : 'primaryColor18Bold'
+        : variant() === 'list'
+          ? 'whiteColor14Bold'
+          : 'whiteColor18Bold'
+    "
+  >
+    {{ isFollowing() ? 'Following' : 'Follow' }}
+  </ion-text>
+</button>

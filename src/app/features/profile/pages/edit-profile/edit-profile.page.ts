@@ -15,9 +15,6 @@ import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { UploadStatus, UploadTask } from '@core/services/media/upload/models';
 import { UploadFacade } from '@core/services/media/upload/services/upload-facade.service';
 import { NotificationService } from '@core/services/notification.service';
-import { toAppError } from '@core/utils/app-error.utils';
-import { handleInlineFormError } from '@core/utils/form-error-handler.utils';
-import { clearServerFieldErrors } from '@core/utils/server-validation-errors.utils';
 import { AuthService } from '@features/auth/services/auth.service';
 import {
   AlertController,
@@ -29,7 +26,7 @@ import { BackHeaderComponent } from '@shared/components/back-header/back-header.
 import { dataUrlToFile } from '@shared/utils/file.utils';
 import { addIcons } from 'ionicons';
 import { checkmarkCircle, chevronBack } from 'ionicons/icons';
-import { filter, firstValueFrom, from, map, switchMap, take, tap } from 'rxjs';
+import { filter, firstValueFrom, map, of, switchMap, take, tap } from 'rxjs';
 import { EditProfileAvatarComponent } from '../../components/edit-profile-avatar/edit-profile-avatar.component';
 import { EditProfileFormComponent } from '../../components/edit-profile-form/edit-profile-form.component';
 import { ProfileErrorFacade } from '../../errors/profile-error.facade';
@@ -136,12 +133,11 @@ export class EditProfilePage {
   }
 
   private async loadProfileData(): Promise<void> {
-    // Fetch full profile if not cached
     if (!this.profileService.hasCachedProfile()) {
       try {
         await firstValueFrom(this.profileService.getMyProfile());
-      } catch (error) {
-        // Error already logged by ProfileService/Interceptor
+      } catch {
+        await this.notification.showError('Failed to load profile data');
       }
     }
   }
@@ -177,12 +173,7 @@ export class EditProfilePage {
   async onProfileUpdate(formData: UserProfileFormData) {
     this.isLoading.set(true);
 
-    // Clear server errors before submitting (best practice per error-handling.md)
-    const form = this.formComponent()?.getForm();
-    if (form) {
-      clearServerFieldErrors(form);
-      this.formComponent()?.clearServerErrors();
-    }
+    this.formComponent()?.clearServerErrors();
 
     const loading = await this.showLoadingIndicator();
 
@@ -204,18 +195,7 @@ export class EditProfilePage {
       await this.notification.showSuccess('Profile updated successfully');
       this.navCtrl.back();
     } catch (error) {
-      const form = this.formComponent()?.getForm();
-      if (form) {
-        handleInlineFormError({
-          error,
-          form,
-          context: 'update-profile',
-          facade: this.profileErrorFacade,
-          validationOptions: {
-            controlNameByServerField: { email: 'username' }, // adjust if needed
-          },
-        });
-      }
+      this.formComponent()?.applyServerErrors(error, this.profileErrorFacade);
     } finally {
       this.isLoading.set(false);
       await loading?.dismiss();
@@ -237,41 +217,43 @@ export class EditProfilePage {
       return currentAvatar;
     }
 
-    return new Promise((resolve, reject) => {
-      from(dataUrlToFile(currentAvatar, `avatar_${Date.now()}.jpg`))
-        .pipe(
-          takeUntilDestroyed(this.destroyRef),
-          tap(() => this.uploadFacade.setUploadType('avatar')),
-          map((file) => this.uploadFacade.addFile(file)),
-          switchMap((taskId) => {
-            if (!taskId) throw new Error('Failed to start avatar upload');
+    let file: File;
+    try {
+      file = await dataUrlToFile(currentAvatar, `avatar_${Date.now()}.jpg`);
+    } catch {
+      throw new Error('Failed to process image file');
+    }
 
-            return toObservable(this.uploadFacade.queue, {
-              injector: this.injector,
-            }).pipe(
-              map((queue) => queue.find((t) => t.id === taskId)),
-              filter(
-                (task): task is UploadTask =>
-                  !!task &&
-                  (task.status === UploadStatus.COMPLETED ||
-                    task.status === UploadStatus.FAILED)
-              ),
-              take(1),
-              takeUntilDestroyed(this.destroyRef),
-              map((task) => {
-                if (task.status === UploadStatus.FAILED) {
-                  throw new Error(task.error?.message || 'Upload failed');
-                }
-                return task.result?.publicUrl || '';
-              })
-            );
-          })
-        )
-        .subscribe({
-          next: resolve,
-          error: reject,
-        });
-    });
+    return firstValueFrom(
+      of(file).pipe(
+        takeUntilDestroyed(this.destroyRef),
+        tap(() => this.uploadFacade.setUploadType('avatar')),
+        map((f) => this.uploadFacade.addFile(f)),
+        switchMap((taskId) => {
+          if (!taskId) throw new Error('Failed to start avatar upload');
+
+          return toObservable(this.uploadFacade.queue, {
+            injector: this.injector,
+          }).pipe(
+            map((queue) => queue.find((t) => t.id === taskId)),
+            filter(
+              (task): task is UploadTask =>
+                !!task &&
+                (task.status === UploadStatus.COMPLETED ||
+                  task.status === UploadStatus.FAILED)
+            ),
+            take(1),
+            takeUntilDestroyed(this.destroyRef),
+            map((task) => {
+              if (task.status === UploadStatus.FAILED) {
+                throw new Error(task.error?.message || 'Upload failed');
+              }
+              return task.result?.publicUrl || '';
+            })
+          );
+        })
+      )
+    );
   }
 
   private async performProfileUpdate(

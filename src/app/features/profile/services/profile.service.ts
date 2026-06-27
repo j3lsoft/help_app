@@ -8,7 +8,7 @@ import { catchError, tap } from 'rxjs/operators';
 import { UpdateProfileDto } from '../models/update-profile.dto';
 import {
   ProfileApiService,
-  UserProfileResponseDto,
+  PublicProfileResponseDto,
 } from './profile-api.service';
 
 @Injectable({
@@ -55,20 +55,20 @@ export class ProfileService {
   }
 
   /**
-   * Get another user's profile (no cache).
+   * Get public profile by username.
    */
-  getUserProfile(userId: string): Observable<UserProfileResponseDto> {
-    this.logger.debug('Fetching user profile', {
+  getPublicProfile(username: string): Observable<PublicProfileResponseDto> {
+    this.logger.debug('Fetching public profile by username', {
       context: 'ProfileService',
-      data: { userId },
+      data: { username },
     });
 
-    return this.profileApi.getUserProfile(userId).pipe(
+    return this.profileApi.getPublicProfile(username).pipe(
       catchError((error: unknown) => {
         const appError = toAppError(error);
-        this.logger.error('Failed to fetch user profile', {
+        this.logger.error('Failed to fetch public profile', {
           context: 'ProfileService',
-          data: { userId, error: appError },
+          data: { username, error: appError },
         });
         return throwError(() => appError);
       })

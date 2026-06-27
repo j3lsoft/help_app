@@ -107,7 +107,7 @@ export const routes: Routes = [
       ),
   },
   {
-    path: 'user-profile',
+    path: 'user-profile/:username',
     canMatch: [authGuard],
     loadComponent: () =>
       import('./features/profile/pages/user-profile/user-profile.page').then(
@@ -115,17 +115,21 @@ export const routes: Routes = [
       ),
   },
   {
-    path: 'followers',
+    path: 'followers/:userId',
     canMatch: [authGuard],
+    data: { mode: 'followers' },
     loadComponent: () =>
-      import('./screens/followers/followers.page').then((m) => m.FollowersPage),
+      import('./features/profile/pages/follow-list/follow-list.page').then(
+        (m) => m.FollowListPage
+      ),
   },
   {
-    path: 'followings',
+    path: 'followings/:userId',
     canMatch: [authGuard],
+    data: { mode: 'followings' },
     loadComponent: () =>
-      import('./screens/followings/followings.page').then(
-        (m) => m.FollowingsPage
+      import('./features/profile/pages/follow-list/follow-list.page').then(
+        (m) => m.FollowListPage
       ),
   },
   {
@@ -152,7 +156,7 @@ export const routes: Routes = [
     path: 'follow-requests',
     canMatch: [authGuard],
     loadComponent: () =>
-      import('./screens/follow-requests/follow-requests.page').then(
+      import('./features/profile/pages/follow-requests/follow-requests.page').then(
         (m) => m.FollowRequestsPage
       ),
   },

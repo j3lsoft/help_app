@@ -24,46 +24,15 @@
 
   &__input--readonly {
     opacity: 0.8;
-    --background: var(--ion-color-light);
+    --background: var(--extraLightGrayColor);
     border-radius: 8px;
     padding: 8px 12px;
     border-bottom: none;
-    
+
     &:focus {
-      --background: var(--ion-color-light);
+      --background: var(--extraLightGrayColor);
       outline: none;
     }
-  }
-
-  &__date-item {
-    --background: transparent;
-    --padding-start: 0;
-    --padding-end: 0;
-    --inner-padding-end: 0;
-    --border-color: transparent;
-    cursor: pointer;
-  }
-
-  &__date-value {
-    font-size: 18px;
-    color: var(--blackColor);
-  }
-
-  &__date-text {
-    color: var(--blackColor);
-    font-size: 18px;
-  }
-
-  &__divider {
-    background-color: var(--extraLightGrayColor);
-    height: 1px;
-    margin-top: 8px;
-  }
-
-  ion-icon[slot="start"] {
-    margin-right: 12px;
-    color: var(--blackColor);
-    font-size: 20px;
   }
 
   &__textarea {

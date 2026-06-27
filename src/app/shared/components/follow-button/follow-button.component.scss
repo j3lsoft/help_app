@@ -1,0 +1,53 @@
+:host {
+  display: inline-flex;
+}
+
+.follow-button__control {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  border: 1.5px solid var(--primaryColor);
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+:host.follow-button--following .follow-button__control {
+  background-color: var(--whiteColor);
+}
+
+:host:not(.follow-button--following) .follow-button__control {
+  background-color: var(--primaryColor);
+}
+
+:host.follow-button--list .follow-button__control {
+  border-radius: 5px;
+  padding: 5px 15px;
+  width: 100px;
+}
+
+:host.follow-button--card .follow-button__control {
+  border-radius: 10px;
+  padding: 8px 5px;
+}
+
+:host.follow-button--profile {
+  flex: 1;
+
+  .follow-button__control {
+    border-radius: 10px;
+    padding: 8px 5px;
+  }
+}
+
+.follow-button__text {
+  text-align: center;
+}

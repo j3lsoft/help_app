@@ -1,0 +1,19 @@
+<app-back-header title="Follow Request" (backClick)="goBack()" />
+
+<ion-content>
+  <div class="follow-requests-page__content">
+    @if (followRequests().length === 0) {
+      <div class="follow-requests-page__empty">
+        <ion-icon name="person-add-outline" class="follow-requests-page__empty-icon"></ion-icon>
+        <ion-text class="follow-requests-page__empty-text">No pending requests</ion-text>
+      </div>
+    } @else {
+      <app-follow-request-list
+        [requests]="followRequests()"
+        (toggleFollow)="onToggleFollow($event)"
+        (accept)="onAccept($event)"
+        (delete)="onDelete($event)"
+      />
+    }
+  </div>
+</ion-content>

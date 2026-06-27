@@ -1,6 +1,6 @@
 <div class="post-card">
   <div class="post-card__header">
-    <div class="post-card__user-info" (click)="userClick.emit()">
+    <div class="post-card__user-info" (click)="userClick.emit(post().userName)">
       <ion-img
         [src]="post().userProfilePic"
         class="post-card__avatar"

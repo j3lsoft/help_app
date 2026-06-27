@@ -13,6 +13,8 @@ import {
   IonText,
   IonToolbar,
 } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { chevronBack } from 'ionicons/icons';
 
 /**
  * Header component for deep navigation screens.
@@ -53,4 +55,8 @@ export class BackHeaderComponent {
   title = input.required<string>();
   backClick = output<void>();
   rightAction = contentChild<TemplateRef<unknown>>('rightAction');
+
+  constructor() {
+    addIcons({ chevronBack });
+  }
 }

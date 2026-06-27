@@ -12,37 +12,31 @@
   </div>
   <div class="suggestion-scroll">
     <div class="suggestion-scroll__wrapper">
-      @for (item of suggestions(); track item.id; let index = $index) {
-      <div class="suggestion-card">
+      @for (item of suggestions(); track item.id) {
+      <div class="suggestion-card" (click)="userClick.emit(item.username)">
         <div class="suggestion-card__avatar-wrapper">
-          <ion-img
-            [src]="item.userProfilePic"
-            class="suggestion-card__avatar"
-          ></ion-img>
+          <app-social-user-avatar
+            [avatarUrl]="item.avatarUrl"
+            [displayName]="item.displayName"
+            size="lg"
+          />
         </div>
         <ion-text
           class="blackColor16SemiBold ellipseText suggestion-card__name"
         >
-          {{ item.userName }}
+          {{ item.displayName }}
         </ion-text>
         <ion-text
           class="grayColor14Regular ellipseText suggestion-card__username"
         >
-          {{ item.userAbout }}
+          {{ item.username }}
         </ion-text>
-        <div
-          (click)="toggleFollow.emit(item)"
+        <app-follow-button
           class="suggestion-card__button"
-          [class.suggestion-card__button--following]="item.isFollow"
-          [class.suggestion-card__button--follow]="!item.isFollow"
-        >
-          <ion-text
-            class="ellipseText suggestion-card__button-text"
-            [class]="item.isFollow ? 'primaryColor18Bold' : 'whiteColor18Bold'"
-          >
-            {{ item.isFollow ? "Following" : "Follow" }}
-          </ion-text>
-        </div>
+          variant="card"
+          [isFollowing]="item.isFollow"
+          (followClick)="toggleFollow.emit(item)"
+        />
       </div>
       }
     </div>

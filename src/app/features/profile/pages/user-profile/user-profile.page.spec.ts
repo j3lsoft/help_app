@@ -2,24 +2,23 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
 import { NavController } from '@ionic/angular';
 import { of, throwError } from 'rxjs';
-import { AppError } from 'src/app/core/models/app-error.model';
+import { AppError } from '@core/models/app-error.model';
 import { ProfileErrorFacade } from '../../errors/profile-error.facade';
-import { UserProfileResponseDto } from '../../services/profile-api.service';
+import { SocialErrorFacade } from '../../errors/social-error.facade';
+import { PublicProfileResponseDto } from '../../services/profile-api.service';
 import { ProfileService } from '../../services/profile.service';
+import { FollowService } from '../../services/follow.service';
 import { UserProfilePage } from './user-profile.page';
 
-const mockProfile: UserProfileResponseDto = {
+const mockProfile: PublicProfileResponseDto = {
   id: '1',
   username: 'jane',
   displayName: 'Jane',
   bio: 'bio',
+  website: null,
+  location: null,
   avatarUrl: 'https://cdn.example.com/avatar.jpg',
-  postsCount: 0,
-  videosCount: 0,
-  followersCount: 0,
-  followingCount: 0,
-  isFollowing: false,
-  hasStory: false,
+  relationship: { isFollowing: false, followsYou: false },
 };
 
 describe('UserProfilePage', () => {
@@ -27,14 +26,24 @@ describe('UserProfilePage', () => {
   let fixture: ComponentFixture<UserProfilePage>;
   let profileServiceSpy: jasmine.SpyObj<ProfileService>;
   let profileErrorFacadeSpy: jasmine.SpyObj<ProfileErrorFacade>;
+  let followServiceSpy: jasmine.SpyObj<FollowService>;
 
   beforeEach(async () => {
-    profileServiceSpy = jasmine.createSpyObj('ProfileService', ['getUserProfile']);
+    profileServiceSpy = jasmine.createSpyObj('ProfileService', ['getPublicProfile']);
     profileErrorFacadeSpy = jasmine.createSpyObj('ProfileErrorFacade', [
       'handle',
       'getMessage',
     ]);
-    profileServiceSpy.getUserProfile.and.returnValue(of(mockProfile));
+    followServiceSpy = jasmine.createSpyObj('FollowService', [
+      'getFollowCounts',
+      'toggleFollow',
+    ]);
+
+    profileServiceSpy.getPublicProfile.and.returnValue(of(mockProfile));
+    followServiceSpy.getFollowCounts.and.returnValue(
+      of({ followerCount: 10, followeeCount: 5 })
+    );
+    followServiceSpy.toggleFollow.and.returnValue(of(void 0));
 
     await TestBed.configureTestingModule({
       imports: [UserProfilePage],
@@ -44,17 +53,13 @@ describe('UserProfilePage', () => {
         {
           provide: ActivatedRoute,
           useValue: {
-            paramMap: of(convertToParamMap({ id: '1' })),
+            paramMap: of(convertToParamMap({ username: 'jane' })),
           },
         },
-        {
-          provide: ProfileService,
-          useValue: profileServiceSpy,
-        },
-        {
-          provide: ProfileErrorFacade,
-          useValue: profileErrorFacadeSpy,
-        },
+        { provide: ProfileService, useValue: profileServiceSpy },
+        { provide: ProfileErrorFacade, useValue: profileErrorFacadeSpy },
+        { provide: SocialErrorFacade, useValue: jasmine.createSpyObj('SocialErrorFacade', ['handle']) },
+        { provide: FollowService, useValue: followServiceSpy },
       ],
     }).compileComponents();
 
@@ -67,21 +72,25 @@ describe('UserProfilePage', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should stop loading after successful profile fetch', () => {
-    component.userProfile();
-    expect(component.isLoading()).toBeFalse();
+  it('should load profile by username', () => {
+    expect(profileServiceSpy.getPublicProfile).toHaveBeenCalledWith('jane');
+    expect(component.userProfile.value()).toEqual(mockProfile);
   });
 
-  it('should stop loading and call facade when profile fetch fails', async () => {
+  it('should load follow counts for the profile user id', () => {
+    expect(followServiceSpy.getFollowCounts).toHaveBeenCalledWith('1');
+    expect(component.followerCount()).toBe(10);
+    expect(component.followingCount()).toBe(5);
+  });
+
+  it('should call facade when profile fetch fails', async () => {
     const error: AppError = { status: 500, handled: false };
-    profileServiceSpy.getUserProfile.and.returnValue(throwError(() => error));
+    profileServiceSpy.getPublicProfile.and.returnValue(throwError(() => error));
 
     fixture = TestBed.createComponent(UserProfilePage);
     component = fixture.componentInstance;
     fixture.detectChanges();
-    component.userProfile();
 
-    expect(component.isLoading()).toBeFalse();
     expect(profileErrorFacadeSpy.handle).toHaveBeenCalled();
   });
 });

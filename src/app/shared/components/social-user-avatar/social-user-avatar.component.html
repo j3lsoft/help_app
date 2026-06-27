@@ -1,0 +1,11 @@
+@if (showImage()) {
+  <img
+    [src]="avatarUrl()"
+    class="social-user-avatar__image"
+    [alt]="displayName() ?? ''"
+  />
+} @else {
+  <div class="social-user-avatar__initials" aria-hidden="true">
+    {{ initials() }}
+  </div>
+}

@@ -1,8 +1,6 @@
-import { DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
-  computed,
   DestroyRef,
   effect,
   inject,
@@ -10,7 +8,11 @@ import {
   output,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DatePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { clearServerFieldErrors } from '@core/utils/server-validation-errors.utils';
+import { handleInlineFormError } from '@core/utils/form-error-handler.utils';
+import { ProfileErrorFacade } from '../../errors/profile-error.facade';
 import {
   IonButton,
   IonIcon,
@@ -103,19 +105,21 @@ export class EditProfileFormComponent {
     return control.invalid && (control.dirty || control.touched);
   }
 
-  /** Exposes the form for parent components to apply server validation errors */
-  getForm(): typeof this.form {
-    return this.form;
+  /** Apply server validation errors to the appropriate form controls */
+  applyServerErrors(error: unknown, facade: ProfileErrorFacade): void {
+    handleInlineFormError({
+      error,
+      form: this.form,
+      context: 'update-profile',
+      facade,
+      validationOptions: {
+        controlNameByServerField: { email: 'username' },
+      },
+    });
   }
 
-  /** Clears server errors before submitting (best practice) */
+  /** Clear server validation errors before submitting */
   clearServerErrors(): void {
-    Object.keys(this.form.controls).forEach((key) => {
-      const control = this.form.get(key);
-      if (control?.hasError('serverError')) {
-        control.setErrors(null);
-        control.updateValueAndValidity({ emitEvent: false });
-      }
-    });
+    clearServerFieldErrors(this.form);
   }
 }

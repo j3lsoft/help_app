@@ -47,12 +47,6 @@
   color: var(--blackColor);
 }
 
-.profile-header__category {
-  font-size: 14px;
-  color: var(--grayColor);
-  margin: 2px 0;
-}
-
 .profile-header__description {
   font-size: 14px;
   color: var(--blackColor);
@@ -60,15 +54,18 @@
   white-space: pre-wrap;
 }
 
-.profile-header__social,
 .profile-header__website {
+  display: inline-flex;
+  align-items: center;
   font-size: 14px;
-  color: var(--blackColor);
-  margin: 2px 0;
-}
-
-.profile-header__link {
   color: var(--primaryColor);
+  margin: 4px 0;
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+
+  &:active {
+    opacity: 0.7;
+  }
 }
 
 .profile-header__image-container {

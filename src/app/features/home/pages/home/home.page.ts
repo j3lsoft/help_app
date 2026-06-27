@@ -5,8 +5,19 @@ import {
   signal,
 } from '@angular/core';
 import { Router } from '@angular/router';
-import { IonContent, IonIcon, IonImg } from '@ionic/angular/standalone';
+import {
+  catchSocialError,
+  followActionContext,
+} from '@features/profile/utils/social-page-error.utils';
+import {
+  IonContent,
+  IonIcon,
+  IonImg,
+  ViewWillEnter,
+} from '@ionic/angular/standalone';
 import { TopBarComponent } from '@shared/components/top-bar/top-bar.component';
+import { SocialErrorFacade } from '@features/profile/errors/social-error.facade';
+import { FollowService } from '@features/profile/services/follow.service';
 import { addIcons } from 'ionicons';
 import { search } from 'ionicons/icons';
 import {
@@ -17,17 +28,12 @@ import {
   StoryListComponent,
   UserStory,
 } from '../../components/story-list/story-list.component';
-import {
-  Suggestion,
-  SuggestionListComponent,
-} from '../../components/suggestion-list/suggestion-list.component';
+import { SuggestionListComponent } from '../../components/suggestion-list/suggestion-list.component';
 import {
   MOCK_OLD_POSTS,
-  MOCK_SUGGESTIONS,
   MOCK_TODAY_POSTS,
   MOCK_USERS_STORIES,
 } from '../../data/home.mock';
-
 @Component({
   selector: 'app-home',
   templateUrl: './home.page.html',
@@ -43,23 +49,34 @@ import {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class HomePage {
+export class HomePage implements ViewWillEnter {
   private router = inject(Router);
+  private readonly followService = inject(FollowService);
+  private readonly socialErrorFacade = inject(SocialErrorFacade);
+
+  readonly usersStories = signal<UserStory[]>(MOCK_USERS_STORIES);
+  readonly todaysPostsList = signal<Post[]>(MOCK_TODAY_POSTS);
+  readonly oldPostsList = signal<Post[]>(MOCK_OLD_POSTS);
+
+  readonly suggestionsList = this.followService.suggestions;
 
   constructor() {
     addIcons({ search });
   }
 
-  usersStories = signal<UserStory[]>(MOCK_USERS_STORIES);
-
-  todaysPostsList = signal<Post[]>(MOCK_TODAY_POSTS);
-
-  suggestionsList = signal<Suggestion[]>(MOCK_SUGGESTIONS);
-
-  oldPostsList = signal<Post[]>(MOCK_OLD_POSTS);
+  ionViewWillEnter(): void {
+    this.followService
+      .refreshSuggestions()
+      .pipe(catchSocialError(this.socialErrorFacade, 'suggestions'))
+      .subscribe();
+  }
 
   goTo(screen: string) {
     this.router.navigateByUrl(screen);
+  }
+
+  goToUserProfile(username: string) {
+    this.router.navigateByUrl(`user-profile/${username}`);
   }
 
   handlePostLike(list: 'today' | 'old', postId: string) {
@@ -70,11 +87,15 @@ export class HomePage {
     );
   }
 
-  handleFollowToggle(suggestion: Suggestion) {
-    this.suggestionsList.update((suggestions) =>
-      suggestions.map((s) =>
-        s.id === suggestion.id ? { ...s, isFollow: !s.isFollow } : s
+  handleFollowToggle(suggestion: { id: string; isFollow: boolean }) {
+    this.followService
+      .toggleFollow(suggestion.id, suggestion.isFollow)
+      .pipe(
+        catchSocialError(
+          this.socialErrorFacade,
+          followActionContext(suggestion.isFollow)
+        )
       )
-    );
+      .subscribe();
   }
 }

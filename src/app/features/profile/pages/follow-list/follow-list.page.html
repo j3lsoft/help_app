@@ -1,0 +1,30 @@
+<app-back-header [title]="pageTitle()" (backClick)="goBack()" />
+
+<ion-content class="follow-list-page__content">
+  @if (loading() && items().length === 0) {
+    <div class="follow-list-page__loading">
+      <ion-spinner color="primary"></ion-spinner>
+    </div>
+  } @else if (errorMessage(); as err) {
+    <div class="follow-list-page__error">
+      <ion-text class="follow-list-page__error-text">{{ err }}</ion-text>
+    </div>
+  } @else if (items().length === 0) {
+    <div class="follow-list-page__empty">
+      <ion-icon name="people-outline" class="follow-list-page__empty-icon"></ion-icon>
+      <ion-text class="follow-list-page__empty-text">{{ emptyMessage() }}</ion-text>
+    </div>
+  } @else {
+    <app-follower-list
+      [items]="items()"
+      (toggleFollow)="onToggleFollow($event)"
+      (userClick)="onUserClick($event)"
+    />
+
+    @if (hasMore()) {
+      <ion-infinite-scroll (ionInfinite)="onLoadMore($event)">
+        <ion-infinite-scroll-content></ion-infinite-scroll-content>
+      </ion-infinite-scroll>
+    }
+  }
+</ion-content>
