@@ -14,6 +14,7 @@ export const environment = {
       'video/mp4',
       'video/webm',
     ],
+    allowedExtensions: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4', 'webm'],
     maxConcurrentUploads: 3,
     retryAttempts: 3,
     retryDelay: 1000,

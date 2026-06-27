@@ -57,7 +57,7 @@ export class TokenRefreshService {
    */
   waitForRefresh(): Observable<string> {
     return this.refreshTokenSubject.pipe(
-      filter((token): token is string => token !== null),
+      filter((token): token is string => token !== null && token !== ''),
       take(1)
     );
   }

@@ -22,4 +22,16 @@ describe('mapError', () => {
     const error: AppError = { status: 418, handled: false };
     expect(mapError(error, config)).toBe('Fallback error');
   });
+
+  it('returns empty string when code maps to empty string', () => {
+    const cfg = { byCode: { EMPTY_MSG: '' }, fallback: 'Fallback error' };
+    const error: AppError = { status: 500, code: 'EMPTY_MSG', handled: false };
+    expect(mapError(error, cfg)).toBe('');
+  });
+
+  it('returns empty string when status maps to empty string', () => {
+    const cfg = { byStatus: { 204: '' }, fallback: 'Fallback error' };
+    const error: AppError = { status: 204, handled: false };
+    expect(mapError(error, cfg)).toBe('');
+  });
 });

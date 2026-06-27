@@ -69,7 +69,7 @@ export class LoggerService {
       levelName: 'ERROR',
       context: options?.context || 'Unknown',
       message: error.message,
-      data: options?.data,
+      data: this.sanitizeData(options?.data),
       error: {
         name: error.name,
         message: error.message,

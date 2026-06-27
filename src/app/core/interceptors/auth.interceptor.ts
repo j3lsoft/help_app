@@ -80,7 +80,18 @@ const handle401Error = (
     return from(authState.refreshSession()).pipe(
       switchMap(() => from(authState.getAccessToken())),
       switchMap((newToken) => {
-        tokenRefreshService.completeRefresh(newToken ?? '');
+        if (!newToken) {
+          tokenRefreshService.failRefresh(
+            new Error('Token refresh returned empty')
+          );
+          return from(authState.logout()).pipe(
+            switchMap(() =>
+              throwError(() => new Error('Token refresh returned empty'))
+            )
+          );
+        }
+
+        tokenRefreshService.completeRefresh(newToken);
 
         return next(
           request.clone({
