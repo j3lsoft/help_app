@@ -45,7 +45,7 @@ export const routes: Routes = [
       {
         path: 'create-post',
         loadComponent: () =>
-          import('./screens/create-post/create-post.page').then(
+          import('./features/posts/pages/create-post/create-post.page').then(
             (m) => m.CreatePostPage
           ),
       },
@@ -161,20 +161,20 @@ export const routes: Routes = [
       ),
   },
   {
-    path: 'post-filter/:imageUrl',
+    path: 'post-filter',
     canMatch: [authGuard],
     loadComponent: () =>
-      import('./screens/post-filter/post-filter.page').then(
+      import('./features/posts/pages/post-filter/post-filter.page').then(
         (m) => m.PostFilterPage
       ),
   },
   {
-    path: 'post-caption-and-tag/:imageUrl',
+    path: 'post-caption-and-tag',
     canMatch: [authGuard],
     loadComponent: () =>
-      import('./screens/post-caption-and-tag/post-caption-and-tag.page').then(
-        (m) => m.PostCaptionAndTagPage
-      ),
+      import(
+        './features/posts/pages/post-caption-and-tag/post-caption-and-tag.page'
+      ).then((m) => m.PostCaptionAndTagPage),
   },
   {
     path: 'chat',

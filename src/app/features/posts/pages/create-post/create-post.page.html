@@ -1,0 +1,79 @@
+<ion-header mode="ios" [translucent]="false">
+  <ion-toolbar
+    class="ion-no-padding"
+    color="whiteColor"
+    style="box-shadow: 0 2px 3px rgba(0, 0, 0, 0.15)"
+  >
+    <div
+      class="rowAlignCenter"
+      style="justify-content: space-between; padding: 15px"
+    >
+      <div
+        class="rowAlignCenter"
+        style="background-color: var(--whiteColor); flex: 1"
+      >
+        <ion-icon
+          (click)="goHome()"
+          name="close"
+          color="blackColor"
+          style="font-size: 28px"
+        ></ion-icon>
+        <ion-text
+          class="blackColor20SemiBold"
+          style="flex: 1; margin-left: 10px"
+        >
+          New Post
+        </ion-text>
+      </div>
+      <ion-icon
+        name="arrow-forward-outline"
+        [style.opacity]="canContinue() ? 1 : 0.3"
+        (click)="goToPostFilter()"
+        color="blackColor"
+        style="font-size: 20px"
+      ></ion-icon>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content scrollY="false" class="createPostContent">
+  @if (selectedImageSrc()) {
+    <ion-img [src]="selectedImageSrc()" class="previewImage"></ion-img>
+  } @else {
+    <div class="emptyPreview">
+      <ion-icon name="images-outline" color="grayColor"></ion-icon>
+      <ion-text class="blackColor16Regular">Select a photo to start</ion-text>
+    </div>
+  }
+
+  <div class="actionsRow">
+    <ion-button
+      expand="block"
+      fill="outline"
+      mode="ios"
+      class="sourceButton"
+      (click)="pickFromGallery()"
+      [disabled]="isSelecting()"
+    >
+      <ion-icon slot="start" name="images-outline"></ion-icon>
+      Gallery
+    </ion-button>
+    <ion-button
+      expand="block"
+      fill="outline"
+      mode="ios"
+      class="sourceButton"
+      (click)="takePhoto()"
+      [disabled]="isSelecting()"
+    >
+      <ion-icon slot="start" name="camera-outline"></ion-icon>
+      Camera
+    </ion-button>
+  </div>
+
+  @if (isSelecting()) {
+    <div class="selectingOverlay">
+      <ion-spinner name="crescent"></ion-spinner>
+    </div>
+  }
+</ion-content>

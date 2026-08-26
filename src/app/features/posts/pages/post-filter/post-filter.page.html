@@ -1,0 +1,114 @@
+<ion-header mode="ios" [translucent]="false">
+  <ion-toolbar
+    class="ion-no-padding"
+    color="whiteColor"
+    style="box-shadow: 0 2px 3px rgba(0, 0, 0, 0.15)"
+  >
+    <div
+      class="rowAlignCenter"
+      style="justify-content: space-between; padding: 15px"
+    >
+      <ion-icon
+        (click)="goBack()"
+        name="chevron-back"
+        color="blackColor"
+        style="font-size: 28px"
+      ></ion-icon>
+
+      <ion-icon
+        name="arrow-forward-outline"
+        color="blackColor"
+        style="font-size: 20px"
+        (click)="goToCaptionAndTag()"
+      ></ion-icon>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-img
+    [src]="selectedImageSrc()"
+    style="height: 300px; object-fit: cover"
+    class="margin20"
+    [style.filter]="selectedFilter()"
+  >
+  </ion-img>
+
+  <div
+    style="
+      background-color: var(--whiteColor);
+      box-shadow: 0 2px 3px rgba(0, 0, 0, 0.15);
+    "
+  >
+    <div>
+      <ion-segment
+        (ionChange)="onTabChange($event)"
+        mode="md"
+        value="Filter"
+        style="margin-top: -15px"
+      >
+        <ion-segment-button value="Filter">
+          <ion-text
+            style="font-size: 16px; font-weight: 600; text-transform: none"
+          >
+            Filter
+          </ion-text>
+        </ion-segment-button>
+        <ion-segment-button value="Edit">
+          <ion-text
+            style="font-size: 16px; font-weight: 600; text-transform: none"
+          >
+            Edit
+          </ion-text>
+        </ion-segment-button>
+      </ion-segment>
+    </div>
+  </div>
+
+  @if (selectedTab() === 'Filter') {
+    <div
+      class="horizontalScroll"
+      style="padding: 20px 15px; padding-top: 10px"
+    >
+      @for (item of filters; track item.filterName) {
+        <div style="display: inline-block">
+          <div class="columnAlignCenter" style="margin: 5px">
+            <ion-text class="blackColor16SemiBold" style="margin-bottom: 5px">
+              {{ item.filterName }}
+            </ion-text>
+            <ion-img
+              (click)="selectFilter(item.filter)"
+              [src]="selectedImageSrc()"
+              style="width: 100px; height: 100px; object-fit: cover"
+              [style.filter]="item.filter"
+            >
+            </ion-img>
+          </div>
+        </div>
+      }
+    </div>
+  } @else if (selectedTab() === 'Edit') {
+    <div>
+      <div style="column-count: 4; margin: 20px; column-gap: 10px">
+        @for (item of editOptions; track item.id) {
+          <div
+            class="columnAlignCenter"
+            style="display: flexbox; margin-bottom: 20px"
+          >
+            <ion-img
+              [src]="item.editOptionIcon"
+              style="width: 25px; height: 25px; object-fit: cover"
+            >
+            </ion-img>
+            <ion-text
+              class="blackColor14Regular ellipseText"
+              style="-webkit-line-clamp: 1; margin-top: 3px; text-align: center"
+            >
+              {{ item.optionName }}
+            </ion-text>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</ion-content>
