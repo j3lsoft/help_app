@@ -5,11 +5,10 @@ import { environment } from '@env/environment';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import {
-  FollowCountsResponseDto,
   FollowRelationResponseDto,
-  FollowStatusResponseDto,
   PaginatedFollowersResponseDto,
   PaginatedSuggestionsResponseDto,
+  SocialStateResponseDto,
 } from '../models/social.dto';
 
 @Injectable({
@@ -29,7 +28,7 @@ export class FollowApiService {
     return this.http
       .post<FollowRelationResponseDto>(
         `${this.baseUrl}/${followeeId}/follow`,
-        null
+        null,
       )
       .pipe(
         catchError((error: unknown) => {
@@ -38,7 +37,7 @@ export class FollowApiService {
             data: { followeeId, error },
           });
           return throwError(() => error);
-        })
+        }),
       );
   }
 
@@ -48,23 +47,21 @@ export class FollowApiService {
       data: { followeeId },
     });
 
-    return this.http
-      .delete<void>(`${this.baseUrl}/${followeeId}/follow`)
-      .pipe(
-        catchError((error: unknown) => {
-          this.logger.error('Failed to unfollow user', {
-            context: 'FollowApiService',
-            data: { followeeId, error },
-          });
-          return throwError(() => error);
-        })
-      );
+    return this.http.delete<void>(`${this.baseUrl}/${followeeId}/follow`).pipe(
+      catchError((error: unknown) => {
+        this.logger.error('Failed to unfollow user', {
+          context: 'FollowApiService',
+          data: { followeeId, error },
+        });
+        return throwError(() => error);
+      }),
+    );
   }
 
   getFollowers(
     userId: string,
     cursor?: string,
-    limit = 20
+    limit = 20,
   ): Observable<PaginatedFollowersResponseDto> {
     this.logger.debug('Fetching followers', {
       context: 'FollowApiService',
@@ -77,7 +74,7 @@ export class FollowApiService {
     return this.http
       .get<PaginatedFollowersResponseDto>(
         `${this.baseUrl}/${userId}/followers`,
-        { params }
+        { params },
       )
       .pipe(
         catchError((error: unknown) => {
@@ -86,14 +83,14 @@ export class FollowApiService {
             data: { userId, error },
           });
           return throwError(() => error);
-        })
+        }),
       );
   }
 
   getFollowing(
     userId: string,
     cursor?: string,
-    limit = 20
+    limit = 20,
   ): Observable<PaginatedFollowersResponseDto> {
     this.logger.debug('Fetching following', {
       context: 'FollowApiService',
@@ -106,7 +103,7 @@ export class FollowApiService {
     return this.http
       .get<PaginatedFollowersResponseDto>(
         `${this.baseUrl}/${userId}/following`,
-        { params }
+        { params },
       )
       .pipe(
         catchError((error: unknown) => {
@@ -115,53 +112,32 @@ export class FollowApiService {
             data: { userId, error },
           });
           return throwError(() => error);
-        })
+        }),
       );
   }
 
-  getFollowStatus(followeeId: string): Observable<FollowStatusResponseDto> {
-    this.logger.debug('Fetching follow status', {
-      context: 'FollowApiService',
-      data: { followeeId },
-    });
-
-    return this.http
-      .get<FollowStatusResponseDto>(
-        `${this.baseUrl}/${followeeId}/status`
-      )
-      .pipe(
-        catchError((error: unknown) => {
-          this.logger.error('Failed to fetch follow status', {
-            context: 'FollowApiService',
-            data: { followeeId, error },
-          });
-          return throwError(() => error);
-        })
-      );
-  }
-
-  getFollowCounts(userId: string): Observable<FollowCountsResponseDto> {
-    this.logger.debug('Fetching follow counts', {
+  getSocialState(userId: string): Observable<SocialStateResponseDto> {
+    this.logger.debug('Fetching social state', {
       context: 'FollowApiService',
       data: { userId },
     });
 
     return this.http
-      .get<FollowCountsResponseDto>(`${this.baseUrl}/${userId}/counts`)
+      .get<SocialStateResponseDto>(`${this.baseUrl}/${userId}/state`)
       .pipe(
         catchError((error: unknown) => {
-          this.logger.error('Failed to fetch follow counts', {
+          this.logger.error('Failed to fetch social state', {
             context: 'FollowApiService',
             data: { userId, error },
           });
           return throwError(() => error);
-        })
+        }),
       );
   }
 
   getSuggestions(
     cursor?: string,
-    limit = 20
+    limit = 20,
   ): Observable<PaginatedSuggestionsResponseDto> {
     this.logger.debug('Fetching suggestions', {
       context: 'FollowApiService',
@@ -182,7 +158,7 @@ export class FollowApiService {
             data: { error },
           });
           return throwError(() => error);
-        })
+        }),
       );
   }
 }

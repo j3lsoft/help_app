@@ -9,7 +9,10 @@ import {
 import { rxResource, toObservable } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { toAppError } from '@core/utils/app-error.utils';
-import { catchSocialError, followActionContext } from '../../utils/social-page-error.utils';
+import {
+  catchSocialError,
+  followActionContext,
+} from '../../utils/social-page-error.utils';
 import {
   IonContent,
   IonSpinner,
@@ -34,7 +37,10 @@ import { SocialErrorFacade } from '../../errors/social-error.facade';
 import { ProfileService } from '../../services/profile.service';
 import { FollowService } from '../../services/follow.service';
 import { filterPostsByTab, TabValue } from '../../utils/post-filter.utils';
-import { normalizeWebsiteUrl, stripWebsiteProtocol } from '../../utils/website-url.utils';
+import {
+  normalizeWebsiteUrl,
+  stripWebsiteProtocol,
+} from '../../utils/website-url.utils';
 
 @Component({
   selector: 'app-user-profile',
@@ -75,20 +81,20 @@ export class UserProfilePage {
             catchError((error: unknown) => {
               this.profileErrorFacade.handle(toAppError(error), 'profile');
               return of(null);
-            })
+            }),
           );
-        })
+        }),
       ),
   });
 
   private readonly profileId = computed(
-    () => this.userProfile.value()?.id ?? null
+    () => this.userProfile.value()?.id ?? null,
   );
 
   private readonly profileId$ = toObservable(this.profileId);
 
   private readonly profileIsFollowing = computed(
-    () => this.userProfile.value()?.relationship?.isFollowing ?? false
+    () => this.userProfile.value()?.relationship?.isFollowing ?? false,
   );
 
   readonly isFollowing = linkedSignal({
@@ -103,29 +109,29 @@ export class UserProfilePage {
           if (!userId) {
             return of(null);
           }
-          return this.followService.getFollowCounts(userId).pipe(
+          return this.followService.getSocialState(userId).pipe(
             catchError((error: unknown) => {
               this.socialErrorFacade.handle(toAppError(error), 'follow-counts');
               return of(null);
-            })
+            }),
           );
-        })
+        }),
       ),
   });
 
   readonly followerCount = computed(
-    () => this.followCounts.value()?.followerCount ?? 0
+    () => this.followCounts.value()?.followerCount ?? 0,
   );
 
   readonly followingCount = computed(
-    () => this.followCounts.value()?.followeeCount ?? 0
+    () => this.followCounts.value()?.followeeCount ?? 0,
   );
 
   private readonly _isTogglingFollow = signal(false);
   readonly isTogglingFollow = this._isTogglingFollow.asReadonly();
 
   fullWebsiteUrl = computed(() =>
-    normalizeWebsiteUrl(this.userProfile.value()?.website)
+    normalizeWebsiteUrl(this.userProfile.value()?.website),
   );
 
   stripWebsite = (url: string | null | undefined): string =>
@@ -136,7 +142,7 @@ export class UserProfilePage {
       this.selectedTabValue(),
       MOCK_ALL_POSTS,
       MOCK_VIDEO_POSTS,
-      MOCK_TAGGED_POSTS
+      MOCK_TAGGED_POSTS,
     );
   });
 
@@ -184,9 +190,9 @@ export class UserProfilePage {
         catchSocialError(
           this.socialErrorFacade,
           followActionContext(prev),
-          () => this.isFollowing.set(prev)
+          () => this.isFollowing.set(prev),
         ),
-        finalize(() => this._isTogglingFollow.set(false))
+        finalize(() => this._isTogglingFollow.set(false)),
       )
       .subscribe();
   }

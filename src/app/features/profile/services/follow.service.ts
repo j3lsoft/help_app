@@ -1,28 +1,18 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { AuthService } from '@features/auth/services/auth.service';
 import { LoggerService } from '@core/services/logger.service';
 import { createPaginatedListState } from '@core/state/paginated-list.state';
-import { loadPaginatedPage } from '@core/utils/paginated-list-loader.utils';
 import { toAppError } from '@core/utils/app-error.utils';
-import {
-  Observable,
-  Subscription,
-  catchError,
-  map,
-  of,
-  throwError,
-} from 'rxjs';
+import { loadPaginatedPage } from '@core/utils/paginated-list-loader.utils';
+import { AuthService } from '@features/auth/services/auth.service';
+import { Observable, Subscription, catchError, map, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { SocialResponseAdapter } from '../adapters/social-response.adapter';
-import {
-  FollowCountsResponseDto,
-  FollowRelationResponseDto,
-} from '../models/social.dto';
-import {
-  FollowRequestItem,
-  FollowUserDto,
-} from '../models/follow.dto';
 import { MOCK_FOLLOW_REQUESTS } from '../data/profile.mock';
+import { FollowRequestItem, FollowUserDto } from '../models/follow.dto';
+import {
+  FollowRelationResponseDto,
+  SocialStateResponseDto,
+} from '../models/social.dto';
 import { FollowApiService } from './follow-api.service';
 
 @Injectable({
@@ -60,9 +50,9 @@ export class FollowService {
 
   private _currentFollowersUserId: string | null = null;
   private _currentFollowingsUserId: string | null = null;
-  private _countsUserId: string | null = null;
+  private _socialStateUserId: string | null = null;
 
-  private loadFollowCountsSub?: Subscription;
+  private socialStateSub?: Subscription;
 
   loadFollowers(userId: string, reset = false): Observable<void> {
     return loadPaginatedPage({
@@ -141,7 +131,7 @@ export class FollowService {
           data: { followeeId, error: appError },
         });
         return throwError(() => appError);
-      })
+      }),
     );
   }
 
@@ -160,7 +150,7 @@ export class FollowService {
           data: { followeeId, error: appError },
         });
         return throwError(() => appError);
-      })
+      }),
     );
   }
 
@@ -175,7 +165,7 @@ export class FollowService {
           this.updateFollowStateInLists(userId, true);
           this.adjustOwnFollowingCount(1);
           return throwError(() => error);
-        })
+        }),
       );
     }
 
@@ -188,13 +178,13 @@ export class FollowService {
         this.updateFollowStateInLists(userId, false);
         this.adjustOwnFollowingCount(-1);
         return throwError(() => error);
-      })
+      }),
     );
   }
 
   private adjustOwnFollowingCount(delta: number): void {
     const authUserId = this.authService.currentUser()?.id;
-    if (!authUserId || this._countsUserId !== authUserId) {
+    if (!authUserId || this._socialStateUserId !== authUserId) {
       return;
     }
 
@@ -203,73 +193,73 @@ export class FollowService {
 
   private updateFollowStateInLists(id: string, isFollow: boolean): void {
     this.followersState.items.update((items) =>
-      items.map((item) => (item.id === id ? { ...item, isFollow } : item))
+      items.map((item) => (item.id === id ? { ...item, isFollow } : item)),
     );
     this.followingsState.items.update((items) =>
-      items.map((item) => (item.id === id ? { ...item, isFollow } : item))
+      items.map((item) => (item.id === id ? { ...item, isFollow } : item)),
     );
     this.suggestionsState.items.update((items) =>
-      items.map((item) => (item.id === id ? { ...item, isFollow } : item))
+      items.map((item) => (item.id === id ? { ...item, isFollow } : item)),
     );
   }
 
   toggleFollowOnRequest(id: string): void {
     this.followRequests.update((items) =>
       items.map((item) =>
-        item.id === id ? { ...item, isFollow: !item.isFollow } : item
-      )
+        item.id === id ? { ...item, isFollow: !item.isFollow } : item,
+      ),
     );
   }
 
   acceptRequest(id: string): void {
     this.followRequests.update((items) =>
       items.map((item) =>
-        item.id === id ? { ...item, acceptRequest: true } : item
-      )
+        item.id === id ? { ...item, acceptRequest: true } : item,
+      ),
     );
   }
 
   rejectRequest(id: string): void {
     this.followRequests.update((items) =>
-      items.filter((item) => item.id !== id)
+      items.filter((item) => item.id !== id),
     );
   }
 
-  getFollowCounts(userId: string): Observable<FollowCountsResponseDto> {
-    return this.followApi.getFollowCounts(userId).pipe(
+  getSocialState(userId: string): Observable<SocialStateResponseDto> {
+    return this.followApi.getSocialState(userId).pipe(
       catchError((error: unknown) => {
         const appError = toAppError(error);
-        this.logger.error('Failed to get follow counts', {
+        this.logger.error('Failed to get social state', {
           context: 'FollowService',
           data: { userId, error: appError },
         });
         return throwError(() => appError);
-      })
+      }),
     );
   }
 
-  loadFollowCounts(userId: string): Observable<void> {
-    this.loadFollowCountsSub?.unsubscribe();
-    this._countsUserId = userId;
+  loadSocialState(userId: string): Observable<void> {
+    this.socialStateSub?.unsubscribe();
+    this._socialStateUserId = userId;
 
     return new Observable<void>((observer) => {
-      this.loadFollowCountsSub = this.getFollowCounts(userId).subscribe({
-        next: (counts) => {
-          if (this._countsUserId !== userId) return;
-          this.followerCount.set(counts.followerCount);
-          this.followingCount.set(counts.followeeCount);
+      this.socialStateSub = this.getSocialState(userId).subscribe({
+        next: (state) => {
+          if (this._socialStateUserId !== userId) return;
+          this.followerCount.set(state.followerCount);
+          this.followingCount.set(state.followeeCount);
           observer.next();
           observer.complete();
         },
         error: (error: unknown) => {
-          if (this._countsUserId === userId) {
-            this._countsUserId = null;
+          if (this._socialStateUserId === userId) {
+            this._socialStateUserId = null;
           }
           observer.error(error);
         },
       });
 
-      return () => this.loadFollowCountsSub?.unsubscribe();
+      return () => this.socialStateSub?.unsubscribe();
     });
   }
 }

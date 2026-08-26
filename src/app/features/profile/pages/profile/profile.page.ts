@@ -8,16 +8,12 @@ import {
 import { rxResource } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { toAppError } from '@core/utils/app-error.utils';
-import { catchSocialError } from '../../utils/social-page-error.utils';
-import { toProfileHeaderViewModel } from '../../utils/profile-view.utils';
 import { AuthService } from '@features/auth/services/auth.service';
 import { ProfileHeaderComponent } from '@features/profile/components/profile-header/profile-header.component';
 import { ProfilePostGridComponent } from '@features/profile/components/profile-post-grid/profile-post-grid.component';
 import { ProfileTabsComponent } from '@features/profile/components/profile-tabs/profile-tabs.component';
-import { ProfileErrorFacade } from '../../errors/profile-error.facade';
-import { ProfileService } from '@features/profile/services/profile.service';
 import { FollowService } from '@features/profile/services/follow.service';
-import { catchError, throwError } from 'rxjs';
+import { ProfileService } from '@features/profile/services/profile.service';
 import {
   IonButtons,
   IonContent,
@@ -28,13 +24,17 @@ import {
   ViewWillEnter,
 } from '@ionic/angular/standalone';
 import { TopBarComponent } from '@shared/components/top-bar/top-bar.component';
+import { catchError, throwError } from 'rxjs';
 import {
   MOCK_ALL_POSTS,
   MOCK_TAGGED_POSTS,
   MOCK_VIDEO_POSTS,
 } from '../../data/profile.mock';
-import { filterPostsByTab, TabValue } from '../../utils/post-filter.utils';
+import { ProfileErrorFacade } from '../../errors/profile-error.facade';
 import { SocialErrorFacade } from '../../errors/social-error.facade';
+import { filterPostsByTab, TabValue } from '../../utils/post-filter.utils';
+import { toProfileHeaderViewModel } from '../../utils/profile-view.utils';
+import { catchSocialError } from '../../utils/social-page-error.utils';
 
 @Component({
   selector: 'app-profile',
@@ -72,7 +72,7 @@ export class ProfilePage implements ViewWillEnter {
           const appError = toAppError(error);
           this.profileErrorFacade.handle(appError, 'profile');
           return throwError(() => appError);
-        })
+        }),
       ),
   });
 
@@ -99,7 +99,7 @@ export class ProfilePage implements ViewWillEnter {
     if (!userId) return;
 
     this.followService
-      .loadFollowCounts(userId)
+      .loadSocialState(userId)
       .pipe(catchSocialError(this.socialErrorFacade, 'follow-counts'))
       .subscribe();
   }
@@ -109,7 +109,7 @@ export class ProfilePage implements ViewWillEnter {
       this.selectedTab(),
       MOCK_ALL_POSTS,
       MOCK_VIDEO_POSTS,
-      MOCK_TAGGED_POSTS
+      MOCK_TAGGED_POSTS,
     );
   });
 

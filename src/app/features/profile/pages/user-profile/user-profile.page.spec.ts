@@ -29,27 +29,35 @@ describe('UserProfilePage', () => {
   let followServiceSpy: jasmine.SpyObj<FollowService>;
 
   beforeEach(async () => {
-    profileServiceSpy = jasmine.createSpyObj('ProfileService', ['getPublicProfile']);
+    profileServiceSpy = jasmine.createSpyObj('ProfileService', [
+      'getPublicProfile',
+    ]);
     profileErrorFacadeSpy = jasmine.createSpyObj('ProfileErrorFacade', [
       'handle',
       'getMessage',
     ]);
     followServiceSpy = jasmine.createSpyObj('FollowService', [
-      'getFollowCounts',
+      'getSocialState',
       'toggleFollow',
     ]);
 
     profileServiceSpy.getPublicProfile.and.returnValue(of(mockProfile));
-    followServiceSpy.getFollowCounts.and.returnValue(
-      of({ followerCount: 10, followeeCount: 5 })
+    followServiceSpy.getSocialState.and.returnValue(
+      of({ followerCount: 10, followeeCount: 5 }),
     );
     followServiceSpy.toggleFollow.and.returnValue(of(void 0));
 
     await TestBed.configureTestingModule({
       imports: [UserProfilePage],
       providers: [
-        { provide: NavController, useValue: jasmine.createSpyObj('NavController', ['back']) },
-        { provide: Router, useValue: jasmine.createSpyObj('Router', ['navigateByUrl']) },
+        {
+          provide: NavController,
+          useValue: jasmine.createSpyObj('NavController', ['back']),
+        },
+        {
+          provide: Router,
+          useValue: jasmine.createSpyObj('Router', ['navigateByUrl']),
+        },
         {
           provide: ActivatedRoute,
           useValue: {
@@ -58,7 +66,10 @@ describe('UserProfilePage', () => {
         },
         { provide: ProfileService, useValue: profileServiceSpy },
         { provide: ProfileErrorFacade, useValue: profileErrorFacadeSpy },
-        { provide: SocialErrorFacade, useValue: jasmine.createSpyObj('SocialErrorFacade', ['handle']) },
+        {
+          provide: SocialErrorFacade,
+          useValue: jasmine.createSpyObj('SocialErrorFacade', ['handle']),
+        },
         { provide: FollowService, useValue: followServiceSpy },
       ],
     }).compileComponents();
@@ -77,8 +88,12 @@ describe('UserProfilePage', () => {
     expect(component.userProfile.value()).toEqual(mockProfile);
   });
 
-  it('should load follow counts for the profile user id', () => {
-    expect(followServiceSpy.getFollowCounts).toHaveBeenCalledWith('1');
+  it('should load social state for the profile user id', async () => {
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve));
+    fixture.detectChanges();
+    await Promise.resolve();
+    expect(followServiceSpy.getSocialState).toHaveBeenCalledWith('1');
     expect(component.followerCount()).toBe(10);
     expect(component.followingCount()).toBe(5);
   });

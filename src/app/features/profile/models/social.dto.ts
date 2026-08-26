@@ -22,13 +22,10 @@ export interface FollowerProfileResponseDto {
 export type PaginatedFollowersResponseDto =
   PaginatedResponse<FollowerProfileResponseDto>;
 
-export interface FollowStatusResponseDto {
-  isFollowing: boolean;
-}
-
-export interface FollowCountsResponseDto {
+export interface SocialStateResponseDto {
   followerCount: number;
   followeeCount: number;
+  isFollowing?: boolean | null;
 }
 
 export interface SuggestedUserResponseDto {

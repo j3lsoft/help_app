@@ -18,14 +18,14 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class UploadApiService {
-  private readonly baseUrl = `${environment.apiBaseUrl}/api/media`;
+  private readonly baseUrl = `${environment.apiBaseUrl}/api/v1/media`;
   private readonly http = inject(HttpClient);
   private readonly logger = inject(LoggerService);
 
   uploadDirect(
     file: File,
     onProgress?: (percent: number) => void,
-    signal?: AbortSignal
+    signal?: AbortSignal,
   ): Observable<MediaFileResponseDto> {
     const formData = new FormData();
     formData.append('file', file);
@@ -39,7 +39,7 @@ export class UploadApiService {
       filter(
         (event): event is HttpEvent<MediaFileResponseDto> =>
           event.type === HttpEventType.UploadProgress ||
-          event.type === HttpEventType.Response
+          event.type === HttpEventType.Response,
       ),
       map((event) => {
         if (
@@ -54,23 +54,23 @@ export class UploadApiService {
           return event.body as MediaFileResponseDto;
         }
         throw new Error('Unexpected event type');
-      })
+      }),
     );
   }
 
   getPresignedUrl(
-    dto: GeneratePresignedUrlDto
+    dto: GeneratePresignedUrlDto,
   ): Observable<PresignedUrlResponseDto> {
     return this.http.post<PresignedUrlResponseDto>(
       `${this.baseUrl}/presigned-url`,
-      dto
+      dto,
     );
   }
 
   confirmUpload(dto: ConfirmUploadDto): Observable<MediaFileResponseDto> {
     return this.http.post<MediaFileResponseDto>(
       `${this.baseUrl}/upload/confirm`,
-      dto
+      dto,
     );
   }
 
@@ -78,7 +78,7 @@ export class UploadApiService {
     url: string,
     file: File,
     onProgress?: (percent: number) => void,
-    signal?: AbortSignal
+    signal?: AbortSignal,
   ): Observable<number> {
     return new Observable((observer) => {
       this.logger.debug('Starting uploadToStorage', {
@@ -156,7 +156,7 @@ export class UploadApiService {
 
   deleteFile(fileId: string): Observable<DeleteMediaResponseDto> {
     return this.http.delete<DeleteMediaResponseDto>(
-      `${this.baseUrl}/${fileId}`
+      `${this.baseUrl}/${fileId}`,
     );
   }
 }
