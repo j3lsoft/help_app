@@ -12,6 +12,8 @@ export interface PublishParams {
   /** WebView-loadable URL of the selected image. */
   imageSrc: string;
   filterCss: string;
+  /** CSS transform for Effective Transform, e.g. "rotate(90deg)". */
+  transformCss?: string | null;
   content: string | null;
   /** MediaFile already uploaded in a previous attempt; skips the upload. */
   pendingMediaId?: string | null;
@@ -85,7 +87,9 @@ export class PostPublishService {
 
     try {
       params.onStage?.('baking');
-      file = await bakeImageFilter(params.imageSrc, params.filterCss);
+      file = await bakeImageFilter(params.imageSrc, params.filterCss, {
+        transform: params.transformCss ?? null,
+      });
     } catch (error) {
       this.logger.error('Failed to bake image filter', {
         context: 'PostPublishService',

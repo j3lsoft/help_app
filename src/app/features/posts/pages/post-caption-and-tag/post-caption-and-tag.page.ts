@@ -64,6 +64,8 @@ export class PostCaptionAndTagPage implements ViewWillLeave {
   private readonly feed = inject(FeedService);
 
   readonly selectedImageSrc = this.postCreation.selectedImageSrc;
+  readonly effectiveFilter = this.postCreation.effectiveFilter;
+  readonly effectiveTransform = this.postCreation.effectiveTransform;
   readonly captionMaxLength = CAPTION_MAX_LENGTH;
   readonly isPublishing = signal(false);
   readonly uploadProgress = signal(0);
@@ -120,7 +122,8 @@ export class PostCaptionAndTagPage implements ViewWillLeave {
     try {
       const result = await this.postPublish.publish({
         imageSrc: this.selectedImageSrc(),
-        filterCss: this.postCreation.selectedFilter(),
+        filterCss: this.effectiveFilter(),
+        transformCss: this.effectiveTransform(),
         content: this.buildContent(),
         pendingMediaId: this.postCreation.pendingMediaId(),
         onUploadProgress: (percent) => this.uploadProgress.set(percent),
