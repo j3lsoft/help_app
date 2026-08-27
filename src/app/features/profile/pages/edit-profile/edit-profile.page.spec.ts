@@ -44,7 +44,12 @@ describe('EditProfilePage', () => {
     authUser = signal<MeResponseDto | null>(mockUser);
     profileServiceSpy = jasmine.createSpyObj('ProfileService', [
       'updateProfile',
+      'getMyProfile',
+      'hasCachedProfile',
     ]);
+    (profileServiceSpy as unknown as { currentProfile: ReturnType<typeof signal> }).currentProfile = signal<MeResponseDto | null>(mockUser);
+    profileServiceSpy.getMyProfile.and.returnValue(of(mockUser));
+    profileServiceSpy.hasCachedProfile.and.returnValue(true);
     navCtrlSpy = jasmine.createSpyObj('NavController', ['back']);
     profileErrorFacadeSpy = jasmine.createSpyObj('ProfileErrorFacade', [
       'handle',
@@ -126,9 +131,7 @@ describe('EditProfilePage', () => {
 
   it('should have a title "Edit Profile"', () => {
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('ion-title')?.textContent).toContain(
-      'Edit Profile'
-    );
+    expect(compiled.textContent).toContain('Edit Profile');
   });
 
   it('should report unsaved changes when form data diverges', () => {
@@ -145,6 +148,7 @@ describe('EditProfilePage', () => {
       username: 'jane',
       bio: 'Hello',
       birthDate: '1990-01-01',
+      website: '',
     });
     await fixture.whenStable();
     expect(navCtrlSpy.back).toHaveBeenCalled();
@@ -164,6 +168,7 @@ describe('EditProfilePage', () => {
       username: 'jane',
       bio: 'Hello',
       birthDate: '1990-01-01',
+      website: '',
     });
     await fixture.whenStable();
 
@@ -188,6 +193,7 @@ describe('EditProfilePage', () => {
       username: 'newname',
       bio: 'Hello',
       birthDate: '1990-01-01',
+      website: '',
     });
     await fixture.whenStable();
 

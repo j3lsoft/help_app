@@ -8,6 +8,7 @@ import { SocialErrorFacade } from '../../errors/social-error.facade';
 import { PublicProfileResponseDto } from '../../services/profile-api.service';
 import { ProfileService } from '../../services/profile.service';
 import { FollowService } from '../../services/follow.service';
+import { PostsApiService } from '@features/posts/services/posts-api.service';
 import { UserProfilePage } from './user-profile.page';
 
 const mockProfile: PublicProfileResponseDto = {
@@ -47,6 +48,9 @@ describe('UserProfilePage', () => {
     );
     followServiceSpy.toggleFollow.and.returnValue(of(void 0));
 
+    const postsApiSpy = jasmine.createSpyObj('PostsApiService', ['getPostsByAuthor']);
+    postsApiSpy.getPostsByAuthor.and.returnValue(of([]));
+
     await TestBed.configureTestingModule({
       imports: [UserProfilePage],
       providers: [
@@ -71,6 +75,7 @@ describe('UserProfilePage', () => {
           useValue: jasmine.createSpyObj('SocialErrorFacade', ['handle']),
         },
         { provide: FollowService, useValue: followServiceSpy },
+        { provide: PostsApiService, useValue: postsApiSpy },
       ],
     }).compileComponents();
 

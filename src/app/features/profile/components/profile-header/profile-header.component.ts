@@ -4,6 +4,7 @@ import {
   computed,
   input,
   output,
+  signal,
 } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import {
@@ -25,14 +26,14 @@ export class ProfileHeaderComponent {
   fullWebsiteUrl = input<string>('');
   profileImage = input.required<string>();
   postsCount = input.required<string | number>();
-  videosCount = input.required<string | number>();
   followersCount = input.required<string | number>();
   followingCount = input.required<string | number>();
-  storyAvailable = input<boolean>(false);
+
+  followsYou = input<boolean>(false);
+  bioExpanded = signal(false);
 
   onFollowersClick = output<void>();
   onFollowingClick = output<void>();
-  onStoryClick = output<void>();
 
   hasValidImage = computed(() => isValidUserImage(this.profileImage()));
 

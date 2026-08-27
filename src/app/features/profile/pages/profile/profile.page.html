@@ -10,6 +10,10 @@
 </app-top-bar>
 
 <ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
   <app-profile-header
     [name]="profile.name"
     [description]="profile.description"
@@ -17,13 +21,10 @@
     [fullWebsiteUrl]="profile.fullWebsiteUrl"
     [profileImage]="profile.profileImage"
     [postsCount]="profile.postsCount"
-    [videosCount]="profile.videosCount"
     [followersCount]="profile.followersCount"
     [followingCount]="profile.followingCount"
-    [storyAvailable]="isStoryAvailable()"
     (onFollowersClick)="goToFollowers()"
     (onFollowingClick)="goToFollowings()"
-    (onStoryClick)="goTo('open-story')"
   ></app-profile-header>
 
   <button
@@ -34,22 +35,31 @@
     Edit Profile
   </button>
 
-  <app-profile-tabs
-    [selectedTab]="selectedTab()"
-    (tabChange)="onTabChange($event)"
-  ></app-profile-tabs>
-
+  @if (isLoadingPosts()) {
+  <div class="profile-page__skeleton" aria-label="Loading posts">
+    @for (i of [1,2,3,4,5,6]; track i) {
+    <div class="profile-page__skeleton-item"></div>
+    }
+  </div>
+  } @else if (profilePosts().length === 0) {
+  <div class="profile-page__empty" aria-label="Empty posts">
+    <ion-text class="profile-page__empty-text">Aún no publicaste nada</ion-text>
+    <ion-button fill="outline" (click)="goTo('tabs/create-post')">Crear tu primer post</ion-button>
+  </div>
+  } @else {
   <app-profile-post-grid
-    [posts]="filteredPosts()"
-    (postClick)="goTo('user-posts')"
+    [posts]="profilePosts()"
+    (postClick)="onPostClick($event)"
   ></app-profile-post-grid>
+  }
 </ion-content>
 } @else if (isLoadingProfile()) {
 <app-top-bar title="Profile"></app-top-bar>
 <ion-content class="ion-padding">
-  <div class="profile-page__loading">
-    <ion-spinner></ion-spinner>
-    <p>Loading profile...</p>
+  <div class="profile-page__skeleton" aria-label="Loading profile">
+    @for (i of [1,2,3,4,5,6]; track i) {
+    <div class="profile-page__skeleton-item"></div>
+    }
   </div>
 </ion-content>
 } @else if (showProfileError()) {
@@ -57,14 +67,16 @@
 <ion-content class="ion-padding">
   <div class="profile-page__error">
     <ion-text class="profile-page__error-text">Failed to load profile</ion-text>
+    <ion-button fill="outline" (click)="retryProfile()">Reintentar</ion-button>
   </div>
 </ion-content>
 } @else {
 <app-top-bar title="Profile"></app-top-bar>
 <ion-content class="ion-padding">
-  <div class="profile-page__loading">
-    <ion-spinner></ion-spinner>
-    <p>Loading profile...</p>
+  <div class="profile-page__skeleton" aria-label="Loading profile">
+    @for (i of [1,2,3,4,5,6]; track i) {
+    <div class="profile-page__skeleton-item"></div>
+    }
   </div>
 </ion-content>
 }

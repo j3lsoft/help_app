@@ -17,30 +17,28 @@ import {
   IonContent,
   IonSpinner,
   IonText,
+  IonButton,
+  IonRefresher,
+  IonRefresherContent,
   NavController,
 } from '@ionic/angular/standalone';
 import { BackHeaderComponent } from '@shared/components/back-header/back-header.component';
 import { ProfileHeaderComponent } from '@features/profile/components/profile-header/profile-header.component';
 import { ProfilePostGridComponent } from '@features/profile/components/profile-post-grid/profile-post-grid.component';
-import { ProfileTabsComponent } from '@features/profile/components/profile-tabs/profile-tabs.component';
 import { FollowButtonComponent } from '@shared/components/follow-button/follow-button.component';
 import { addIcons } from 'ionicons';
 import { chevronBack, playOutline } from 'ionicons/icons';
 import { catchError, finalize, map, of, switchMap } from 'rxjs';
-import {
-  MOCK_ALL_POSTS,
-  MOCK_TAGGED_POSTS,
-  MOCK_VIDEO_POSTS,
-} from '../../data/profile.mock';
 import { ProfileErrorFacade } from '../../errors/profile-error.facade';
 import { SocialErrorFacade } from '../../errors/social-error.facade';
 import { ProfileService } from '../../services/profile.service';
 import { FollowService } from '../../services/follow.service';
-import { filterPostsByTab, TabValue } from '../../utils/post-filter.utils';
+import { PostsApiService } from '@features/posts/services/posts-api.service';
 import {
   normalizeWebsiteUrl,
   stripWebsiteProtocol,
 } from '../../utils/website-url.utils';
+import { PostItem } from '../../models/post-item.model';
 
 @Component({
   selector: 'app-user-profile',
@@ -50,10 +48,12 @@ import {
     IonContent,
     IonText,
     IonSpinner,
+    IonButton,
+    IonRefresher,
+    IonRefresherContent,
     BackHeaderComponent,
     ProfileHeaderComponent,
     ProfilePostGridComponent,
-    ProfileTabsComponent,
     FollowButtonComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -66,8 +66,7 @@ export class UserProfilePage {
   private readonly profileErrorFacade = inject(ProfileErrorFacade);
   private readonly socialErrorFacade = inject(SocialErrorFacade);
   private readonly followService = inject(FollowService);
-
-  selectedTabValue = signal<TabValue>('All');
+  private readonly postsApi = inject(PostsApiService);
 
   readonly userProfile = rxResource({
     stream: () =>
@@ -97,6 +96,10 @@ export class UserProfilePage {
     () => this.userProfile.value()?.relationship?.isFollowing ?? false,
   );
 
+  readonly followsYou = computed(
+    () => this.userProfile.value()?.relationship?.followsYou ?? false
+  );
+
   readonly isFollowing = linkedSignal({
     source: this.profileIsFollowing,
     computation: (following) => following,
@@ -119,13 +122,44 @@ export class UserProfilePage {
       ),
   });
 
+  private readonly _followerDelta = signal(0);
+
   readonly followerCount = computed(
-    () => this.followCounts.value()?.followerCount ?? 0,
+    () => (this.followCounts.value()?.followerCount ?? 0) + this._followerDelta(),
   );
 
   readonly followingCount = computed(
     () => this.followCounts.value()?.followeeCount ?? 0,
   );
+
+  readonly profilePostsResource = rxResource({
+    stream: () =>
+      this.profileId$.pipe(
+        switchMap((userId) => {
+          if (!userId) return of<PostItem[]>([]);
+          return this.postsApi.getPostsByAuthor(userId, 'desc').pipe(
+            map((posts) =>
+              [...posts]
+                .sort(
+                  (a, b) =>
+                    new Date(b.createdAt).getTime() -
+                    new Date(a.createdAt).getTime()
+                )
+                .map((p) => ({
+                  id: p.id,
+                  image: p.media?.[0]?.mediaFileId || 'assets/images/gallery/gallery1.png',
+                  createdAt: p.createdAt,
+                }))
+            ),
+            catchError(() => of<PostItem[]>([]))
+          );
+        })
+      ),
+  });
+
+  isLoadingPosts = computed(() => this.profilePostsResource.isLoading());
+  profilePosts = computed(() => this.profilePostsResource.value() ?? []);
+  postsCount = computed(() => String(this.profilePosts().length));
 
   private readonly _isTogglingFollow = signal(false);
   readonly isTogglingFollow = this._isTogglingFollow.asReadonly();
@@ -136,15 +170,6 @@ export class UserProfilePage {
 
   stripWebsite = (url: string | null | undefined): string =>
     stripWebsiteProtocol(url);
-
-  filteredPosts = computed(() => {
-    return filterPostsByTab(
-      this.selectedTabValue(),
-      MOCK_ALL_POSTS,
-      MOCK_VIDEO_POSTS,
-      MOCK_TAGGED_POSTS,
-    );
-  });
 
   constructor() {
     addIcons({ chevronBack, playOutline });
@@ -172,8 +197,17 @@ export class UserProfilePage {
     }
   }
 
-  onTabChange(tab: TabValue) {
-    this.selectedTabValue.set(tab);
+  handleRefresh(event: CustomEvent) {
+    this.userProfile.reload();
+    this.followCounts.reload();
+    this.profilePostsResource.reload();
+    setTimeout(() => (event.target as unknown as { complete: () => void }).complete(), 600);
+  }
+
+  onPostClick(post: PostItem) {
+    if (post.id) {
+      this.router.navigateByUrl(`post-detail/${post.id}`);
+    }
   }
 
   toggleFollow() {
@@ -183,6 +217,7 @@ export class UserProfilePage {
     const prev = this.isFollowing();
     this._isTogglingFollow.set(true);
     this.isFollowing.set(!prev);
+    this._followerDelta.update((d) => d + (prev ? -1 : 1));
 
     this.followService
       .toggleFollow(profile.id, prev)
@@ -190,7 +225,10 @@ export class UserProfilePage {
         catchSocialError(
           this.socialErrorFacade,
           followActionContext(prev),
-          () => this.isFollowing.set(prev),
+          () => {
+            this.isFollowing.set(prev);
+            this._followerDelta.update((d) => d + (prev ? 1 : -1));
+          },
         ),
         finalize(() => this._isTogglingFollow.set(false)),
       )

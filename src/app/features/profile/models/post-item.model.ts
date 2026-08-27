@@ -5,4 +5,5 @@ export interface PostItem {
   id: string;
   image: string;
   views?: string;
+  createdAt?: string;
 }

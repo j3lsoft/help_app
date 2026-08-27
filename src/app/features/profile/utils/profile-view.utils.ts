@@ -11,7 +11,6 @@ export interface ProfileHeaderViewModel {
   fullWebsiteUrl: string;
   profileImage: string;
   postsCount: string;
-  videosCount: string;
   followersCount: string;
   followingCount: string;
 }
@@ -30,7 +29,6 @@ export function toProfileHeaderViewModel(params: {
   followerCount: number;
   followingCount: number;
   postsCount?: string | number;
-  videosCount?: string | number;
 }): ProfileHeaderViewModel {
   const { source, fullProfile } = params;
 
@@ -42,7 +40,6 @@ export function toProfileHeaderViewModel(params: {
     fullWebsiteUrl: normalizeWebsiteUrl(fullProfile?.website ?? ''),
     profileImage: source.avatarUrl ?? '',
     postsCount: String(params.postsCount ?? '0'),
-    videosCount: String(params.videosCount ?? '0'),
     followersCount: String(params.followerCount),
     followingCount: String(params.followingCount),
   };

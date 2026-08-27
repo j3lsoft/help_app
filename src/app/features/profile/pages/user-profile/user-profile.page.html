@@ -4,10 +4,15 @@
 ></app-back-header>
 
 <ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
   @if (userProfile.isLoading()) {
-  <div class="user-profile__loading-container">
-    <ion-spinner color="primary"></ion-spinner>
-    <ion-text class="user-profile__loading-text">Loading profile...</ion-text>
+  <div class="user-profile__skeleton" aria-label="Loading profile">
+    @for (i of [1,2,3,4,5,6]; track i) {
+    <div class="user-profile__skeleton-item"></div>
+    }
   </div>
   } @else if (userProfile.error()) {
   <div class="user-profile__error-container">
@@ -20,11 +25,10 @@
     [website]="stripWebsite(profile.website)"
     [fullWebsiteUrl]="fullWebsiteUrl()"
     [profileImage]="profile.avatarUrl ?? ''"
-    [postsCount]="'0'"
-    [videosCount]="'0'"
+    [postsCount]="postsCount()"
     [followersCount]="followerCount()"
     [followingCount]="followingCount()"
-    [storyAvailable]="false"
+    [followsYou]="followsYou()"
     (onFollowersClick)="goToFollowers()"
     (onFollowingClick)="goToFollowings()"
   ></app-profile-header>
@@ -49,14 +53,21 @@
     </div>
   </div>
 
-  <app-profile-tabs
-    [selectedTab]="selectedTabValue()"
-    (tabChange)="onTabChange($event)"
-  ></app-profile-tabs>
-
+  @if (isLoadingPosts()) {
+  <div class="user-profile__skeleton" aria-label="Loading posts">
+    @for (i of [1,2,3,4,5,6]; track i) {
+    <div class="user-profile__skeleton-item"></div>
+    }
+  </div>
+  } @else if (profilePosts().length === 0) {
+  <div class="user-profile__empty" aria-label="Empty posts">
+    <ion-text class="user-profile__empty-text">Aún no hay publicaciones</ion-text>
+  </div>
+  } @else {
   <app-profile-post-grid
-    [posts]="filteredPosts()"
-    (postClick)="goTo('user-posts')"
+    [posts]="profilePosts()"
+    (postClick)="onPostClick($event)"
   ></app-profile-post-grid>
+  }
   }
 </ion-content>

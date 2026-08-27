@@ -1,17 +1,13 @@
-<div class="profile-header__stats">
+<div class="profile-header__stats" role="group" aria-label="Profile statistics">
   <div class="profile-header__stat-item">
-    <span class="profile-header__stat-value">{{ postsCount() }}</span>
+    <span class="profile-header__stat-value" aria-label="Posts count">{{ postsCount() }}</span>
     <span class="profile-header__stat-label">posts</span>
   </div>
-  <div class="profile-header__stat-item">
-    <span class="profile-header__stat-value">{{ videosCount() }}</span>
-    <span class="profile-header__stat-label">videos</span>
-  </div>
-  <div class="profile-header__stat-item" (click)="onFollowersClick.emit()">
+  <div class="profile-header__stat-item" (click)="onFollowersClick.emit()" role="button" tabindex="0" [attr.aria-label]="'Followers: ' + followersCount()" (keydown.enter)="onFollowersClick.emit()">
     <span class="profile-header__stat-value">{{ followersCount() }}</span>
     <span class="profile-header__stat-label">followers</span>
   </div>
-  <div class="profile-header__stat-item" (click)="onFollowingClick.emit()">
+  <div class="profile-header__stat-item" (click)="onFollowingClick.emit()" role="button" tabindex="0" [attr.aria-label]="'Following: ' + followingCount()" (keydown.enter)="onFollowingClick.emit()">
     <span class="profile-header__stat-value">{{ followingCount() }}</span>
     <span class="profile-header__stat-label">following</span>
   </div>
@@ -20,22 +16,32 @@
 <div class="profile-header__bio-section">
   <div class="profile-header__bio-content">
     <h2 class="profile-header__name">{{ name() }}</h2>
-    <p class="profile-header__description">{{ description() }}</p>
-    @if (website()) {
-    <a class="profile-header__website"
-       [href]="fullWebsiteUrl()"
-       target="_blank"
-       rel="noopener noreferrer">
-      {{ website() }}
-    </a>
+    @if (followsYou()) {
+    <span class="profile-header__follows-badge" aria-label="Follows you">Te sigue</span>
+    }
+    @if (description() || website()) {
+    <div class="profile-header__bio-block">
+      @if (description()) {
+      <p class="profile-header__description" [class.profile-header__description--clamped]="!bioExpanded()" style="white-space: pre-wrap;">{{ description() }}</p>
+      @if (description().length > 100) {
+      <button type="button" class="profile-header__bio-toggle" (click)="bioExpanded.set(!bioExpanded())" [attr.aria-expanded]="bioExpanded()">
+        {{ bioExpanded() ? 'ver menos' : 'ver más' }}
+      </button>
+      }
+      }
+      @if (website()) {
+      <a class="profile-header__website"
+         [href]="fullWebsiteUrl()"
+         target="_blank"
+         rel="noopener noreferrer">
+        {{ website() }}
+      </a>
+      }
+    </div>
     }
   </div>
 
-  <div
-    class="profile-header__image-container"
-    [class.profile-header__image-container--story]="storyAvailable()"
-    (click)="storyAvailable() ? onStoryClick.emit() : null"
-  >
+  <div class="profile-header__image-container">
     @if (hasValidImage()) {
     <img
       [ngSrc]="profileImage()"
@@ -46,7 +52,7 @@
       priority
     />
     } @else {
-    <div class="profile-header__initials">
+    <div class="profile-header__initials" aria-label="Avatar placeholder">
       {{ userInitials() }}
     </div>
     }

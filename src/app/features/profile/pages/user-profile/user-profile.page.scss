@@ -1,4 +1,34 @@
 .user-profile {
+  &__skeleton {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    padding: 0 2px;
+    margin-top: 16px;
+  }
+
+  &__skeleton-item {
+    aspect-ratio: 1;
+    background: var(--lightGrayColor, #f0f0f0);
+    border-radius: 4px;
+    animation: pulse 1.5s infinite;
+  }
+
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 16px;
+    gap: 16px;
+  }
+
+  &__empty-text {
+    color: var(--grayColor);
+    font-size: 14px;
+    text-align: center;
+  }
+
   &__actions {
     display: flex;
     gap: 10px;
@@ -20,4 +50,9 @@
   &__btn-text {
     text-align: center;
   }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }

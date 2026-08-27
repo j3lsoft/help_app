@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { environment } from '@env/environment';
 import { Observable } from 'rxjs';
@@ -16,5 +16,17 @@ export class PostsApiService {
       `${this.baseUrl}/api/v1/posts`,
       dto
     );
+  }
+
+  getPostsByAuthor(
+    authorId: string,
+    sort: 'asc' | 'desc' = 'desc'
+  ): Observable<PostResponseDto[]> {
+    const params = new HttpParams()
+      .set('authorId', authorId)
+      .set('sort', `createdAt:${sort}`);
+    return this.http.get<PostResponseDto[]>(`${this.baseUrl}/api/v1/posts`, {
+      params,
+    });
   }
 }
