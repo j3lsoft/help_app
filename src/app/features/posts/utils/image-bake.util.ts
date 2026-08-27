@@ -21,16 +21,58 @@ function canvasToBlob(canvas: HTMLCanvasElement, quality: number): Promise<Blob>
   });
 }
 
+export interface BakeOptions {
+  maxDimension?: number;
+  fileName?: string;
+  quality?: number;
+  /** CSS transform string, e.g. "rotate(90deg)". Only rotate is supported in v1. */
+  transform?: string | null;
+}
+
+function parseRotateDegrees(transform: string | null | undefined): number {
+  if (!transform) return 0;
+  const match = transform.match(/rotate\(\s*(-?\d+(?:\.\d+)?)\s*deg\s*\)/i);
+  if (!match) return 0;
+  const deg = Number(match[1]);
+  if (!Number.isFinite(deg)) return 0;
+  // Normalize to 0..360
+  const normalized = ((Math.round(deg) % 360) + 360) % 360;
+  return normalized;
+}
+
+function resolveBakeArgs(
+  cssFilter: string | null | undefined,
+  optionsOrTransform?: string | null | undefined | BakeOptions,
+  maybeOptions?: BakeOptions
+): { filter: string | null | undefined; transform: string | null | undefined; options: BakeOptions } {
+  // Overload: (filter, options) or (filter, transform, options)
+  if (typeof optionsOrTransform === 'string' || optionsOrTransform === null || optionsOrTransform === undefined) {
+    // Could be transform string or missing; check if maybeOptions is object
+    const transform = optionsOrTransform as string | null | undefined;
+    const options = maybeOptions ?? {};
+    // If options also carries transform, prefer explicit param unless options.transform is set
+    const effectiveTransform = transform ?? options.transform ?? null;
+    const effectiveOptions = { ...options, transform: effectiveTransform } as BakeOptions;
+    return { filter: cssFilter, transform: effectiveTransform, options: effectiveOptions };
+  }
+  // options object with possible transform inside
+  const options = optionsOrTransform as BakeOptions;
+  return { filter: cssFilter, transform: options.transform ?? null, options };
+}
+
 /**
- * Bakes a CSS filter into the actual bitmap via canvas and returns a
- * JPEG File, downscaled to maxDimension on its longest side.
+ * Bakes a CSS filter and optional rotate transform into the actual bitmap via canvas
+ * and returns a JPEG File, downscaled to maxDimension on its longest side.
  * This is what gets uploaded, so what the user previewed is what publishes.
+ * Order deterministically: filter then rotate. Canvas dimensions are swapped for 90°/270°.
  */
 export async function bakeImageFilter(
   src: string,
   cssFilter: string | null | undefined,
-  options?: { maxDimension?: number; fileName?: string; quality?: number }
+  optionsOrTransform?: string | null | undefined | BakeOptions,
+  maybeOptions?: BakeOptions
 ): Promise<File> {
+  const { filter, transform, options } = resolveBakeArgs(cssFilter, optionsOrTransform, maybeOptions);
   const maxDimension = options?.maxDimension ?? POST_IMAGE_MAX_DIMENSION;
   const quality = options?.quality ?? JPEG_QUALITY;
 
@@ -40,20 +82,35 @@ export async function bakeImageFilter(
     1,
     maxDimension / Math.max(image.naturalWidth, image.naturalHeight)
   );
-  const width = Math.max(1, Math.round(image.naturalWidth * scale));
-  const height = Math.max(1, Math.round(image.naturalHeight * scale));
+  const scaledWidth = Math.max(1, Math.round(image.naturalWidth * scale));
+  const scaledHeight = Math.max(1, Math.round(image.naturalHeight * scale));
+
+  const degrees = parseRotateDegrees(transform);
+  const isQuarterTurn = degrees === 90 || degrees === 270;
+
+  const canvasWidth = isQuarterTurn ? scaledHeight : scaledWidth;
+  const canvasHeight = isQuarterTurn ? scaledWidth : scaledHeight;
 
   const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
+  canvas.width = canvasWidth;
+  canvas.height = canvasHeight;
 
   const ctx = canvas.getContext('2d');
   if (!ctx) {
     throw new Error('Canvas 2D context not available');
   }
 
-  ctx.filter = cssFilter || 'none';
-  ctx.drawImage(image, 0, 0, width, height);
+  ctx.filter = filter || 'none';
+
+  if (degrees !== 0) {
+    const rad = (degrees * Math.PI) / 180;
+    ctx.translate(canvasWidth / 2, canvasHeight / 2);
+    ctx.rotate(rad);
+    ctx.drawImage(image, -scaledWidth / 2, -scaledHeight / 2, scaledWidth, scaledHeight);
+  } else {
+    ctx.drawImage(image, 0, 0, scaledWidth, scaledHeight);
+  }
+
   ctx.filter = 'none';
 
   const blob = await canvasToBlob(canvas, quality);
