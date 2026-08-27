@@ -29,10 +29,26 @@
   <ion-img
     [src]="selectedImageSrc()"
     style="height: 300px; object-fit: cover"
-    class="margin20"
-    [style.filter]="selectedFilter()"
+    class="margin20 preview-image"
+    [style.filter]="effectiveFilter()"
+    [style.transform]="effectiveTransform()"
   >
   </ion-img>
+
+  @if (hasNonNeutralVisuals()) {
+    <div class="reset-all-row">
+      <ion-button
+        fill="clear"
+        size="small"
+        (click)="resetAll()"
+        class="reset-all-button"
+        aria-label="Reset all filters and edits"
+      >
+        <ion-icon slot="start" name="refresh-outline"></ion-icon>
+        Reset All
+      </ion-button>
+    </div>
+  }
 
   <div
     style="
@@ -81,6 +97,12 @@
               [src]="selectedImageSrc()"
               style="width: 100px; height: 100px; object-fit: cover"
               [style.filter]="item.filter"
+              [class.filter-active]="isFilterActive(item.filter)"
+              role="button"
+              tabindex="0"
+              [attr.aria-pressed]="isFilterActive(item.filter)"
+              [attr.aria-label]="'Filter ' + item.filterName"
+              class="filter-thumb"
             >
             </ion-img>
           </div>
@@ -88,27 +110,125 @@
       }
     </div>
   } @else if (selectedTab() === 'Edit') {
-    <div>
-      <div style="column-count: 4; margin: 20px; column-gap: 10px">
+    @if (activeEdit() === null) {
+      <div class="edit-grid">
         @for (item of editOptions; track item.id) {
           <div
-            class="columnAlignCenter"
-            style="display: flexbox; margin-bottom: 20px"
+            class="edit-option"
+            [class.edit-enabled]="isEditEnabled(item)"
+            [class.edit-disabled]="isEditDisabled(item)"
+            [class.edit-has-value]="hasEditValue(item)"
+            [class.edit-active]="isEditActive(item)"
+            (click)="openEdit(item)"
+            role="button"
+            tabindex="0"
+            [attr.aria-disabled]="isEditDisabled(item) ? 'true' : 'false'"
+            [attr.aria-label]="item.optionName"
           >
-            <ion-img
-              [src]="item.editOptionIcon"
-              style="width: 25px; height: 25px; object-fit: cover"
-            >
-            </ion-img>
+            <div class="edit-icon-wrapper">
+              <ion-img
+                [src]="item.editOptionIcon"
+                class="edit-icon"
+              >
+              </ion-img>
+              @if (hasEditValue(item)) {
+                <span class="edit-dot" aria-hidden="true"></span>
+              }
+            </div>
             <ion-text
-              class="blackColor14Regular ellipseText"
+              class="blackColor14Regular ellipseText edit-label"
               style="-webkit-line-clamp: 1; margin-top: 3px; text-align: center"
             >
               {{ item.optionName }}
             </ion-text>
+            @if (isEditDisabled(item)) {
+              <span class="coming-soon-badge">Próximamente</span>
+            }
           </div>
         }
       </div>
-    </div>
+    } @else {
+      <div class="edit-panel">
+        <div class="edit-panel-header">
+          <ion-button fill="clear" size="small" (click)="closeEdit()" aria-label="Close edit panel">
+            <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+          <ion-text class="blackColor16SemiBold">
+            @if (activeEdit() === 'brightness') { Brightness }
+            @else if (activeEdit() === 'contrast') { Contrast }
+            @else if (activeEdit() === 'blur') { Blur }
+            @else if (activeEdit() === 'rotate') { Rotate }
+          </ion-text>
+          <ion-button fill="clear" size="small" (click)="resetActiveEdit()" aria-label="Reset current edit">
+            Reset
+          </ion-button>
+        </div>
+
+        @if (activeEdit() === 'brightness') {
+          <div class="edit-control">
+            <ion-range
+              min="-100"
+              max="100"
+              step="1"
+              [value]="selectedEdits().brightness"
+              (ionChange)="onBrightnessChange($event)"
+              aria-label="Brightness"
+              [attr.aria-valuenow]="selectedEdits().brightness"
+              [attr.aria-valuetext]="selectedEdits().brightness + ''"
+            >
+              <ion-text slot="start">-100</ion-text>
+              <ion-text slot="end">100</ion-text>
+            </ion-range>
+            <ion-text class="edit-value-label">{{ selectedEdits().brightness }}</ion-text>
+          </div>
+        } @else if (activeEdit() === 'contrast') {
+          <div class="edit-control">
+            <ion-range
+              min="-100"
+              max="100"
+              step="1"
+              [value]="selectedEdits().contrast"
+              (ionChange)="onContrastChange($event)"
+              aria-label="Contrast"
+              [attr.aria-valuenow]="selectedEdits().contrast"
+              [attr.aria-valuetext]="selectedEdits().contrast + ''"
+            >
+              <ion-text slot="start">-100</ion-text>
+              <ion-text slot="end">100</ion-text>
+            </ion-range>
+            <ion-text class="edit-value-label">{{ selectedEdits().contrast }}</ion-text>
+          </div>
+        } @else if (activeEdit() === 'blur') {
+          <div class="edit-control">
+            <ion-range
+              min="0"
+              max="10"
+              step="1"
+              [value]="selectedEdits().blur"
+              (ionChange)="onBlurChange($event)"
+              aria-label="Blur"
+              [attr.aria-valuenow]="selectedEdits().blur"
+              [attr.aria-valuetext]="selectedEdits().blur + 'px'"
+            >
+              <ion-text slot="start">0</ion-text>
+              <ion-text slot="end">10px</ion-text>
+            </ion-range>
+            <ion-text class="edit-value-label">{{ selectedEdits().blur }}px</ion-text>
+          </div>
+        } @else if (activeEdit() === 'rotate') {
+          <div class="edit-control rotate-control">
+            <ion-text class="blackColor14Regular">Current: {{ selectedEdits().rotate * 90 }}°</ion-text>
+            <div class="rotate-buttons">
+              <ion-button expand="block" (click)="rotateClockwise()" class="rotate-button">
+                Rotate 90°
+              </ion-button>
+              <ion-button fill="outline" expand="block" (click)="resetRotate()" class="rotate-button">
+                Reset
+              </ion-button>
+            </div>
+          </div>
+        }
+      </div>
+    }
   }
 </ion-content>
