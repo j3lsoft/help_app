@@ -1,5 +1,8 @@
 export const POST_IMAGE_MAX_DIMENSION = 1920;
-const JPEG_QUALITY = 0.92;
+const WEBP_QUALITY = 0.8;
+const JPEG_FALLBACK_QUALITY = 0.8;
+const RETRY_QUALITY = 0.7;
+const SIZE_THRESHOLD_BYTES = 800 * 1024;
 
 export function loadImageElement(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -11,14 +14,39 @@ export function loadImageElement(src: string): Promise<HTMLImageElement> {
   });
 }
 
-function canvasToBlob(canvas: HTMLCanvasElement, quality: number): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    canvas.toBlob(
-      (blob) => (blob ? resolve(blob) : reject(new Error('Canvas export failed'))),
-      'image/jpeg',
-      quality
-    );
+function canvasToBlob(canvas: HTMLCanvasElement, mime: string, quality: number): Promise<Blob | null> {
+  return new Promise((resolve) => {
+    canvas.toBlob((blob) => resolve(blob), mime, quality);
   });
+}
+
+async function exportOptimizedBlob(
+  canvas: HTMLCanvasElement,
+  preferredMime: string,
+  quality: number
+): Promise<{ blob: Blob; mime: string }> {
+  let mime = preferredMime;
+  let blob = await canvasToBlob(canvas, mime, quality);
+
+  // Fallback to JPEG if WebP not supported (toBlob returns null)
+  if (!blob && mime === 'image/webp') {
+    mime = 'image/jpeg';
+    blob = await canvasToBlob(canvas, mime, quality);
+  }
+
+  if (!blob) {
+    throw new Error('Canvas export failed');
+  }
+
+  // Retry at lower quality if over budget and we have headroom
+  if (blob.size > SIZE_THRESHOLD_BYTES && quality > RETRY_QUALITY) {
+    const retryBlob = await canvasToBlob(canvas, mime, RETRY_QUALITY);
+    if (retryBlob && retryBlob.size < blob.size) {
+      blob = retryBlob;
+    }
+  }
+
+  return { blob, mime };
 }
 
 export interface BakeOptions {
@@ -62,7 +90,8 @@ function resolveBakeArgs(
 
 /**
  * Bakes a CSS filter and optional rotate transform into the actual bitmap via canvas
- * and returns a JPEG File, downscaled to maxDimension on its longest side.
+ * and returns an optimized image File (WebP preferente, JPEG fallback),
+ * downscaled to maxDimension on its longest side.
  * This is what gets uploaded, so what the user previewed is what publishes.
  * Order deterministically: filter then rotate. Canvas dimensions are swapped for 90°/270°.
  */
@@ -74,7 +103,7 @@ export async function bakeImageFilter(
 ): Promise<File> {
   const { filter, transform, options } = resolveBakeArgs(cssFilter, optionsOrTransform, maybeOptions);
   const maxDimension = options?.maxDimension ?? POST_IMAGE_MAX_DIMENSION;
-  const quality = options?.quality ?? JPEG_QUALITY;
+  const preferredQuality = options?.quality ?? WEBP_QUALITY;
 
   const image = await loadImageElement(src);
 
@@ -113,8 +142,9 @@ export async function bakeImageFilter(
 
   ctx.filter = 'none';
 
-  const blob = await canvasToBlob(canvas, quality);
-  return new File([blob], options?.fileName ?? 'post.jpg', {
-    type: 'image/jpeg',
+  const { blob, mime } = await exportOptimizedBlob(canvas, 'image/webp', preferredQuality);
+  const defaultName = mime === 'image/webp' ? 'post.webp' : 'post.jpg';
+  return new File([blob], options?.fileName ?? defaultName, {
+    type: mime,
   });
 }

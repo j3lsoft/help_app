@@ -81,13 +81,13 @@ describe('PostPublishService', () => {
     expect(result.post.id).toBe('post-1');
     expect(result.mediaFileId).toBe('media-1');
     expect(uploadApiSpy.getPresignedUrl).toHaveBeenCalledWith(
-      jasmine.objectContaining({ mimeType: 'image/jpeg' })
+      jasmine.objectContaining({ mimeType: jasmine.stringMatching(/image\/(jpeg|webp)/) })
     );
     expect(uploadApiSpy.uploadToStorage).toHaveBeenCalled();
     expect(uploadApiSpy.confirmUpload).toHaveBeenCalledWith(
       jasmine.objectContaining({
         fileId: 'presigned-id',
-        mimeType: 'image/jpeg',
+        mimeType: jasmine.stringMatching(/image\/(jpeg|webp)/),
       })
     );
     expect(postsApiSpy.createPost).toHaveBeenCalledWith({
