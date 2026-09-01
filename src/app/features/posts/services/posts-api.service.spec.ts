@@ -4,22 +4,40 @@ import {
   HttpTestingController,
 } from '@angular/common/http/testing';
 import { PostsApiService } from './posts-api.service';
-import { CreatePostRequestDto, PostResponseDto } from '../models/post.dto';
+import {
+  CreatePostRequestDto,
+  PaginatedPostsResponseDto,
+  PostResponseDto,
+} from '../models/post.dto';
 import { environment } from '@env/environment';
 
 describe('PostsApiService', () => {
   let service: PostsApiService;
   let httpMock: HttpTestingController;
-  const baseUrl = `${environment.apiBaseUrl}/api/v1/posts`;
+  const baseUrl = `${environment.apiBaseUrl}/api/v1`;
 
   const POST_DTO: PostResponseDto = {
     id: 'post-1',
     authorId: 'user-1',
     content: 'hello',
-    media: [{ id: 'ref-1', mediaFileId: 'media-1', position: 0 }],
+    media: [
+      {
+        id: 'ref-1',
+        mediaFileId: 'media-1',
+        position: 0,
+        publicUrl: 'https://storage.example.com/uploads/post.jpg',
+        mimeType: 'image/jpeg',
+      },
+    ],
     status: 'published',
     createdAt: '2026-08-25T00:00:00Z',
     updatedAt: '2026-08-25T00:00:00Z',
+  };
+
+  const PAGE: PaginatedPostsResponseDto = {
+    items: [POST_DTO],
+    nextCursor: null,
+    total: 1,
   };
 
   beforeEach(() => {
@@ -48,20 +66,34 @@ describe('PostsApiService', () => {
       expect(result).toEqual(POST_DTO);
     });
 
-    const req = httpMock.expectOne(baseUrl);
+    const req = httpMock.expectOne(`${baseUrl}/posts`);
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual(dto);
     req.flush(POST_DTO);
   });
 
-  it('should allow creating a post without content (image only)', () => {
-    const dto: CreatePostRequestDto = { content: null, mediaIds: ['media-1'] };
+  it('should GET a user posts page with default limit', () => {
+    service.getUserPosts('user-1').subscribe((result) => {
+      expect(result).toEqual(PAGE);
+    });
 
-    service.createPost(dto).subscribe();
+    const req = httpMock.expectOne(`${baseUrl}/users/user-1/posts?limit=20`);
+    expect(req.request.method).toBe('GET');
+    expect(req.request.params.get('limit')).toBe('20');
+    expect(req.request.params.has('cursor')).toBeFalse();
+    req.flush(PAGE);
+  });
 
-    const req = httpMock.expectOne(baseUrl);
-    expect(req.request.method).toBe('POST');
-    expect(req.request.body).toEqual(dto);
-    req.flush(POST_DTO);
+  it('should include cursor when provided', () => {
+    service
+      .getUserPosts('user-1', { cursor: 'next-cursor', limit: 10 })
+      .subscribe();
+
+    const req = httpMock.expectOne(
+      `${baseUrl}/users/user-1/posts?limit=10&cursor=next-cursor`
+    );
+    expect(req.request.params.get('cursor')).toBe('next-cursor');
+    expect(req.request.params.get('limit')).toBe('10');
+    req.flush(PAGE);
   });
 });

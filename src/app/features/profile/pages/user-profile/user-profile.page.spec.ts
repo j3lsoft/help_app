@@ -3,6 +3,7 @@ import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
 import { NavController } from '@ionic/angular';
 import { of, throwError } from 'rxjs';
 import { AppError } from '@core/models/app-error.model';
+import { LoggerService } from '@core/services/logger.service';
 import { ProfileErrorFacade } from '../../errors/profile-error.facade';
 import { SocialErrorFacade } from '../../errors/social-error.facade';
 import { PublicProfileResponseDto } from '../../services/profile-api.service';
@@ -48,8 +49,10 @@ describe('UserProfilePage', () => {
     );
     followServiceSpy.toggleFollow.and.returnValue(of(void 0));
 
-    const postsApiSpy = jasmine.createSpyObj('PostsApiService', ['getPostsByAuthor']);
-    postsApiSpy.getPostsByAuthor.and.returnValue(of([]));
+    const postsApiSpy = jasmine.createSpyObj('PostsApiService', ['getUserPosts']);
+    postsApiSpy.getUserPosts.and.returnValue(
+      of({ items: [], nextCursor: null, total: 0 }),
+    );
 
     await TestBed.configureTestingModule({
       imports: [UserProfilePage],
@@ -76,6 +79,15 @@ describe('UserProfilePage', () => {
         },
         { provide: FollowService, useValue: followServiceSpy },
         { provide: PostsApiService, useValue: postsApiSpy },
+        {
+          provide: LoggerService,
+          useValue: jasmine.createSpyObj('LoggerService', [
+            'error',
+            'debug',
+            'info',
+            'warn',
+          ]),
+        },
       ],
     }).compileComponents();
 

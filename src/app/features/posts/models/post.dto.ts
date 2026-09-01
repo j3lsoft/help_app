@@ -9,6 +9,8 @@ export interface MediaReferenceResponseDto {
   id: string;
   mediaFileId: string;
   position: number;
+  publicUrl: string;
+  mimeType: string;
 }
 
 export interface PostResponseDto {
@@ -19,6 +21,12 @@ export interface PostResponseDto {
   status: PostStatus;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface PaginatedPostsResponseDto {
+  items: PostResponseDto[];
+  nextCursor: string | null;
+  total: number;
 }
 
 export interface CreatePostRequestDto {

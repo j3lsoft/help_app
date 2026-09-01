@@ -1,3 +1,5 @@
+import { PostResponseDto } from '@features/posts/models/post.dto';
+import { PostItem } from '../models/post-item.model';
 import {
   normalizeWebsiteUrl,
   stripWebsiteProtocol,
@@ -13,6 +15,19 @@ export interface ProfileHeaderViewModel {
   postsCount: string;
   followersCount: string;
   followingCount: string;
+}
+
+/**
+ * Maps a Post DTO to the profile grid item, using the first media's publicUrl.
+ * Falls back to a placeholder when no media or publicUrl is available.
+ */
+export function toPostItem(post: PostResponseDto): PostItem {
+  return {
+    id: post.id,
+    image:
+      post.media?.[0]?.publicUrl || 'assets/images/gallery/gallery1.png',
+    createdAt: post.createdAt,
+  };
 }
 
 interface ProfileSourceFields {

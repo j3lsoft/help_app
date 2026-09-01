@@ -1,11 +1,13 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  OnDestroy,
   computed,
   inject,
 } from '@angular/core';
-import { rxResource, toObservable } from '@angular/core/rxjs-interop';
+import { rxResource } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
+import { LoggerService } from '@core/services/logger.service';
 import { toAppError } from '@core/utils/app-error.utils';
 import { AuthService } from '@features/auth/services/auth.service';
 import { ProfileHeaderComponent } from '@features/profile/components/profile-header/profile-header.component';
@@ -14,24 +16,27 @@ import { FollowService } from '@features/profile/services/follow.service';
 import { ProfileService } from '@features/profile/services/profile.service';
 import { PostsApiService } from '@features/posts/services/posts-api.service';
 import {
+  IonButton,
   IonButtons,
   IonContent,
+  IonInfiniteScroll,
+  IonInfiniteScrollContent,
   IonMenuButton,
   IonRefresher,
   IonRefresherContent,
   IonSpinner,
   IonText,
-  IonButton,
   NavController,
   ViewWillEnter,
 } from '@ionic/angular/standalone';
 import { TopBarComponent } from '@shared/components/top-bar/top-bar.component';
-import { of, catchError, map, switchMap } from 'rxjs';
+import { catchError } from 'rxjs';
 import { ProfileErrorFacade } from '../../errors/profile-error.facade';
 import { SocialErrorFacade } from '../../errors/social-error.facade';
+import { PostItem } from '../../models/post-item.model';
+import { createProfilePostsLoader } from '../../utils/profile-posts.loader';
 import { toProfileHeaderViewModel } from '../../utils/profile-view.utils';
 import { catchSocialError } from '../../utils/social-page-error.utils';
-import { PostItem } from '../../models/post-item.model';
 
 @Component({
   selector: 'app-profile',
@@ -47,20 +52,34 @@ import { PostItem } from '../../models/post-item.model';
     IonButton,
     IonRefresher,
     IonRefresherContent,
+    IonInfiniteScroll,
+    IonInfiniteScrollContent,
     ProfileHeaderComponent,
     ProfilePostGridComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProfilePage implements ViewWillEnter {
+export class ProfilePage implements ViewWillEnter, OnDestroy {
   private navCtrl = inject(NavController);
   private router = inject(Router);
+  private logger = inject(LoggerService);
   private authService = inject(AuthService);
   private profileService = inject(ProfileService);
   private followService = inject(FollowService);
   private postsApi = inject(PostsApiService);
   private readonly profileErrorFacade = inject(ProfileErrorFacade);
   private readonly socialErrorFacade = inject(SocialErrorFacade);
+
+  private readonly postsLoader = createProfilePostsLoader({
+    fetchPage: (userId, cursor) => this.postsApi.getUserPosts(userId, { cursor }),
+    logger: this.logger,
+  });
+
+  readonly profilePosts = this.postsLoader.posts;
+  readonly isLoadingPosts = this.postsLoader.isLoading;
+  readonly hasMorePosts = this.postsLoader.hasMore;
+  readonly postsNotFound = this.postsLoader.notFound;
+  readonly postsCount = this.postsLoader.postsCount;
 
   private readonly profileResource = rxResource({
     stream: () =>
@@ -76,39 +95,6 @@ export class ProfilePage implements ViewWillEnter {
   isLoadingProfile = computed(() => this.profileResource.isLoading());
 
   showProfileError = computed(() => !!this.profileResource.error());
-
-  private readonly authUserId$ = toObservable(
-    computed(() => this.authService.currentUser()?.id ?? null)
-  );
-
-  readonly profilePostsResource = rxResource({
-    stream: () =>
-      this.authUserId$.pipe(
-        switchMap((userId) => {
-          if (!userId) return of<PostItem[]>([]);
-          return this.postsApi.getPostsByAuthor(userId, 'desc').pipe(
-            map((posts) =>
-              [...posts]
-                .sort(
-                  (a, b) =>
-                    new Date(b.createdAt).getTime() -
-                    new Date(a.createdAt).getTime()
-                )
-                .map((p) => ({
-                  id: p.id,
-                  image: p.media?.[0]?.mediaFileId || 'assets/images/gallery/gallery1.png',
-                  createdAt: p.createdAt,
-                }))
-            ),
-            catchError(() => of<PostItem[]>([]))
-          );
-        })
-      ),
-  });
-
-  isLoadingPosts = computed(() => this.profilePostsResource.isLoading());
-  profilePosts = computed(() => this.profilePostsResource.value() ?? []);
-  postsCount = computed(() => String(this.profilePosts().length));
 
   userProfile = computed(() => {
     const authUser = this.authService.currentUser();
@@ -133,6 +119,19 @@ export class ProfilePage implements ViewWillEnter {
       .loadSocialState(userId)
       .pipe(catchSocialError(this.socialErrorFacade, 'follow-counts'))
       .subscribe();
+
+    this.postsLoader.loadFirst(userId);
+  }
+
+  loadMorePosts(event: CustomEvent) {
+    const userId = this.authService.currentUser()?.id;
+    if (!userId) {
+      (event.target as unknown as { complete: () => void }).complete();
+      return;
+    }
+    this.postsLoader.loadMore(userId, () =>
+      (event.target as unknown as { complete: () => void }).complete(),
+    );
   }
 
   handleRefresh(event: CustomEvent) {
@@ -142,15 +141,25 @@ export class ProfilePage implements ViewWillEnter {
         .loadSocialState(userId)
         .pipe(catchSocialError(this.socialErrorFacade, 'follow-counts'))
         .subscribe();
+      this.postsLoader.loadFirst(userId);
     }
     this.profileResource.reload();
-    this.profilePostsResource.reload();
-    setTimeout(() => (event.target as unknown as { complete: () => void }).complete(), 600);
+    setTimeout(
+      () => (event.target as unknown as { complete: () => void }).complete(),
+      600,
+    );
   }
 
   retryProfile() {
     this.profileResource.reload();
-    this.profilePostsResource.reload();
+    const userId = this.authService.currentUser()?.id;
+    if (userId) {
+      this.postsLoader.loadFirst(userId);
+    }
+  }
+
+  ngOnDestroy() {
+    this.postsLoader.destroy();
   }
 
   goBack() {

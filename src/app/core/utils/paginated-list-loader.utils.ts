@@ -20,6 +20,7 @@ export interface LoadPaginatedPageConfig<TDto, TItem> {
   mapItems: (items: TDto[]) => TItem[];
   logContext: string;
   logger: LoggerService;
+  onTotal?: (total: number) => void;
 }
 
 function resetPaginatedListState<TItem>(state: PaginatedListState<TItem>): void {
@@ -40,6 +41,7 @@ export function loadPaginatedPage<TDto, TItem>(
     mapItems,
     logContext,
     logger,
+    onTotal,
   } = config;
 
   if (currentScopeKey) {
@@ -72,6 +74,9 @@ export function loadPaginatedPage<TDto, TItem>(
       state.items.update((prev) => [...prev, ...mapped]);
       state.cursor.set(response.nextCursor);
       state.hasMore.set(response.nextCursor !== null);
+      if (onTotal && typeof response.total === 'number') {
+        onTotal(response.total);
+      }
     }),
     map(() => void 0),
     catchError((error: unknown) => {

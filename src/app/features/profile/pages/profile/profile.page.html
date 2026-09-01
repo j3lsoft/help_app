@@ -23,8 +23,8 @@
     [postsCount]="profile.postsCount"
     [followersCount]="profile.followersCount"
     [followingCount]="profile.followingCount"
-    (onFollowersClick)="goToFollowers()"
-    (onFollowingClick)="goToFollowings()"
+    (followersClick)="goToFollowers()"
+    (followingClick)="goToFollowings()"
   ></app-profile-header>
 
   <button
@@ -35,7 +35,11 @@
     Edit Profile
   </button>
 
-  @if (isLoadingPosts()) {
+  @if (postsNotFound()) {
+  <div class="profile-page__empty" aria-label="User not found">
+    <ion-text class="profile-page__empty-text">User not found</ion-text>
+  </div>
+  } @else if (isLoadingPosts()) {
   <div class="profile-page__skeleton" aria-label="Loading posts">
     @for (i of [1,2,3,4,5,6]; track i) {
     <div class="profile-page__skeleton-item"></div>
@@ -43,14 +47,19 @@
   </div>
   } @else if (profilePosts().length === 0) {
   <div class="profile-page__empty" aria-label="Empty posts">
-    <ion-text class="profile-page__empty-text">Aún no publicaste nada</ion-text>
-    <ion-button fill="outline" (click)="goTo('tabs/create-post')">Crear tu primer post</ion-button>
+    <ion-text class="profile-page__empty-text">You have not published anything yet</ion-text>
+    <ion-button fill="outline" (click)="goTo('tabs/create-post')">Create your first post</ion-button>
   </div>
   } @else {
   <app-profile-post-grid
     [posts]="profilePosts()"
     (postClick)="onPostClick($event)"
   ></app-profile-post-grid>
+  @if (hasMorePosts()) {
+  <ion-infinite-scroll threshold="30%" (ionInfinite)="loadMorePosts($event)">
+    <ion-infinite-scroll-content></ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+  }
   }
 </ion-content>
 } @else if (isLoadingProfile()) {

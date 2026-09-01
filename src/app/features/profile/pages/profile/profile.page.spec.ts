@@ -7,6 +7,7 @@ import { PostsApiService } from '@features/posts/services/posts-api.service';
 import { ProfileService } from '@features/profile/services/profile.service';
 import { FollowService } from '@features/profile/services/follow.service';
 import { AuthService } from '@features/auth/services/auth.service';
+import { LoggerService } from '@core/services/logger.service';
 import { ProfileErrorFacade } from '../../errors/profile-error.facade';
 import { SocialErrorFacade } from '../../errors/social-error.facade';
 import { ProfilePage } from './profile.page';
@@ -14,10 +15,13 @@ import { ProfilePage } from './profile.page';
 describe('ProfilePage', () => {
   let component: ProfilePage;
   let fixture: ComponentFixture<ProfilePage>;
+  let postsApiSpy: jasmine.SpyObj<PostsApiService>;
 
   beforeEach(waitForAsync(() => {
-    const postsApiSpy = jasmine.createSpyObj('PostsApiService', ['getPostsByAuthor']);
-    postsApiSpy.getPostsByAuthor.and.returnValue(of([]));
+    postsApiSpy = jasmine.createSpyObj('PostsApiService', ['getUserPosts']);
+    postsApiSpy.getUserPosts.and.returnValue(
+      of({ items: [], nextCursor: null, total: 0 }),
+    );
 
     const authSpy = {
       currentUser: signal({ id: 'u1', username: 'test', displayName: 'Test', avatarUrl: null, email: 'a@b.com', emailVerified: true }),
@@ -43,6 +47,7 @@ describe('ProfilePage', () => {
         { provide: FollowService, useValue: followSpy },
         { provide: ProfileErrorFacade, useValue: jasmine.createSpyObj('ProfileErrorFacade', ['handle']) },
         { provide: SocialErrorFacade, useValue: jasmine.createSpyObj('SocialErrorFacade', ['handle']) },
+        { provide: LoggerService, useValue: jasmine.createSpyObj('LoggerService', ['error', 'debug', 'info', 'warn']) },
       ],
     }).compileComponents();
 
@@ -62,5 +67,39 @@ describe('ProfilePage', () => {
 
   it('should handle post click navigation', () => {
     expect(() => component.onPostClick({ id: '123', image: 'img' })).not.toThrow();
+  });
+
+  it('should load first posts page and reflect total count', () => {
+    postsApiSpy.getUserPosts.and.returnValue(
+      of({
+        items: [
+          {
+            id: 'p1',
+            authorId: 'u1',
+            content: 'hi',
+            media: [
+              {
+                id: 'm1',
+                mediaFileId: 'file-1',
+                position: 0,
+                publicUrl: 'https://cdn.example.com/p1.jpg',
+                mimeType: 'image/jpeg',
+              },
+            ],
+            status: 'published',
+            createdAt: '2026-08-25T00:00:00Z',
+            updatedAt: '2026-08-25T00:00:00Z',
+          },
+        ],
+        nextCursor: 'next-page',
+        total: 5,
+      }),
+    );
+
+    component.ionViewWillEnter();
+
+    expect(component.profilePosts().length).toBe(1);
+    expect(component.profilePosts()[0].image).toBe('https://cdn.example.com/p1.jpg');
+    expect(component.postsCount()).toBe('5');
   });
 });

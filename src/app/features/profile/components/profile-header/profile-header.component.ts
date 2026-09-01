@@ -32,8 +32,8 @@ export class ProfileHeaderComponent {
   followsYou = input<boolean>(false);
   bioExpanded = signal(false);
 
-  onFollowersClick = output<void>();
-  onFollowingClick = output<void>();
+  followersClick = output<void>();
+  followingClick = output<void>();
 
   hasValidImage = computed(() => isValidUserImage(this.profileImage()));
 

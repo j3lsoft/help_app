@@ -7,7 +7,15 @@ describe('post-view.adapter', () => {
     id: 'post-1',
     authorId: 'user-1',
     content: 'hello world',
-    media: [{ id: 'ref-1', mediaFileId: 'media-1', position: 0 }],
+    media: [
+      {
+        id: 'ref-1',
+        mediaFileId: 'media-1',
+        position: 0,
+        publicUrl: 'https://storage.example.com/uploads/post.jpg',
+        mimeType: 'image/jpeg',
+      },
+    ],
     status: 'published',
     createdAt: '2026-08-25T00:00:00Z',
     updatedAt: '2026-08-25T00:00:00Z',

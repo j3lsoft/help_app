@@ -3,11 +3,11 @@
     <span class="profile-header__stat-value" aria-label="Posts count">{{ postsCount() }}</span>
     <span class="profile-header__stat-label">posts</span>
   </div>
-  <div class="profile-header__stat-item" (click)="onFollowersClick.emit()" role="button" tabindex="0" [attr.aria-label]="'Followers: ' + followersCount()" (keydown.enter)="onFollowersClick.emit()">
+  <div class="profile-header__stat-item" (click)="followersClick.emit()" role="button" tabindex="0" [attr.aria-label]="'Followers: ' + followersCount()" (keydown.enter)="followersClick.emit()">
     <span class="profile-header__stat-value">{{ followersCount() }}</span>
     <span class="profile-header__stat-label">followers</span>
   </div>
-  <div class="profile-header__stat-item" (click)="onFollowingClick.emit()" role="button" tabindex="0" [attr.aria-label]="'Following: ' + followingCount()" (keydown.enter)="onFollowingClick.emit()">
+  <div class="profile-header__stat-item" (click)="followingClick.emit()" role="button" tabindex="0" [attr.aria-label]="'Following: ' + followingCount()" (keydown.enter)="followingClick.emit()">
     <span class="profile-header__stat-value">{{ followingCount() }}</span>
     <span class="profile-header__stat-label">following</span>
   </div>

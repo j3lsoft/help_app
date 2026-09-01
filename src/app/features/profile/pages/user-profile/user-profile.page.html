@@ -29,8 +29,8 @@
     [followersCount]="followerCount()"
     [followingCount]="followingCount()"
     [followsYou]="followsYou()"
-    (onFollowersClick)="goToFollowers()"
-    (onFollowingClick)="goToFollowings()"
+    (followersClick)="goToFollowers()"
+    (followingClick)="goToFollowings()"
   ></app-profile-header>
 
   <div class="user-profile__actions">
@@ -53,7 +53,11 @@
     </div>
   </div>
 
-  @if (isLoadingPosts()) {
+  @if (postsNotFound()) {
+  <div class="user-profile__empty" aria-label="User not found">
+    <ion-text class="user-profile__empty-text">User not found</ion-text>
+  </div>
+  } @else if (isLoadingPosts()) {
   <div class="user-profile__skeleton" aria-label="Loading posts">
     @for (i of [1,2,3,4,5,6]; track i) {
     <div class="user-profile__skeleton-item"></div>
@@ -61,13 +65,18 @@
   </div>
   } @else if (profilePosts().length === 0) {
   <div class="user-profile__empty" aria-label="Empty posts">
-    <ion-text class="user-profile__empty-text">Aún no hay publicaciones</ion-text>
+    <ion-text class="user-profile__empty-text">No posts yet</ion-text>
   </div>
   } @else {
   <app-profile-post-grid
     [posts]="profilePosts()"
     (postClick)="onPostClick($event)"
   ></app-profile-post-grid>
+  @if (hasMorePosts()) {
+  <ion-infinite-scroll threshold="30%" (ionInfinite)="loadMorePosts($event)">
+    <ion-infinite-scroll-content></ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+  }
   }
   }
 </ion-content>

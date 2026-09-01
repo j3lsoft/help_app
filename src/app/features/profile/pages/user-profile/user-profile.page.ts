@@ -1,25 +1,30 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  OnDestroy,
   computed,
+  effect,
   inject,
   linkedSignal,
   signal,
 } from '@angular/core';
 import { rxResource, toObservable } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
+import { LoggerService } from '@core/services/logger.service';
 import { toAppError } from '@core/utils/app-error.utils';
 import {
   catchSocialError,
   followActionContext,
 } from '../../utils/social-page-error.utils';
 import {
-  IonContent,
-  IonSpinner,
-  IonText,
   IonButton,
+  IonContent,
+  IonInfiniteScroll,
+  IonInfiniteScrollContent,
   IonRefresher,
   IonRefresherContent,
+  IonSpinner,
+  IonText,
   NavController,
 } from '@ionic/angular/standalone';
 import { BackHeaderComponent } from '@shared/components/back-header/back-header.component';
@@ -34,6 +39,7 @@ import { SocialErrorFacade } from '../../errors/social-error.facade';
 import { ProfileService } from '../../services/profile.service';
 import { FollowService } from '../../services/follow.service';
 import { PostsApiService } from '@features/posts/services/posts-api.service';
+import { createProfilePostsLoader } from '../../utils/profile-posts.loader';
 import {
   normalizeWebsiteUrl,
   stripWebsiteProtocol,
@@ -51,6 +57,8 @@ import { PostItem } from '../../models/post-item.model';
     IonButton,
     IonRefresher,
     IonRefresherContent,
+    IonInfiniteScroll,
+    IonInfiniteScrollContent,
     BackHeaderComponent,
     ProfileHeaderComponent,
     ProfilePostGridComponent,
@@ -58,10 +66,11 @@ import { PostItem } from '../../models/post-item.model';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class UserProfilePage {
+export class UserProfilePage implements OnDestroy {
   private readonly navCtrl = inject(NavController);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly logger = inject(LoggerService);
   private readonly profileService = inject(ProfileService);
   private readonly profileErrorFacade = inject(ProfileErrorFacade);
   private readonly socialErrorFacade = inject(SocialErrorFacade);
@@ -132,34 +141,16 @@ export class UserProfilePage {
     () => this.followCounts.value()?.followeeCount ?? 0,
   );
 
-  readonly profilePostsResource = rxResource({
-    stream: () =>
-      this.profileId$.pipe(
-        switchMap((userId) => {
-          if (!userId) return of<PostItem[]>([]);
-          return this.postsApi.getPostsByAuthor(userId, 'desc').pipe(
-            map((posts) =>
-              [...posts]
-                .sort(
-                  (a, b) =>
-                    new Date(b.createdAt).getTime() -
-                    new Date(a.createdAt).getTime()
-                )
-                .map((p) => ({
-                  id: p.id,
-                  image: p.media?.[0]?.mediaFileId || 'assets/images/gallery/gallery1.png',
-                  createdAt: p.createdAt,
-                }))
-            ),
-            catchError(() => of<PostItem[]>([]))
-          );
-        })
-      ),
+  private readonly postsLoader = createProfilePostsLoader({
+    fetchPage: (userId, cursor) => this.postsApi.getUserPosts(userId, { cursor }),
+    logger: this.logger,
   });
 
-  isLoadingPosts = computed(() => this.profilePostsResource.isLoading());
-  profilePosts = computed(() => this.profilePostsResource.value() ?? []);
-  postsCount = computed(() => String(this.profilePosts().length));
+  readonly profilePosts = this.postsLoader.posts;
+  readonly isLoadingPosts = this.postsLoader.isLoading;
+  readonly hasMorePosts = this.postsLoader.hasMore;
+  readonly postsNotFound = this.postsLoader.notFound;
+  readonly postsCount = this.postsLoader.postsCount;
 
   private readonly _isTogglingFollow = signal(false);
   readonly isTogglingFollow = this._isTogglingFollow.asReadonly();
@@ -173,6 +164,24 @@ export class UserProfilePage {
 
   constructor() {
     addIcons({ chevronBack, playOutline });
+
+    effect(() => {
+      const userId = this.profileId();
+      if (userId) {
+        this.postsLoader.loadFirst(userId);
+      }
+    });
+  }
+
+  loadMorePosts(event: CustomEvent): void {
+    const userId = this.profileId();
+    if (!userId) {
+      (event.target as unknown as { complete: () => void }).complete();
+      return;
+    }
+    this.postsLoader.loadMore(userId, () =>
+      (event.target as unknown as { complete: () => void }).complete(),
+    );
   }
 
   goBack() {
@@ -200,8 +209,18 @@ export class UserProfilePage {
   handleRefresh(event: CustomEvent) {
     this.userProfile.reload();
     this.followCounts.reload();
-    this.profilePostsResource.reload();
-    setTimeout(() => (event.target as unknown as { complete: () => void }).complete(), 600);
+    const userId = this.profileId();
+    if (userId) {
+      this.postsLoader.loadFirst(userId);
+    }
+    setTimeout(
+      () => (event.target as unknown as { complete: () => void }).complete(),
+      600,
+    );
+  }
+
+  ngOnDestroy() {
+    this.postsLoader.destroy();
   }
 
   onPostClick(post: PostItem) {
