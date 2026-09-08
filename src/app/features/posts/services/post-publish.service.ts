@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, lastValueFrom } from 'rxjs';
 import { LoggerService } from '../../../core/services/logger.service';
 import { UploadApiService } from '../../../core/services/media/upload/services/upload-api.service';
 import { CreatePostRequestDto, PostResponseDto } from '../models/post.dto';
@@ -9,9 +9,9 @@ import { PostsApiService } from './posts-api.service';
 export type PublishStage = 'baking' | 'uploading' | 'creating';
 
 export interface PublishParams {
-  /** WebView-loadable URL of the selected image. */
-  imageSrc: string;
-  filterCss: string;
+  /** WebView-loadable URL of the selected image. Empty/null for text-only Posts. */
+  imageSrc?: string | null;
+  filterCss?: string | null;
   /** CSS transform for Effective Transform, e.g. "rotate(90deg)". */
   transformCss?: string | null;
   content: string | null;
@@ -23,7 +23,8 @@ export interface PublishParams {
 
 export interface PublishResult {
   post: PostResponseDto;
-  mediaFileId: string;
+  /** Confirmed MediaFile id, or null for text-only Posts. */
+  mediaFileId: string | null;
 }
 
 /** Publish failure carrying which stage failed and any confirmed media. */
@@ -48,15 +49,29 @@ export class PostPublishService {
   private readonly logger = inject(LoggerService);
 
   async publish(params: PublishParams): Promise<PublishResult> {
-    const mediaFileId = params.pendingMediaId
+    const content = params.content?.trim() ? params.content.trim() : null;
+    const imageSrc = (params.imageSrc ?? '').trim();
+    const hasImage = imageSrc.length > 0;
+
+    if (!hasImage && !content && !params.pendingMediaId) {
+      throw new PostPublishError('Cannot publish empty post', 'creating');
+    }
+
+    const mediaFileId: string | null = params.pendingMediaId
       ? await this.reusePendingMedia(params.pendingMediaId)
-      : await this.uploadImage(params);
+      : hasImage
+        ? await this.uploadImage({
+            ...params,
+            imageSrc,
+            filterCss: params.filterCss ?? '',
+          })
+        : null;
 
     params.onStage?.('creating');
 
     const dto: CreatePostRequestDto = {
-      content: params.content?.trim() ? params.content.trim() : null,
-      mediaIds: [mediaFileId],
+      content,
+      mediaIds: mediaFileId ? [mediaFileId] : [],
     };
 
     try {
@@ -65,11 +80,12 @@ export class PostPublishService {
     } catch (error) {
       // Media is confirmed on the server but the post failed:
       // surface it so the caller can retry reusing it or clean it up.
+      // Text-only failures carry no media (undefined).
       throw new PostPublishError(
         'Post creation failed',
         'creating',
         error,
-        mediaFileId
+        mediaFileId ?? undefined
       );
     }
   }
@@ -82,7 +98,12 @@ export class PostPublishService {
     return mediaFileId;
   }
 
-  private async uploadImage(params: PublishParams): Promise<string> {
+  private async uploadImage(
+    params: Omit<PublishParams, 'imageSrc' | 'filterCss'> & {
+      imageSrc: string;
+      filterCss: string;
+    }
+  ): Promise<string> {
     let file;
 
     try {
@@ -118,7 +139,11 @@ export class PostPublishService {
     }
 
     try {
-      await firstValueFrom(
+      // uploadToStorage emits one value per progress tick plus a final 100 on
+      // load: wait for completion, not the first tick. firstValueFrom here
+      // resolved early, unsubscribed, and the teardown aborted the PUT
+      // mid-flight, so confirm then failed with 422 "File does not exist".
+      await lastValueFrom(
         this.uploadApi.uploadToStorage(
           presigned.uploadUrl,
           file,
@@ -141,6 +166,14 @@ export class PostPublishService {
       );
       return media.id;
     } catch (error) {
+      this.logger.error('Upload confirmation failed', {
+        context: 'PostPublishService',
+        data: { fileId: presigned.id, key: presigned.key },
+      });
+      // The backend verifies the object reached storage at confirm time, so a
+      // failure here means no MediaFile exists yet: the retry must re-upload
+      // from scratch (no uploadedMediaId), unlike 'creating' failures which
+      // reuse the confirmed media via pendingMediaId.
       throw new PostPublishError(
         'Upload confirmation failed',
         'uploading',

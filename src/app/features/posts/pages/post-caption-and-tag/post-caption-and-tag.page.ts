@@ -80,9 +80,9 @@ export class PostCaptionAndTagPage implements ViewWillLeave {
 
   constructor() {
     addIcons({ chevronBack });
-    if (!this.postCreation.hasSelectedImage()) {
-      this.navCtrl.back();
-    }
+    // Text-only mode is allowed: entry without an image lands here from
+    // create-post. Empty posts (no image + empty Content) are blocked at
+    // publish time, not at entry, so the Author can type first.
   }
 
   goBack(): void {
@@ -112,7 +112,9 @@ export class PostCaptionAndTagPage implements ViewWillLeave {
     if (this.isPublishing()) {
       return;
     }
-    if (!this.postCreation.hasSelectedImage()) {
+    const content = this.buildContent();
+    const hasImage = this.postCreation.hasSelectedImage();
+    if (!hasImage && !content) {
       return;
     }
 
@@ -124,7 +126,7 @@ export class PostCaptionAndTagPage implements ViewWillLeave {
         imageSrc: this.selectedImageSrc(),
         filterCss: this.effectiveFilter(),
         transformCss: this.effectiveTransform(),
-        content: this.buildContent(),
+        content,
         pendingMediaId: this.postCreation.pendingMediaId(),
         onUploadProgress: (percent) => this.uploadProgress.set(percent),
       });

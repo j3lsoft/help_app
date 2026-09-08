@@ -46,9 +46,15 @@ describe('CreatePostPage', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should not continue without a selected image', () => {
+  it('should go to caption for text-only posts without a selected image', () => {
     component.goToPostFilter();
-    expect(routerSpy.navigate).not.toHaveBeenCalled();
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/post-caption-and-tag']);
+  });
+
+  it('should go to filter when an image is selected', () => {
+    postCreationService.selectImage({ src: 'blob:x', format: 'jpeg', origin: 'gallery' });
+    component.goToPostFilter();
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/post-filter']);
   });
 
   it('should store the image selected from the device gallery', async () => {

@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { of, throwError } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { LoggerService } from '@core/services/logger.service';
 import { UploadApiService } from '@core/services/media/upload/services/upload-api.service';
 import { MediaFileResponseDto } from '../../../core/services/media/upload/models';
@@ -116,6 +116,30 @@ describe('PostPublishService', () => {
     });
   });
 
+  it('should publish text-only posts with empty mediaIds without uploading', async () => {
+    const result = await service.publish({ imageSrc: '', content: 'hello text' });
+
+    expect(result.mediaFileId).toBeNull();
+    expect(uploadApiSpy.getPresignedUrl).not.toHaveBeenCalled();
+    expect(uploadApiSpy.uploadToStorage).not.toHaveBeenCalled();
+    expect(uploadApiSpy.confirmUpload).not.toHaveBeenCalled();
+    expect(postsApiSpy.createPost).toHaveBeenCalledWith({
+      content: 'hello text',
+      mediaIds: [],
+    });
+  });
+
+  it('should reject empty posts with no image and no content', async () => {
+    try {
+      await service.publish({ content: '   ' });
+      fail('expected PostPublishError');
+    } catch (error) {
+      expect(error).toBeInstanceOf(PostPublishError);
+      expect((error as PostPublishError).stage).toBe('creating');
+    }
+    expect(postsApiSpy.createPost).not.toHaveBeenCalled();
+  });
+
   it('should skip the upload and reuse the pending media id on retry', async () => {
     const result = await service.publish({
       imageSrc: TINY_PNG,
@@ -169,6 +193,65 @@ describe('PostPublishService', () => {
     } catch (error) {
       const publishError = error as PostPublishError;
       expect(publishError.stage).toBe('uploading');
+      expect(publishError.uploadedMediaId).toBeUndefined();
+    }
+  });
+
+  it('should wait for the storage PUT to complete before confirming (multi-tick upload)', async () => {
+    // Reproduces the 422 "File does not exist in storage": uploadToStorage
+    // emits one value per progress tick, and unsubscribing early aborts the
+    // XHR (teardown calls xhr.abort), so the object never lands in storage.
+    let uploaded = false;
+    uploadApiSpy.uploadToStorage.and.returnValue(
+      new Observable<number>((observer) => {
+        observer.next(30);
+        const timer = setTimeout(() => {
+          uploaded = true;
+          observer.next(100);
+          observer.complete();
+        }, 10);
+        // Models XHR abort on unsubscribe: early teardown cancels the PUT.
+        return () => clearTimeout(timer);
+      })
+    );
+    uploadApiSpy.confirmUpload.and.callFake(() =>
+      uploaded
+        ? of(MEDIA)
+        : throwError(() => ({
+            statusCode: 422,
+            message: 'File does not exist in storage',
+            error: 'Unprocessable Entity',
+            code: 'INVALID_FILE',
+          }))
+    );
+
+    const result = await service.publish({
+      imageSrc: TINY_PNG,
+      filterCss: '',
+      content: null,
+    });
+
+    expect(result.post.id).toBe('post-1');
+    expect(result.mediaFileId).toBe('media-1');
+    expect(uploadApiSpy.confirmUpload).toHaveBeenCalled();
+  });
+
+  it('should fail at uploading without a media id when the backend confirm rejects (object missing in storage)', async () => {
+    uploadApiSpy.confirmUpload.and.returnValue(
+      throwError(() => ({ status: 422, message: 'object not in storage' }))
+    );
+
+    try {
+      await service.publish({
+        imageSrc: TINY_PNG,
+        filterCss: '',
+        content: null,
+      });
+      fail('expected PostPublishError');
+    } catch (error) {
+      const publishError = error as PostPublishError;
+      expect(publishError.stage).toBe('uploading');
+      // No MediaFile exists yet, so the retry must re-upload from scratch.
       expect(publishError.uploadedMediaId).toBeUndefined();
     }
   });

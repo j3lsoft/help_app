@@ -59,9 +59,7 @@ export class CreatePostPage {
   readonly hasSelectedImage = this.postCreation.hasSelectedImage;
   readonly isSelecting = signal(false);
 
-  readonly canContinue = computed(
-    () => this.hasSelectedImage() && !this.isSelecting()
-  );
+  readonly canContinue = computed(() => !this.isSelecting());
 
   constructor() {
     addIcons({ close, arrowForwardOutline, imagesOutline, cameraOutline });
@@ -89,7 +87,12 @@ export class CreatePostPage {
   }
 
   goToPostFilter(): void {
-    if (!this.canContinue()) {
+    if (this.isSelecting()) {
+      return;
+    }
+    // Text-only mode skips the filter/edit step straight to caption.
+    if (!this.hasSelectedImage()) {
+      this.router.navigate(['/post-caption-and-tag']);
       return;
     }
     this.router.navigate(['/post-filter']);

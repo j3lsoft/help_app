@@ -26,7 +26,9 @@
   </ion-text>
 
   <div class="post-card__content">
-    <ion-img [src]="post().postImage" class="post-card__main-image"></ion-img>
+    @if (post().postImage) {
+      <ion-img [src]="post().postImage" class="post-card__main-image"></ion-img>
+    }
     <div class="post-card__actions">
       <div class="post-card__action-item" (click)="likeClick.emit()">
         <ion-icon

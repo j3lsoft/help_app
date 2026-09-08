@@ -61,4 +61,11 @@ describe('post-view.adapter', () => {
     const post = toFeedPost({ ...POST_DTO, content: null }, AUTHOR, 'blob:x');
     expect(post.aboutPost).toBe('');
   });
+
+  it('should map text-only posts with empty image url', () => {
+    const textOnly = { ...POST_DTO, media: [] };
+    const post = toFeedPost(textOnly, AUTHOR, '');
+    expect(post.postImage).toBe('');
+    expect(post.aboutPost).toBe('hello world');
+  });
 });

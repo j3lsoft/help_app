@@ -132,7 +132,33 @@ describe('PostCaptionAndTagPage', () => {
     expect(postCreationService.hasSelectedImage()).toBeFalse();
   });
 
+  it('should publish text-only posts without an image when content is present', async () => {
+    postCreationService.reset();
+    component.form.controls.caption.setValue('hello text');
+
+    await component.publish();
+
+    expect(publishSpy.publish).toHaveBeenCalledWith(
+      jasmine.objectContaining({ imageSrc: '', content: 'hello text' })
+    );
+    expect(notificationSpy.showSuccess).toHaveBeenCalled();
+  });
+
+  it('should block empty posts with no image and no content', async () => {
+    postCreationService.reset();
+    publishSpy.publish.calls.reset();
+    component.form.controls.caption.setValue('   ');
+    component.form.controls.tags.setValue('');
+
+    await component.publish();
+
+    expect(publishSpy.publish).not.toHaveBeenCalled();
+  });
+
   it('should send only hashtags as content when there is no caption', async () => {
+    postCreationService.selectImage({ src: 'blob:image-src', format: 'jpeg', origin: 'gallery' });
+    publishSpy.publish.calls.reset();
+    component.form.controls.caption.setValue('');
     component.form.controls.tags.setValue('#sun  beach, #Sun');
 
     await component.publish();
@@ -140,6 +166,17 @@ describe('PostCaptionAndTagPage', () => {
     expect(publishSpy.publish).toHaveBeenCalledWith(
       jasmine.objectContaining({ content: '#sun #beach' })
     );
+  });
+
+  it('should preserve content for retry when text-only publish fails', async () => {
+    postCreationService.reset();
+    publishSpy.publish.and.rejectWith(new Error('network down'));
+    component.form.controls.caption.setValue('keep me');
+
+    await component.publish();
+
+    expect(component.form.controls.caption.value).toBe('keep me');
+    expect(uploadApiSpy.deleteFile).not.toHaveBeenCalled();
   });
 
   it('should clean up pending media when leaving without publishing', () => {
