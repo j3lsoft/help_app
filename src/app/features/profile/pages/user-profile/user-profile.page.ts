@@ -17,13 +17,11 @@ import {
   followActionContext,
 } from '../../utils/social-page-error.utils';
 import {
-  IonButton,
   IonContent,
   IonInfiniteScroll,
   IonInfiniteScrollContent,
   IonRefresher,
   IonRefresherContent,
-  IonSpinner,
   IonText,
   NavController,
 } from '@ionic/angular/standalone';
@@ -53,8 +51,6 @@ import { PostItem } from '../../models/post-item.model';
   imports: [
     IonContent,
     IonText,
-    IonSpinner,
-    IonButton,
     IonRefresher,
     IonRefresherContent,
     IonInfiniteScroll,

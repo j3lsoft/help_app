@@ -14,6 +14,12 @@ export interface GetUserPostsOptions {
   cursor?: string | null;
   /** Number of items per page. */
   limit?: number;
+  /**
+   * Opt-in total count (extra COUNT query on the backend).
+   * Defaults to true so profile `postsCount` reflects the real total.
+   * Set to false to skip counting for perf-sensitive callers.
+   */
+  includeTotal?: boolean;
 }
 
 @Injectable({
@@ -37,6 +43,11 @@ export class PostsApiService {
     let params = new HttpParams().set('limit', options.limit ?? 20);
     if (options.cursor) {
       params = params.set('cursor', options.cursor);
+    }
+    // Backend only returns `total` when includeTotal is set (extra COUNT query).
+    // Default true to preserve the profile postsCount contract (Q2 A / Q4 B).
+    if (options.includeTotal ?? true) {
+      params = params.set('includeTotal', 'true');
     }
     return this.http.get<PaginatedPostsResponseDto>(
       `${this.baseUrl}/api/v1/users/${userId}/posts`,

@@ -37,7 +37,8 @@ export interface ProfilePostsLoader {
 
 /**
  * Shared paginated state for Profile Posts (My Profile and PublicProfile).
- * Accumulates pages via an opaque cursor, tracks the backend `total`, and
+ * Accumulates pages via an opaque cursor, tracks the backend `total` when
+ * present (only returned with `includeTotal=true`), and
  * applies the 422 reset-and-retry policy on any page load.
  */
 export function createProfilePostsLoader({
@@ -45,7 +46,7 @@ export function createProfilePostsLoader({
   logger,
 }: ProfilePostsLoaderDeps): ProfilePostsLoader {
   const state = createPaginatedListState<PostItem>();
-  const totalPosts = signal(0);
+  const totalPosts = signal<number | undefined>(undefined);
 
   let sub: Subscription | undefined;
   let scopeUserId: string | null = null;
@@ -57,10 +58,15 @@ export function createProfilePostsLoader({
   const notFound = computed(() => state.error()?.status === 404);
   const postsCount = computed(() => {
     const total = totalPosts();
-    return total > 0 ? String(total) : String(posts().length);
+    return total !== undefined ? String(total) : String(posts().length);
   });
 
   function loadPage(userId: string, reset: boolean) {
+    if (reset) {
+      // Avoid stale total when switching users or reloading: total is
+      // only re-set when the backend returns a number (includeTotal=true).
+      totalPosts.set(undefined);
+    }
     return loadPaginatedPage({
       reset,
       scopeKey: userId,

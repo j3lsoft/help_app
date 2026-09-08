@@ -26,7 +26,7 @@ export interface PostResponseDto {
 export interface PaginatedPostsResponseDto {
   items: PostResponseDto[];
   nextCursor: string | null;
-  total: number;
+  total?: number;
 }
 
 export interface CreatePostRequestDto {

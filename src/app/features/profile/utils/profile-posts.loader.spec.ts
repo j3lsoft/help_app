@@ -141,4 +141,35 @@ describe('createProfilePostsLoader', () => {
     expect(loader.posts().length).toBe(1);
     expect(loader.posts()[0].id).toBe('p1');
   });
+
+  it('should fall back to loaded length when total is absent', () => {
+    fetchSpy.and.returnValue(of({ items: PAGE_1.items, nextCursor: null }));
+    const loader = createProfilePostsLoader({
+      fetchPage: fetchSpy,
+      logger: loggerSpy,
+    });
+
+    loader.loadFirst('u1');
+
+    expect(loader.posts().length).toBe(1);
+    expect(loader.postsCount()).toBe('1');
+  });
+
+  it('should not leak total across users when the next response omits it', () => {
+    fetchSpy.and.callFake((userId: string) =>
+      userId === 'u1'
+        ? of(PAGE_1)
+        : of({ items: [], nextCursor: null }),
+    );
+    const loader = createProfilePostsLoader({
+      fetchPage: fetchSpy,
+      logger: loggerSpy,
+    });
+
+    loader.loadFirst('u1');
+    expect(loader.postsCount()).toBe('5');
+
+    loader.loadFirst('u2');
+    expect(loader.postsCount()).toBe('0');
+  });
 });
