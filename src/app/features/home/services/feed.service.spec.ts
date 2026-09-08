@@ -10,12 +10,11 @@ describe('FeedService', () => {
     service = TestBed.inject(FeedService);
   });
 
-  it('should be created with mock seed data', () => {
-    expect(service.todaysPosts()).toEqual(MOCK_TODAY_POSTS);
-    expect(service.oldPosts()).toEqual(MOCK_OLD_POSTS);
+  it('should be created with a single chronological seed list', () => {
+    expect(service.posts()).toEqual([...MOCK_TODAY_POSTS, ...MOCK_OLD_POSTS]);
   });
 
-  it('should prepend a new post on top of today list', () => {
+  it('should prepend a new post on top of the list', () => {
     const newPost = {
       id: 'new-post',
       userProfilePic: '',
@@ -26,22 +25,25 @@ describe('FeedService', () => {
       postComments: '0',
       postShares: '0',
       postImage: 'blob:image-src',
+      postImages: ['blob:image-src'],
       postLike: false,
     };
 
     service.prependPost(newPost);
 
-    expect(service.todaysPosts()[0]).toEqual(newPost);
-    expect(service.todaysPosts().length).toBe(MOCK_TODAY_POSTS.length + 1);
+    expect(service.posts()[0]).toEqual(newPost);
+    expect(service.posts().length).toBe(
+      MOCK_TODAY_POSTS.length + MOCK_OLD_POSTS.length + 1
+    );
   });
 
-  it('should toggle like for a specific post in a given list', () => {
+  it('should toggle like for a specific post', () => {
     const target = MOCK_TODAY_POSTS[0];
 
-    service.toggleLike('today', target.id);
-    expect(service.todaysPosts()[0].postLike).toBe(!target.postLike);
+    service.toggleLike(target.id);
+    expect(service.posts()[0].postLike).toBe(!target.postLike);
 
-    service.toggleLike('today', target.id);
-    expect(service.todaysPosts()[0].postLike).toBe(target.postLike);
+    service.toggleLike(target.id);
+    expect(service.posts()[0].postLike).toBe(target.postLike);
   });
 });

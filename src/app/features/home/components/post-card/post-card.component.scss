@@ -52,12 +52,6 @@
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
   }
 
-  &__main-image {
-    height: 150px;
-    width: 100%;
-    object-fit: cover;
-  }
-
   &__actions {
     display: flex;
     flex-direction: row;

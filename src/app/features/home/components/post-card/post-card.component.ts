@@ -13,6 +13,7 @@ import {
   heartOutline,
   shareSocial,
 } from 'ionicons/icons';
+import { PostMediaCarouselComponent } from '@shared/components/post-media-carousel/post-media-carousel.component';
 
 export interface Post {
   id: string;
@@ -23,14 +24,17 @@ export interface Post {
   postLikes: string;
   postComments: string;
   postShares: string;
+  /** First image, or '' for text-only Posts. Deprecated: prefer postImages. */
   postImage: string;
+  /** Ordered carousel images. Empty for text-only Posts. */
+  postImages: string[];
   postLike: boolean;
 }
 
 @Component({
   selector: 'app-post-card',
   standalone: true,
-  imports: [IonImg, IonText, IonIcon],
+  imports: [IonImg, IonText, IonIcon, PostMediaCarouselComponent],
   templateUrl: './post-card.component.html',
   styleUrls: ['./post-card.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -41,6 +45,8 @@ export class PostCardComponent {
   likeClick = output<void>();
   commentClick = output<void>();
   shareClick = output<void>();
+  /** Tapping the media opens the post detail. */
+  postClick = output<string>();
 
   constructor() {
     addIcons({

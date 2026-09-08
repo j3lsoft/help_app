@@ -1,0 +1,33 @@
+@if (images().length > 1) {
+  <div class="carousel">
+    <div #track class="carousel__track" (scroll)="onTrackScroll($event)">
+      @for (src of images(); track src; let i = $index) {
+        <ion-img
+          [src]="src"
+          class="carousel__image"
+          [attr.aria-hidden]="i !== activeIndex()"
+        ></ion-img>
+      }
+    </div>
+    <div
+      class="carousel__dots"
+      role="tablist"
+      aria-label="Post images"
+      (click)="$event.stopPropagation()"
+    >
+      @for (src of images(); track src; let i = $index) {
+        <button
+          type="button"
+          class="carousel__dot"
+          [class.carousel__dot--active]="i === activeIndex()"
+          (click)="goToSlide(i)"
+          role="tab"
+          [attr.aria-selected]="i === activeIndex()"
+          [attr.aria-label]="'Image ' + (i + 1) + ' of ' + images().length"
+        ></button>
+      }
+    </div>
+  </div>
+} @else if (images().length === 1) {
+  <ion-img [src]="images()[0]" class="carousel__single-image"></ion-img>
+}

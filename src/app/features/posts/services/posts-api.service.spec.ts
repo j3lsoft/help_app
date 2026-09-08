@@ -72,6 +72,16 @@ describe('PostsApiService', () => {
     req.flush(POST_DTO);
   });
 
+  it('should GET a post by id', () => {
+    service.getPostById('post-1').subscribe((result) => {
+      expect(result).toEqual(POST_DTO);
+    });
+
+    const req = httpMock.expectOne(`${baseUrl}/posts/post-1`);
+    expect(req.request.method).toBe('GET');
+    req.flush(POST_DTO);
+  });
+
   it('should GET a user posts page with default limit', () => {
     service.getUserPosts('user-1').subscribe((result) => {
       expect(result).toEqual(PAGE);

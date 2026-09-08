@@ -43,6 +43,7 @@ describe('post-view.adapter', () => {
       postComments: '0',
       postShares: '0',
       postImage: 'blob:image-src',
+      postImages: ['blob:image-src'],
       postLike: false,
     });
   });
@@ -66,6 +67,7 @@ describe('post-view.adapter', () => {
     const textOnly = { ...POST_DTO, media: [] };
     const post = toFeedPost(textOnly, AUTHOR, '');
     expect(post.postImage).toBe('');
+    expect(post.postImages).toEqual([]);
     expect(post.aboutPost).toBe('hello world');
   });
 });

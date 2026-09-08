@@ -50,8 +50,7 @@ export class HomePage implements ViewWillEnter {
   private readonly feed = inject(FeedService);
 
   readonly usersStories = signal<UserStory[]>(MOCK_USERS_STORIES);
-  readonly todaysPostsList = this.feed.todaysPosts;
-  readonly oldPostsList = this.feed.oldPosts;
+  readonly postsList = this.feed.posts;
 
   readonly suggestionsList = this.followService.suggestions;
 
@@ -74,8 +73,16 @@ export class HomePage implements ViewWillEnter {
     this.router.navigateByUrl(`user-profile/${username}`);
   }
 
-  handlePostLike(list: 'today' | 'old', postId: string) {
-    this.feed.toggleLike(list, postId);
+  goToPostDetail(postId: string) {
+    this.router.navigateByUrl(`post-detail/${postId}`);
+  }
+
+  goToComments(postId: string) {
+    this.router.navigate(['comments'], { queryParams: { postId } });
+  }
+
+  handlePostLike(postId: string) {
+    this.feed.toggleLike(postId);
   }
 
   handleFollowToggle(suggestion: { id: string; isFollow: boolean }) {

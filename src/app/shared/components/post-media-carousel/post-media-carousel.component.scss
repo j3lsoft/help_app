@@ -1,0 +1,66 @@
+.carousel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+
+  &__track {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  &__track::-webkit-scrollbar {
+    display: none;
+  }
+
+  &__image {
+    flex: 0 0 100%;
+    width: 100%;
+    height: var(--post-carousel-height, 150px);
+    object-fit: cover;
+    scroll-snap-align: center;
+  }
+
+  &__single-image {
+    width: 100%;
+    height: var(--post-carousel-height, 150px);
+    object-fit: cover;
+  }
+
+  &__dots {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 2px 0;
+  }
+
+  &__dot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+  }
+
+  &__dot::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--ion-color-medium, #92949c);
+    opacity: 0.5;
+  }
+
+  &__dot--active::after {
+    background-color: var(--ion-color-primary, #3880ff);
+    opacity: 1;
+  }
+}

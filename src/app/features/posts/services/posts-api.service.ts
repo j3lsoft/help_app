@@ -36,6 +36,12 @@ export class PostsApiService {
     );
   }
 
+  getPostById(id: string): Observable<PostResponseDto> {
+    return this.http.get<PostResponseDto>(
+      `${this.baseUrl}/api/v1/posts/${id}`
+    );
+  }
+
   getUserPosts(
     userId: string,
     options: GetUserPostsOptions = {}

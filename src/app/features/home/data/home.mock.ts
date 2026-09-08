@@ -34,7 +34,7 @@ export const MOCK_USERS_STORIES: UserStory[] = [
   {
     id: '5',
     userProfilePic: '../../../../assets/images/users/user5.png',
-    storySeen: true,
+    storySeen: false,
     userName: 'Imran',
   },
   {
@@ -83,6 +83,10 @@ export const MOCK_TODAY_POSTS: Post[] = [
     postComments: '100',
     postShares: '35',
     postImage: '../../../../assets/images/posts/post1.png',
+    postImages: [
+      '../../../../assets/images/posts/post1.png',
+      '../../../../assets/images/posts/post2.png',
+    ],
     postLike: true,
   },
   {
@@ -95,6 +99,7 @@ export const MOCK_TODAY_POSTS: Post[] = [
     postComments: '100',
     postShares: '35',
     postImage: '../../../../assets/images/posts/post2.png',
+    postImages: ['../../../../assets/images/posts/post2.png'],
     postLike: false,
   },
 ];
@@ -110,6 +115,7 @@ export const MOCK_OLD_POSTS: Post[] = [
     postComments: '100',
     postShares: '35',
     postImage: '../../../../assets/images/posts/post3.png',
+    postImages: ['../../../../assets/images/posts/post3.png'],
     postLike: true,
   },
   {
@@ -122,6 +128,7 @@ export const MOCK_OLD_POSTS: Post[] = [
     postComments: '100',
     postShares: '35',
     postImage: '../../../../assets/images/posts/post4.png',
+    postImages: ['../../../../assets/images/posts/post4.png'],
     postLike: false,
   },
   {
@@ -134,6 +141,7 @@ export const MOCK_OLD_POSTS: Post[] = [
     postComments: '100',
     postShares: '35',
     postImage: '../../../../assets/images/posts/post5.png',
+    postImages: ['../../../../assets/images/posts/post5.png'],
     postLike: false,
   },
 ];

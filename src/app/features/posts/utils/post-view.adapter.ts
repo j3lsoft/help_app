@@ -24,6 +24,7 @@ export function toFeedPost(
     postComments: '0',
     postShares: '0',
     postImage: imageUrl,
+    postImages: imageUrl ? [imageUrl] : [],
     postLike: false,
   };
 }

@@ -1,6 +1,6 @@
 import { ErrorMapConfig } from '../../../core/errors/error-map.interface';
 
-export type PostErrorContext = 'publish';
+export type PostErrorContext = 'publish' | 'post-detail';
 
 const SESSION_EXPIRED_MESSAGE = 'Session expired. Please login again.';
 
@@ -17,5 +17,15 @@ export const POST_ERROR_MAP: Record<PostErrorContext, ErrorMapConfig> = {
       422: 'Check your caption and try again.',
     },
     fallback: 'Failed to publish the post. Please try again.',
+  },
+  'post-detail': {
+    byCode: {},
+    byStatus: {
+      400: 'Invalid post id.',
+      401: SESSION_EXPIRED_MESSAGE,
+      403: 'You cannot view this post.',
+      404: 'Post not found.',
+    },
+    fallback: 'Failed to load post. Please try again.',
   },
 };

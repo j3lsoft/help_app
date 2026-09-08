@@ -153,6 +153,14 @@ export const routes: Routes = [
       import('./screens/comments/comments.page').then((m) => m.CommentsPage),
   },
   {
+    path: 'post-detail/:id',
+    canMatch: [authGuard],
+    loadComponent: () =>
+      import('./features/posts/pages/post-detail/post-detail.page').then(
+        (m) => m.PostDetailPage
+      ),
+  },
+  {
     path: 'follow-requests',
     canMatch: [authGuard],
     loadComponent: () =>

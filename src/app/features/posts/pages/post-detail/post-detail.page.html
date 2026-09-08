@@ -1,0 +1,58 @@
+<app-back-header title="Post" (backClick)="goBack()"></app-back-header>
+
+<ion-content class="detail__content">
+  @if (isLoading()) {
+    <div class="detail__loading">
+      <ion-spinner name="crescent" aria-label="Loading post"></ion-spinner>
+    </div>
+  } @else if (postError()) {
+    <div class="detail__error">
+      <ion-text class="blackColor14Regular">{{ errorMessage() }}</ion-text>
+      <ion-text class="detail__retry" (click)="retry()" role="button" tabindex="0">
+        Retry
+      </ion-text>
+    </div>
+  } @else if (post(); as post) {
+    <div class="detail__author">
+      <ion-img [src]="authorAvatar()" class="detail__avatar"></ion-img>
+      <ion-text class="blackColor14SemiBold">{{ authorName() }}</ion-text>
+    </div>
+
+    @if (images().length > 0) {
+      <app-post-media-carousel
+        [images]="images()"
+        style="--post-carousel-height: 300px"
+      ></app-post-media-carousel>
+    }
+
+    @if (post.content) {
+      <ion-text class="grayColor12Regular detail__description">
+        {{ post.content }}
+      </ion-text>
+    }
+
+    <ion-text class="grayColor12Regular detail__date">
+      {{ post.createdAt | date: 'medium' }}
+    </ion-text>
+
+    <div class="detail__actions">
+      <div class="detail__action-item" (click)="toggleLike()">
+        <ion-icon
+          [name]="liked() ? 'heart' : 'heart-outline'"
+          [color]="liked() ? 'redColor' : 'grayColor'"
+          class="detail__action-icon"
+          [attr.aria-pressed]="liked()"
+          aria-label="Like post"
+        ></ion-icon>
+      </div>
+      <div class="detail__action-item" (click)="goToComments()">
+        <ion-icon
+          name="chatbox-ellipses-outline"
+          color="grayColor"
+          class="detail__action-icon"
+          aria-label="View comments"
+        ></ion-icon>
+      </div>
+    </div>
+  }
+</ion-content>
