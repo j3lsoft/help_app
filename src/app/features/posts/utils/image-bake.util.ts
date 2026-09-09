@@ -28,8 +28,10 @@ async function exportOptimizedBlob(
   let mime = preferredMime;
   let blob = await canvasToBlob(canvas, mime, quality);
 
-  // Fallback to JPEG if WebP not supported (toBlob returns null)
-  if (!blob && mime === 'image/webp') {
+  // Fallback to JPEG when WebP cannot be encoded. iOS Safari never encodes
+  // WebP via canvas: per the WHATWG canvas spec it silently returns a PNG
+  // blob instead of null, so the blob type (not just null) must be checked.
+  if ((!blob || blob.type !== mime) && mime === 'image/webp') {
     mime = 'image/jpeg';
     blob = await canvasToBlob(canvas, mime, quality);
   }
@@ -37,6 +39,8 @@ async function exportOptimizedBlob(
   if (!blob) {
     throw new Error('Canvas export failed');
   }
+  // Trust the bytes over the label in case of a silent fallback.
+  mime = blob.type || mime;
 
   // Retry at lower quality if over budget and we have headroom
   if (blob.size > SIZE_THRESHOLD_BYTES && quality > RETRY_QUALITY) {

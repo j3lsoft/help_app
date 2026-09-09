@@ -86,4 +86,28 @@ describe('image-bake.util', () => {
     expect(['post.webp', 'post.jpg']).toContain(file.name);
     expect(file.size).toBeGreaterThan(0);
   });
+
+  it('should fall back to JPEG when canvas silently returns PNG for webp (iOS Safari)', async () => {
+    const original = HTMLCanvasElement.prototype.toBlob;
+    spyOn(HTMLCanvasElement.prototype, 'toBlob').and.callFake(function (
+      this: HTMLCanvasElement,
+      callback: (blob: Blob | null) => void,
+      type?: string,
+      quality?: number
+    ): void {
+      if (type === 'image/webp') {
+        // iOS Safari decodes WebP but never encodes it: per spec it falls
+        // back to PNG instead of returning null.
+        callback(new Blob(['fake-png-bytes'], { type: 'image/png' }));
+        return;
+      }
+      original.call(this, callback, type, quality);
+    });
+
+    const file = await bakeImageFilter(PIXEL_PNG, null);
+
+    expect(file.type).toBe('image/jpeg');
+    expect(file.name).toBe('post.jpg');
+    expect(file.size).toBeGreaterThan(0);
+  });
 });
