@@ -1,108 +1,260 @@
 <app-back-header title="Post" (backClick)="goBack()">
   <ng-template #rightAction>
-    @if (isOwner() && post() && !editing()) {
-      <ion-icon
-        name="ellipsis-vertical"
-        color="blackColor"
-        class="detail__options-icon"
+    @if (isOwner() && post() && !editing() && !deleting()) {
+      <button
+        type="button"
+        class="detail__options-btn"
         (click)="toggleMenu()"
+        [attr.aria-expanded]="menuOpen()"
+        aria-haspopup="menu"
         aria-label="Post options"
-      ></ion-icon>
+      >
+        <ion-icon
+          name="ellipsis-vertical"
+          color="blackColor"
+          class="detail__options-icon"
+          aria-hidden="true"
+        ></ion-icon>
+      </button>
     }
   </ng-template>
 </app-back-header>
 
 <ion-content class="detail__content">
   @if (isLoading()) {
-    <div class="detail__loading">
-      <ion-spinner name="crescent" aria-label="Loading post"></ion-spinner>
+    <div
+      class="detail__loading"
+      role="status"
+      aria-label="Loading post"
+      aria-busy="true"
+    >
+      <div class="detail__skeleton" aria-hidden="true">
+        <div class="detail__skeleton-masthead">
+          <span class="detail__skeleton-avatar"></span>
+          <span class="detail__skeleton-lines">
+            <span class="detail__skeleton-line detail__skeleton-line--short"></span>
+            <span class="detail__skeleton-line detail__skeleton-line--tiny"></span>
+          </span>
+        </div>
+        <div class="detail__skeleton-media"></div>
+        <div class="detail__skeleton-line"></div>
+        <div class="detail__skeleton-line detail__skeleton-line--mid"></div>
+      </div>
+      <ion-spinner name="crescent" aria-hidden="true"></ion-spinner>
     </div>
   } @else if (postError()) {
-    <div class="detail__error">
-      <ion-text class="blackColor14Regular">{{ errorMessage() }}</ion-text>
-      <ion-text class="detail__retry" (click)="retry()" role="button" tabindex="0">
-        Retry
+    <div class="detail__error" role="alert">
+      <span class="detail__error-badge" aria-hidden="true">
+        <ion-icon name="alert-circle-outline" class="detail__error-icon"></ion-icon>
+      </span>
+      <ion-text class="blackColor14SemiBold detail__error-title">{{
+        isNotFound() ? 'Post not found' : 'Something went wrong'
+      }}</ion-text>
+      <ion-text class="grayColor12Regular detail__error-message">
+        {{ errorMessage() }}
       </ion-text>
+      @if (isNotFound()) {
+        <ion-text class="grayColor12Regular">
+          This post was deleted or never existed.
+        </ion-text>
+      }
+      <div class="detail__error-actions">
+        @if (!isNotFound()) {
+          <ion-button size="small" (click)="retry()" aria-label="Retry loading post">
+            <ion-icon name="refresh-outline" slot="start" aria-hidden="true"></ion-icon>
+            <span class="detail__retry">Retry</span>
+          </ion-button>
+        }
+        <ion-button
+          size="small"
+          fill="outline"
+          (click)="goBack()"
+          aria-label="Go back"
+        >
+          <ion-icon name="arrow-back-outline" slot="start" aria-hidden="true"></ion-icon>
+          Back
+        </ion-button>
+      </div>
     </div>
   } @else if (post(); as post) {
-    <div class="detail__author">
-      <ion-img [src]="authorAvatar()" class="detail__avatar"></ion-img>
-      <ion-text class="blackColor14SemiBold">{{ authorName() }}</ion-text>
-    </div>
-
-    @if (menuOpen()) {
-      <div class="detail__menu" role="menu" aria-label="Post options">
-        <ion-text class="detail__menu-item" (click)="startEdit()" role="menuitem" tabindex="0">
-          Edit
-        </ion-text>
-        <ion-text class="detail__menu-item detail__menu-item--danger" (click)="askDelete()" role="menuitem" tabindex="0">
-          Delete
-        </ion-text>
-      </div>
-    }
-
-    @if (images().length > 0) {
-      <app-post-media-carousel
-        [images]="images()"
-        style="--post-carousel-height: 300px"
-      ></app-post-media-carousel>
-    }
-
-    @if (editing()) {
-      <div class="detail__editor">
-        <ion-textarea
-          [formControl]="draft"
-          placeholder="Write a caption..."
-          mode="ios"
-          rows="4"
-          aria-label="Edit caption"
-        ></ion-textarea>
-        <div class="detail__editor-actions">
-          <ion-button fill="clear" size="small" (click)="cancelEdit()" aria-label="Cancel editing">
-            Cancel
-          </ion-button>
-          <ion-button
-            size="small"
-            (click)="saveEdit()"
-            [disabled]="!canSaveEdit()"
-            aria-label="Save changes"
-          >
-            @if (savingEdit()) {
-              <ion-spinner name="crescent"></ion-spinner>
-            } @else {
-              Save
-            }
-          </ion-button>
+    <article
+      class="detail__article"
+      [attr.aria-label]="'Post by ' + authorName()"
+    >
+      <header class="detail__masthead">
+        <div class="detail__author">
+          <span class="detail__avatar-wrap" aria-hidden="true">
+            <span class="detail__avatar-fallback">{{ authorInitial() }}</span>
+            <ion-img
+              [src]="authorAvatar()"
+              class="detail__avatar"
+              alt=""
+            ></ion-img>
+          </span>
+          <div class="detail__author-meta">
+            <ion-text class="blackColor14SemiBold detail__author-name">{{
+              authorName()
+            }}</ion-text>
+            <ion-text class="grayColor12Regular detail__author-sub">
+              {{ post.createdAt | date: 'MMM d, y · h:mm a' }}
+              @if (isEdited()) {
+                <span> · Edited</span>
+              }
+            </ion-text>
+          </div>
         </div>
-      </div>
-    } @else if (post.content) {
-      <ion-text class="grayColor12Regular detail__description">
-        {{ post.content }}
-      </ion-text>
-    }
+      </header>
 
-    <ion-text class="grayColor12Regular detail__date">
-      {{ post.createdAt | date: 'medium' }}
-    </ion-text>
+      @if (menuOpen()) {
+        <div
+          class="detail__menu-backdrop"
+          (click)="closeMenu()"
+          aria-hidden="true"
+        ></div>
+        <div
+          class="detail__menu"
+          role="menu"
+          aria-label="Post options"
+          (keydown.escape)="closeMenu()"
+        >
+          <button
+            type="button"
+            class="detail__menu-item"
+            (click)="startEdit()"
+            role="menuitem"
+          >
+            <ion-icon
+              name="create-outline"
+              aria-hidden="true"
+              class="detail__menu-icon"
+            ></ion-icon>
+            Edit
+          </button>
+          <button
+            type="button"
+            class="detail__menu-item detail__menu-item--danger"
+            (click)="askDelete()"
+            role="menuitem"
+            [disabled]="deleting()"
+          >
+            <ion-icon
+              name="trash-outline"
+              aria-hidden="true"
+              class="detail__menu-icon"
+            ></ion-icon>
+            @if (deleting()) {
+              <span>Deleting…</span>
+            } @else {
+              <span>Delete</span>
+            }
+          </button>
+        </div>
+      }
 
-    <div class="detail__actions">
-      <div class="detail__action-item" (click)="toggleLike()">
-        <ion-icon
-          [name]="liked() ? 'heart' : 'heart-outline'"
-          [color]="liked() ? 'redColor' : 'grayColor'"
-          class="detail__action-icon"
+      @if (images().length > 0) {
+        <figure class="detail__media">
+          <app-post-media-carousel
+            [images]="images()"
+            style="--post-carousel-height: 320px"
+          ></app-post-media-carousel>
+          @if (images().length > 1) {
+            <figcaption class="detail__media-count">
+              {{ images().length }} images
+            </figcaption>
+          }
+        </figure>
+      }
+
+      @if (editing()) {
+        <section class="detail__editor" aria-label="Edit post">
+          <label class="detail__editor-label" for="post-detail-caption">
+            Caption
+          </label>
+          <ion-textarea
+            id="post-detail-caption"
+            [formControl]="draft"
+            placeholder="Write a caption..."
+            mode="ios"
+            rows="4"
+            aria-label="Edit caption"
+            class="detail__editor-input"
+          ></ion-textarea>
+          <div class="detail__editor-meta">
+            <ion-text class="grayColor12Regular">
+              {{ draftText().trim().length }} characters
+            </ion-text>
+          </div>
+          <div class="detail__editor-actions">
+            <ion-button
+              fill="clear"
+              size="small"
+              (click)="cancelEdit()"
+              aria-label="Cancel editing"
+            >
+              Cancel
+            </ion-button>
+            <ion-button
+              size="small"
+              (click)="saveEdit()"
+              [disabled]="!canSaveEdit()"
+              aria-label="Save changes"
+            >
+              @if (savingEdit()) {
+                <ion-spinner name="crescent" aria-hidden="true"></ion-spinner>
+              } @else {
+                Save
+              }
+            </ion-button>
+          </div>
+        </section>
+      } @else if (hasContent()) {
+        <p
+          class="grayColor12Regular detail__description detail__body"
+        >
+          {{ post.content }}
+        </p>
+      } @else {
+        <p class="detail__body detail__body--empty">
+          No caption — a visual post.
+        </p>
+      }
+
+      <footer class="detail__actions">
+        <button
+          type="button"
+          class="detail__action-item detail__action"
+          (click)="toggleLike()"
           [attr.aria-pressed]="liked()"
           aria-label="Like post"
-        ></ion-icon>
-      </div>
-      <div class="detail__action-item" (click)="goToComments()">
-        <ion-icon
-          name="chatbox-ellipses-outline"
-          color="grayColor"
-          class="detail__action-icon"
+        >
+          <ion-icon
+            [name]="liked() ? 'heart' : 'heart-outline'"
+            [color]="liked() ? 'redColor' : 'grayColor'"
+            class="detail__action-icon"
+            [class.detail__action-icon--liked]="liked()"
+            aria-hidden="true"
+          ></ion-icon>
+          <span
+            class="detail__action-label"
+            [class.detail__action-label--active]="liked()"
+            >{{ liked() ? 'Liked' : 'Like' }}</span
+          >
+        </button>
+        <button
+          type="button"
+          class="detail__action-item detail__action"
+          (click)="goToComments()"
           aria-label="View comments"
-        ></ion-icon>
-      </div>
-    </div>
+        >
+          <ion-icon
+            name="chatbox-ellipses-outline"
+            color="grayColor"
+            class="detail__action-icon"
+            aria-hidden="true"
+          ></ion-icon>
+          <span class="detail__action-label">Comments</span>
+        </button>
+      </footer>
+    </article>
   }
 </ion-content>

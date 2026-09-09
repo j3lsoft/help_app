@@ -3,12 +3,17 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   inject,
   signal,
 } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router } from '@angular/router';
+import {
+  rxResource,
+  takeUntilDestroyed,
+  toSignal,
+} from '@angular/core/rxjs-interop';
+import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 import {
   AlertController,
   IonButton,
@@ -22,12 +27,17 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
+  alertCircleOutline,
+  arrowBackOutline,
   chatboxEllipsesOutline,
+  createOutline,
   ellipsisVertical,
   heart,
   heartOutline,
+  refreshOutline,
+  trashOutline,
 } from 'ionicons/icons';
-import { catchError, firstValueFrom } from 'rxjs';
+import { catchError, firstValueFrom, map, of } from 'rxjs';
 import { AuthService } from '@features/auth/services/auth.service';
 import { LoggerService } from '@core/services/logger.service';
 import { NotificationService } from '@core/services/notification.service';
@@ -73,15 +83,47 @@ export class PostDetailPage {
   private readonly logger = inject(LoggerService);
 
   constructor() {
-    addIcons({ chatboxEllipsesOutline, ellipsisVertical, heart, heartOutline });
+    addIcons({
+      alertCircleOutline,
+      arrowBackOutline,
+      chatboxEllipsesOutline,
+      createOutline,
+      ellipsisVertical,
+      heart,
+      heartOutline,
+      refreshOutline,
+      trashOutline,
+    });
     this.draft.valueChanges
       .pipe(takeUntilDestroyed())
       .subscribe((value) => this.draftText.set(value ?? ''));
+    // Reset per-post transient UI whenever the route id changes.
+    effect(() => {
+      this.postId();
+      this.liked.set(false);
+      this.menuOpen.set(false);
+      this.editing.set(false);
+    });
   }
 
-  readonly postId = signal(
-    this.route.snapshot.paramMap.get('id') ?? ''
+  private readonly initialPostId =
+    this.route.snapshot.paramMap.get('id') ?? '';
+
+  /**
+   * Reactive route id. `ActivatedRoute.snapshot` alone goes stale when Angular
+   * reuses this component for `/post-detail/A` -> `/post-detail/B` in-app
+   * navigation, so we track `paramMap` and fall back to the snapshot for
+   * unit tests that stub only `snapshot`.
+   */
+  private readonly routePostId = toSignal(
+    ((this.route.paramMap as unknown as undefined) ??
+      of(this.route.snapshot.paramMap as ParamMap)).pipe(
+      map((params: ParamMap) => params.get('id') ?? '')
+    ),
+    { initialValue: this.initialPostId }
   );
+
+  readonly postId = computed(() => this.routePostId() || this.initialPostId);
   readonly liked = signal(false);
 
   /**
@@ -141,13 +183,29 @@ export class PostDetailPage {
       .map((m) => m.publicUrl)
   );
 
-  readonly authorName = computed(() => {
+  readonly authorName = computed((): string => {
     const post = this.post();
     const author = this.auth.currentUser();
     if (post && author && post.authorId === author.id) {
-      return author.displayName || author.username;
+      return author.displayName || author.username || 'You';
     }
-    return 'User';
+    // The v1 `GET /posts/{id}` contract returns only `authorId` with no
+    // embedded author, and there is no `GET /users/{id}` endpoint to resolve
+    // a foreign author by id. Show an honest placeholder instead of the
+    // misleading literal "User".
+    return 'Unknown author';
+  });
+
+  readonly authorInitial = computed(() => {
+    const name = (this.authorName() ?? '').trim();
+    return (name.charAt(0) || '•').toUpperCase();
+  });
+
+  readonly hasContent = computed(() => !!this.post()?.content?.trim());
+
+  readonly isEdited = computed(() => {
+    const post = this.post();
+    return !!post && post.createdAt !== post.updatedAt;
   });
 
   readonly authorAvatar = computed(() => {
@@ -187,7 +245,16 @@ export class PostDetailPage {
   });
 
   goBack(): void {
-    this.navCtrl.back();
+    // Deep links have no history to pop; fall back to home instead of a dead end.
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      this.navCtrl.back();
+    } else {
+      void this.router.navigateByUrl('/tabs/home');
+    }
+  }
+
+  goHome(): void {
+    void this.router.navigateByUrl('/tabs/home');
   }
 
   retry(): void {
@@ -207,6 +274,10 @@ export class PostDetailPage {
 
   toggleMenu(): void {
     this.menuOpen.update((open) => !open);
+  }
+
+  closeMenu(): void {
+    this.menuOpen.set(false);
   }
 
   startEdit(): void {
