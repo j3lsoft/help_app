@@ -82,6 +82,31 @@ describe('PostsApiService', () => {
     req.flush(POST_DTO);
   });
 
+  it('should PUT the edit request with content', () => {
+    service
+      .editPost('post-1', { content: 'edited' })
+      .subscribe((result) => {
+        expect(result.content).toBe('edited');
+      });
+
+    const req = httpMock.expectOne(`${baseUrl}/posts/post-1`);
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body).toEqual({ content: 'edited' });
+    req.flush({ ...POST_DTO, content: 'edited' });
+  });
+
+  it('should DELETE a post by id', () => {
+    let completed = false;
+    service.deletePost('post-1').subscribe(() => {
+      completed = true;
+    });
+
+    const req = httpMock.expectOne(`${baseUrl}/posts/post-1`);
+    expect(req.request.method).toBe('DELETE');
+    req.flush(null);
+    expect(completed).toBeTrue();
+  });
+
   it('should GET a user posts page with default limit', () => {
     service.getUserPosts('user-1').subscribe((result) => {
       expect(result).toEqual(PAGE);

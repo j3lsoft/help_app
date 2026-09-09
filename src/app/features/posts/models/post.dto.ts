@@ -33,3 +33,8 @@ export interface CreatePostRequestDto {
   content?: string | null;
   mediaIds?: string[] | null;
 }
+
+export interface EditPostRequestDto {
+  content?: string | null;
+  mediaIds?: string[] | null;
+}

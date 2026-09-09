@@ -22,6 +22,16 @@ export class FeedService {
     this._posts.update((posts) => [post, ...posts]);
   }
 
+  updatePostContent(postId: string, content: string): void {
+    this._posts.update((posts) =>
+      posts.map((p) => (p.id === postId ? { ...p, aboutPost: content } : p))
+    );
+  }
+
+  removePost(postId: string): void {
+    this._posts.update((posts) => posts.filter((p) => p.id !== postId));
+  }
+
   toggleLike(postId: string): void {
     this._posts.update((posts) =>
       posts.map((p) => (p.id === postId ? { ...p, postLike: !p.postLike } : p))

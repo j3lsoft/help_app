@@ -1,4 +1,16 @@
-<app-back-header title="Post" (backClick)="goBack()"></app-back-header>
+<app-back-header title="Post" (backClick)="goBack()">
+  <ng-template #rightAction>
+    @if (isOwner() && post() && !editing()) {
+      <ion-icon
+        name="ellipsis-vertical"
+        color="blackColor"
+        class="detail__options-icon"
+        (click)="toggleMenu()"
+        aria-label="Post options"
+      ></ion-icon>
+    }
+  </ng-template>
+</app-back-header>
 
 <ion-content class="detail__content">
   @if (isLoading()) {
@@ -18,6 +30,17 @@
       <ion-text class="blackColor14SemiBold">{{ authorName() }}</ion-text>
     </div>
 
+    @if (menuOpen()) {
+      <div class="detail__menu" role="menu" aria-label="Post options">
+        <ion-text class="detail__menu-item" (click)="startEdit()" role="menuitem" tabindex="0">
+          Edit
+        </ion-text>
+        <ion-text class="detail__menu-item detail__menu-item--danger" (click)="askDelete()" role="menuitem" tabindex="0">
+          Delete
+        </ion-text>
+      </div>
+    }
+
     @if (images().length > 0) {
       <app-post-media-carousel
         [images]="images()"
@@ -25,7 +48,34 @@
       ></app-post-media-carousel>
     }
 
-    @if (post.content) {
+    @if (editing()) {
+      <div class="detail__editor">
+        <ion-textarea
+          [formControl]="draft"
+          placeholder="Write a caption..."
+          mode="ios"
+          rows="4"
+          aria-label="Edit caption"
+        ></ion-textarea>
+        <div class="detail__editor-actions">
+          <ion-button fill="clear" size="small" (click)="cancelEdit()" aria-label="Cancel editing">
+            Cancel
+          </ion-button>
+          <ion-button
+            size="small"
+            (click)="saveEdit()"
+            [disabled]="!canSaveEdit()"
+            aria-label="Save changes"
+          >
+            @if (savingEdit()) {
+              <ion-spinner name="crescent"></ion-spinner>
+            } @else {
+              Save
+            }
+          </ion-button>
+        </div>
+      </div>
+    } @else if (post.content) {
       <ion-text class="grayColor12Regular detail__description">
         {{ post.content }}
       </ion-text>

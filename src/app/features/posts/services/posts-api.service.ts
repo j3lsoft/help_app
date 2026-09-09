@@ -4,6 +4,7 @@ import { environment } from '@env/environment';
 import { Observable } from 'rxjs';
 import {
   CreatePostRequestDto,
+  EditPostRequestDto,
   PaginatedPostsResponseDto,
   PostResponseDto,
 } from '../models/post.dto';
@@ -40,6 +41,17 @@ export class PostsApiService {
     return this.http.get<PostResponseDto>(
       `${this.baseUrl}/api/v1/posts/${id}`
     );
+  }
+
+  editPost(id: string, dto: EditPostRequestDto): Observable<PostResponseDto> {
+    return this.http.put<PostResponseDto>(
+      `${this.baseUrl}/api/v1/posts/${id}`,
+      dto
+    );
+  }
+
+  deletePost(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/api/v1/posts/${id}`);
   }
 
   getUserPosts(

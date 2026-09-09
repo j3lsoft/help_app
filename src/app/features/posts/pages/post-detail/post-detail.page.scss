@@ -24,6 +24,46 @@
     font-weight: 600;
   }
 
+  &__options-icon {
+    font-size: 20px;
+    min-width: 44px;
+    min-height: 44px;
+    cursor: pointer;
+  }
+
+  &__menu {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--whiteColor);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+    margin-bottom: 12px;
+  }
+
+  &__menu-item {
+    padding: 12px 16px;
+    cursor: pointer;
+  }
+
+  &__menu-item--danger {
+    color: var(--ion-color-danger, #eb445a);
+  }
+
+  &__editor {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 12px 0 4px;
+  }
+
+  &__editor-actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
   &__author {
     display: flex;
     flex-direction: row;

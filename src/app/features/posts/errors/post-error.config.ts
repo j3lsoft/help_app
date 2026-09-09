@@ -1,6 +1,6 @@
 import { ErrorMapConfig } from '../../../core/errors/error-map.interface';
 
-export type PostErrorContext = 'publish' | 'post-detail';
+export type PostErrorContext = 'publish' | 'post-detail' | 'post-edit' | 'post-delete';
 
 const SESSION_EXPIRED_MESSAGE = 'Session expired. Please login again.';
 
@@ -27,5 +27,25 @@ export const POST_ERROR_MAP: Record<PostErrorContext, ErrorMapConfig> = {
       404: 'Post not found.',
     },
     fallback: 'Failed to load post. Please try again.',
+  },
+  'post-edit': {
+    byCode: {},
+    byStatus: {
+      400: 'Invalid post id.',
+      401: SESSION_EXPIRED_MESSAGE,
+      403: 'You can only edit your own posts.',
+      404: 'Post not found.',
+      422: 'Check your caption and try again.',
+    },
+    fallback: 'Failed to update post. Please try again.',
+  },
+  'post-delete': {
+    byCode: {},
+    byStatus: {
+      401: SESSION_EXPIRED_MESSAGE,
+      403: 'You can only delete your own posts.',
+      404: 'Post not found.',
+    },
+    fallback: 'Failed to delete post. Please try again.',
   },
 };
