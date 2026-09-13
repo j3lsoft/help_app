@@ -1,11 +1,20 @@
 @if (images().length > 1) {
   <div class="carousel">
-    <div #track class="carousel__track" (scroll)="onTrackScroll($event)">
+    <div
+      #track
+      class="carousel__track"
+      (scroll)="onTrackScroll($event)"
+      (pointerdown)="onPointerDown($event)"
+      (pointermove)="onPointerMove($event)"
+      (pointerup)="onPointerUp()"
+      (pointercancel)="onPointerUp()"
+    >
       @for (src of images(); track src; let i = $index) {
         <ion-img
           [src]="src"
           class="carousel__image"
           [attr.aria-hidden]="i !== activeIndex()"
+          (click)="onImageClick(i)"
         ></ion-img>
       }
     </div>
@@ -29,5 +38,9 @@
     </div>
   </div>
 } @else if (images().length === 1) {
-  <ion-img [src]="images()[0]" class="carousel__single-image"></ion-img>
+  <ion-img
+    [src]="images()[0]"
+    class="carousel__single-image"
+    (click)="onImageClick(0)"
+  ></ion-img>
 }

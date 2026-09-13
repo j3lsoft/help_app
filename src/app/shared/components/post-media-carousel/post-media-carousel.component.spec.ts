@@ -73,4 +73,31 @@ describe('PostMediaCarouselComponent', () => {
     expect(dots[1].getAttribute('aria-selected')).toBe('true');
     expect(dots[0].getAttribute('aria-selected')).toBe('false');
   });
+
+  it('should emit imageTap with the tapped image index', () => {
+    fixture.componentRef.setInput('images', ['a.png', 'b.png']);
+    fixture.detectChanges();
+
+    let tapped: number | undefined;
+    component.imageTap.subscribe((index) => (tapped = index));
+
+    component.onImageClick(1);
+
+    expect(tapped).toBe(1);
+  });
+
+  it('should not emit imageTap when the gesture was a drag', () => {
+    fixture.componentRef.setInput('images', ['a.png', 'b.png']);
+    fixture.detectChanges();
+
+    let tapped: number | undefined;
+    component.imageTap.subscribe((index) => (tapped = index));
+
+    component.onPointerDown({ clientX: 100 } as PointerEvent);
+    component.onPointerMove({ clientX: 160 } as PointerEvent);
+    component.onPointerUp();
+    component.onImageClick(1);
+
+    expect(tapped).toBeUndefined();
+  });
 });

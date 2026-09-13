@@ -60,6 +60,7 @@ describe('PostDetailPage', () => {
     alertControllerSpy = jasmine.createSpyObj('AlertController', ['create']);
     notificationSpy = jasmine.createSpyObj('NotificationService', [
       'showSuccess',
+      'showInfo',
     ]);
     postsApiSpy = jasmine.createSpyObj('PostsApiService', [
       'getPostById',
@@ -148,17 +149,84 @@ describe('PostDetailPage', () => {
     expect(host.querySelectorAll('.carousel__image').length).toBe(2);
   });
 
-  it('should toggle like locally', () => {
+  it('should toggle like locally and adjust its count', () => {
     expect(component.liked()).toBeFalse();
+    const before = component.likeCount();
+
     component.toggleLike();
     expect(component.liked()).toBeTrue();
+    expect(component.likeCount()).toBe(before + 1);
+
+    component.toggleLike();
+    expect(component.liked()).toBeFalse();
+    expect(component.likeCount()).toBe(before);
   });
 
-  it('should navigate to comments carrying the post id', () => {
+  it('should open the fullscreen viewer on the tapped image and close it', () => {
+    component.openViewer(1);
+    expect(component.viewerOpen()).toBeTrue();
+    expect(component.viewerIndex()).toBe(1);
+
+    component.closeViewer();
+    expect(component.viewerOpen()).toBeFalse();
+  });
+
+  it('should render the post date in long format as static text', () => {
+    const host = fixture.nativeElement as HTMLElement;
+    const date = host.querySelector('.detail__date');
+    expect(date).not.toBeNull();
+    expect(date?.tagName).toBe('SPAN');
+    expect(host.querySelector('button.detail__date')).toBeNull();
+  });
+
+  it('should toggle save locally and adjust its count', () => {
+    expect(component.saved()).toBeFalse();
+    const before = component.saveCount();
+
+    component.toggleSave();
+    expect(component.saved()).toBeTrue();
+    expect(component.saveCount()).toBe(before + 1);
+
+    component.toggleSave();
+    expect(component.saved()).toBeFalse();
+    expect(component.saveCount()).toBe(before);
+  });
+
+  it('should show the inline comment count next to the comments action', () => {
+    expect(component.commentsCount()).toBeGreaterThan(0);
+  });
+
+  it('should render the four post actions', () => {
+    const host = fixture.nativeElement as HTMLElement;
+    const actions = host.querySelectorAll('.detail__action');
+    expect(actions.length).toBe(4);
+    expect(host.querySelector('.detail__action-icon-wrap--liked')).toBeNull();
+    expect(host.querySelector('.detail__action-icon-wrap--saved')).toBeNull();
+  });
+
+  it('should highlight the like action when liked', () => {
+    const host = fixture.nativeElement as HTMLElement;
+
+    component.toggleLike();
+    fixture.detectChanges();
+
+    expect(host.querySelector('.detail__action-icon-wrap--liked')).not.toBeNull();
+    expect(host.querySelector('.detail__action-count--liked')).not.toBeNull();
+  });
+
+  it('should highlight the save action when saved', () => {
+    const host = fixture.nativeElement as HTMLElement;
+
+    component.toggleSave();
+    fixture.detectChanges();
+
+    expect(host.querySelector('.detail__action-icon-wrap--saved')).not.toBeNull();
+    expect(host.querySelector('.detail__action-count--saved')).not.toBeNull();
+  });
+
+  it('should scroll to the inline comments instead of navigating away', () => {
     component.goToComments();
-    expect(routerSpy.navigate).toHaveBeenCalledWith(['comments'], {
-      queryParams: { postId: 'post-1' },
-    });
+    expect(routerSpy.navigate).not.toHaveBeenCalled();
   });
 
   it('should show not-found for missing posts', async () => {

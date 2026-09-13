@@ -78,7 +78,7 @@ export class HomePage implements ViewWillEnter {
   }
 
   goToComments(postId: string) {
-    this.router.navigate(['comments'], { queryParams: { postId } });
+    this.router.navigateByUrl(`post-detail/${postId}`);
   }
 
   handlePostLike(postId: string) {

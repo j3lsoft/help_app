@@ -6,6 +6,7 @@ import {
   effect,
   inject,
   signal,
+  viewChild,
 } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import {
@@ -26,15 +27,21 @@ import {
   NavController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
+import { Capacitor } from '@capacitor/core';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import {
   alertCircleOutline,
   arrowBackOutline,
+  bookmark,
+  bookmarkOutline,
   chatboxEllipsesOutline,
   createOutline,
   ellipsisVertical,
   heart,
   heartOutline,
+  imagesOutline,
   refreshOutline,
+  shareOutline,
   trashOutline,
 } from 'ionicons/icons';
 import { catchError, firstValueFrom, map, of } from 'rxjs';
@@ -44,8 +51,12 @@ import { NotificationService } from '@core/services/notification.service';
 import { AppError } from '@core/models/app-error.model';
 import { isAppError, toAppError } from '@core/utils/app-error.utils';
 import { BackHeaderComponent } from '@shared/components/back-header/back-header.component';
+import { ImageLightboxComponent } from '@shared/components/image-lightbox/image-lightbox.component';
 import { PostMediaCarouselComponent } from '@shared/components/post-media-carousel/post-media-carousel.component';
+import { ShortNumberPipe } from '@shared/pipes/short-number.pipe';
 import { FeedService } from '@features/home/services/feed.service';
+import { PostCommentsComponent } from '../../components/post-comments/post-comments.component';
+import { createEngagementSeed } from '../../data/post-engagement.mock';
 import { PostErrorFacade } from '../../errors/post-error.facade';
 import { PostsApiService } from '../../services/posts-api.service';
 
@@ -66,7 +77,10 @@ const FALLBACK_AVATAR = 'assets/images/users/user43.png';
     IonText,
     IonTextarea,
     BackHeaderComponent,
+    ImageLightboxComponent,
+    PostCommentsComponent,
     PostMediaCarouselComponent,
+    ShortNumberPipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -86,12 +100,16 @@ export class PostDetailPage {
     addIcons({
       alertCircleOutline,
       arrowBackOutline,
+      bookmark,
+      bookmarkOutline,
       chatboxEllipsesOutline,
       createOutline,
       ellipsisVertical,
       heart,
       heartOutline,
+      imagesOutline,
       refreshOutline,
+      shareOutline,
       trashOutline,
     });
     this.draft.valueChanges
@@ -99,10 +117,14 @@ export class PostDetailPage {
       .subscribe((value) => this.draftText.set(value ?? ''));
     // Reset per-post transient UI whenever the route id changes.
     effect(() => {
-      this.postId();
+      const seed = createEngagementSeed(this.postId());
       this.liked.set(false);
+      this.saved.set(false);
+      this.likeCount.set(seed.likes);
+      this.saveCount.set(seed.saves);
       this.menuOpen.set(false);
       this.editing.set(false);
+      this.viewerOpen.set(false);
     });
   }
 
@@ -125,6 +147,16 @@ export class PostDetailPage {
 
   readonly postId = computed(() => this.routePostId() || this.initialPostId);
   readonly liked = signal(false);
+  readonly saved = signal(false);
+  readonly likeCount = signal(0);
+  readonly saveCount = signal(0);
+  readonly viewerOpen = signal(false);
+  readonly viewerIndex = signal(0);
+
+  private readonly commentsSection = viewChild(PostCommentsComponent);
+  readonly commentsCount = computed(
+    () => this.commentsSection()?.count() ?? 0
+  );
 
   /**
    * Normalized load failure. The resource stores the raw failure, but this
@@ -196,6 +228,18 @@ export class PostDetailPage {
     return 'Unknown author';
   });
 
+  readonly authorUsername = computed((): string => {
+    const post = this.post();
+    const author = this.auth.currentUser();
+    if (post && author && post.authorId === author.id && author.username) {
+      // Avoid repeating the name when there is no separate display name.
+      return author.username === author.displayName
+        ? ''
+        : `@${author.username}`;
+    }
+    return '';
+  });
+
   readonly authorInitial = computed(() => {
     const name = (this.authorName() ?? '').trim();
     return (name.charAt(0) || '•').toUpperCase();
@@ -263,13 +307,74 @@ export class PostDetailPage {
   }
 
   toggleLike(): void {
-    this.liked.update((liked) => !liked);
+    const next = !this.liked();
+    this.liked.set(next);
+    this.likeCount.update((count) => Math.max(0, count + (next ? 1 : -1)));
+    if (next) {
+      void this.haptic();
+    }
+  }
+
+  openViewer(index: number): void {
+    if (this.images().length === 0) {
+      return;
+    }
+    this.viewerIndex.set(index);
+    this.viewerOpen.set(true);
+  }
+
+  closeViewer(): void {
+    this.viewerOpen.set(false);
   }
 
   goToComments(): void {
-    this.router.navigate(['comments'], {
-      queryParams: { postId: this.postId() },
-    });
+    this.commentsSection()?.focusInput();
+  }
+
+  toggleSave(): void {
+    const next = !this.saved();
+    this.saved.set(next);
+    this.saveCount.update((count) => Math.max(0, count + (next ? 1 : -1)));
+    if (next) {
+      void this.haptic();
+    }
+  }
+
+  /** Best-effort native tap feedback; silently ignored on web. */
+  private async haptic(): Promise<void> {
+    try {
+      if (Capacitor.isNativePlatform()) {
+        await Haptics.impact({ style: ImpactStyle.Light });
+      }
+    } catch {
+      // Haptics are best-effort; never block the interaction.
+    }
+  }
+
+  async sharePost(): Promise<void> {
+    const post = this.post();
+    if (!post) {
+      return;
+    }
+    const url = typeof window !== 'undefined' ? window.location.href : '';
+    try {
+      if (typeof navigator !== 'undefined' && navigator.share) {
+        await navigator.share({
+          title: this.authorName(),
+          text: post.content ?? undefined,
+          url,
+        });
+        return;
+      }
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+        await this.notification.showSuccess('Link copied');
+        return;
+      }
+      await this.notification.showInfo('Sharing is not available yet');
+    } catch {
+      // The native share sheet was dismissed; nothing to report.
+    }
   }
 
   toggleMenu(): void {

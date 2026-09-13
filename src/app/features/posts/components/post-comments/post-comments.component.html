@@ -1,0 +1,67 @@
+<section class="comments" aria-label="Comments">
+  <div class="comments__composer">
+    <span class="comments__avatar-wrap" aria-hidden="true">
+      <span class="comments__avatar-fallback">{{ viewerInitial() }}</span>
+      <ion-img [src]="viewerAvatar()" class="comments__avatar" alt=""></ion-img>
+    </span>
+    <ion-textarea
+      #commentInput
+      class="comments__input"
+      [value]="draft()"
+      (ionInput)="onDraftInput($event)"
+      (keydown)="onKeydown($event)"
+      placeholder="Add a comment..."
+      mode="ios"
+      rows="1"
+      [autoGrow]="true"
+      aria-label="Add a comment"
+    ></ion-textarea>
+    <button
+      type="button"
+      class="comments__send"
+      [disabled]="!canSubmit()"
+      (click)="submit()"
+      aria-label="Post comment"
+    >
+      <ion-icon name="send" aria-hidden="true"></ion-icon>
+    </button>
+  </div>
+
+  @if (comments().length === 0) {
+    <div class="comments__empty">
+      <ion-icon name="chatbubble-outline" aria-hidden="true"></ion-icon>
+      <ion-text class="grayColor12Regular">Be the first to comment</ion-text>
+    </div>
+  } @else {
+    <ul class="comments__list">
+      @for (comment of comments(); track comment.id) {
+        <li class="comments__item">
+          <span class="comments__avatar-wrap" aria-hidden="true">
+            <span class="comments__avatar-fallback">{{
+              comment.authorName.charAt(0)
+            }}</span>
+            <ion-img
+              [src]="comment.authorAvatar"
+              class="comments__avatar"
+              alt=""
+            ></ion-img>
+          </span>
+          <div class="comments__content">
+            <div class="comments__meta">
+              <ion-text class="blackColor14SemiBold comments__author">
+                {{ comment.authorName }}
+              </ion-text>
+              <span class="comments__sep" aria-hidden="true">·</span>
+              <ion-text class="grayColor12Regular comments__time">
+                {{ comment.createdAt | timeAgo }}
+              </ion-text>
+            </div>
+            <ion-text class="blackColor14Regular comments__text">
+              {{ comment.text }}
+            </ion-text>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</section>

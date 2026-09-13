@@ -1,0 +1,47 @@
+<ion-modal
+  class="lightbox-modal"
+  [isOpen]="isOpen()"
+  [keepContentsMounted]="true"
+  [backdropDismiss]="true"
+  (ionModalDidDismiss)="closed.emit()"
+>
+  <ng-template>
+    <div class="lightbox" role="dialog" aria-modal="true" aria-label="Image viewer">
+      <button
+        #closeButton
+        type="button"
+        class="lightbox__close"
+        (click)="close()"
+        aria-label="Close image viewer"
+      >
+        <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+      </button>
+
+      <swiper-container
+        class="lightbox__swiper"
+        [initialSlide]="startIndex()"
+        [keyboard]="true"
+        [zoom]="true"
+        (swiperslidechange)="onSlideChange($event)"
+      >
+        @for (src of images(); track $index) {
+          <swiper-slide class="lightbox__slide">
+            <div class="swiper-zoom-container">
+              <img
+                class="lightbox__image"
+                [src]="src"
+                [alt]="'Image ' + ($index + 1) + ' of ' + images().length"
+              />
+            </div>
+          </swiper-slide>
+        }
+      </swiper-container>
+
+      @if (images().length > 1) {
+        <div class="lightbox__counter" aria-live="polite">
+          {{ activeIndex() + 1 }} / {{ images().length }}
+        </div>
+      }
+    </div>
+  </ng-template>
+</ion-modal>

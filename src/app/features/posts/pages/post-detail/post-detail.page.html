@@ -39,8 +39,11 @@
         <div class="detail__skeleton-media"></div>
         <div class="detail__skeleton-line"></div>
         <div class="detail__skeleton-line detail__skeleton-line--mid"></div>
+        <div class="detail__skeleton-actions">
+          <span class="detail__skeleton-pill"></span>
+          <span class="detail__skeleton-pill"></span>
+        </div>
       </div>
-      <ion-spinner name="crescent" aria-hidden="true"></ion-spinner>
     </div>
   } @else if (postError()) {
     <div class="detail__error" role="alert">
@@ -80,6 +83,7 @@
     <article
       class="detail__article"
       [attr.aria-label]="'Post by ' + authorName()"
+      (keydown.escape)="closeMenu()"
     >
       <header class="detail__masthead">
         <div class="detail__author">
@@ -95,12 +99,11 @@
             <ion-text class="blackColor14SemiBold detail__author-name">{{
               authorName()
             }}</ion-text>
-            <ion-text class="grayColor12Regular detail__author-sub">
-              {{ post.createdAt | date: 'MMM d, y · h:mm a' }}
-              @if (isEdited()) {
-                <span> · Edited</span>
-              }
-            </ion-text>
+            @if (authorUsername()) {
+              <ion-text class="grayColor12Regular detail__author-username">
+                {{ authorUsername() }}
+              </ion-text>
+            }
           </div>
         </div>
       </header>
@@ -115,7 +118,7 @@
           class="detail__menu"
           role="menu"
           aria-label="Post options"
-          (keydown.escape)="closeMenu()"
+          aria-orientation="vertical"
         >
           <button
             type="button"
@@ -151,20 +154,6 @@
         </div>
       }
 
-      @if (images().length > 0) {
-        <figure class="detail__media">
-          <app-post-media-carousel
-            [images]="images()"
-            style="--post-carousel-height: 320px"
-          ></app-post-media-carousel>
-          @if (images().length > 1) {
-            <figcaption class="detail__media-count">
-              {{ images().length }} images
-            </figcaption>
-          }
-        </figure>
-      }
-
       @if (editing()) {
         <section class="detail__editor" aria-label="Edit post">
           <label class="detail__editor-label" for="post-detail-caption">
@@ -173,88 +162,168 @@
           <ion-textarea
             id="post-detail-caption"
             [formControl]="draft"
-            placeholder="Write a caption..."
+            placeholder="What's happening?"
             mode="ios"
-            rows="4"
+            rows="3"
+            [autoGrow]="true"
             aria-label="Edit caption"
             class="detail__editor-input"
           ></ion-textarea>
-          <div class="detail__editor-meta">
-            <ion-text class="grayColor12Regular">
+          <div class="detail__editor-footer">
+            <ion-text class="grayColor12Regular detail__editor-count">
               {{ draftText().trim().length }} characters
             </ion-text>
-          </div>
-          <div class="detail__editor-actions">
-            <ion-button
-              fill="clear"
-              size="small"
-              (click)="cancelEdit()"
-              aria-label="Cancel editing"
-            >
-              Cancel
-            </ion-button>
-            <ion-button
-              size="small"
-              (click)="saveEdit()"
-              [disabled]="!canSaveEdit()"
-              aria-label="Save changes"
-            >
-              @if (savingEdit()) {
-                <ion-spinner name="crescent" aria-hidden="true"></ion-spinner>
-              } @else {
-                Save
-              }
-            </ion-button>
+            <div class="detail__editor-actions">
+              <ion-button
+                fill="clear"
+                size="small"
+                (click)="cancelEdit()"
+                aria-label="Cancel editing"
+              >
+                Cancel
+              </ion-button>
+              <ion-button
+                size="small"
+                (click)="saveEdit()"
+                [disabled]="!canSaveEdit()"
+                aria-label="Save changes"
+              >
+                @if (savingEdit()) {
+                  <ion-spinner name="crescent" aria-hidden="true"></ion-spinner>
+                } @else {
+                  Save
+                }
+              </ion-button>
+            </div>
           </div>
         </section>
       } @else if (hasContent()) {
-        <p
-          class="grayColor12Regular detail__description detail__body"
-        >
-          {{ post.content }}
-        </p>
-      } @else {
-        <p class="detail__body detail__body--empty">
-          No caption — a visual post.
-        </p>
+        <p class="detail__body">{{ post.content }}</p>
       }
+
+      @if (images().length > 0) {
+        <figure class="detail__media">
+          <app-post-media-carousel
+            [images]="images()"
+            (imageTap)="openViewer($event)"
+            style="--post-carousel-height: 320px"
+          ></app-post-media-carousel>
+          @if (images().length > 1) {
+            <figcaption class="detail__media-count">
+              <ion-icon name="images-outline" aria-hidden="true"></ion-icon>
+              <span>{{ images().length }}</span>
+            </figcaption>
+          }
+        </figure>
+      }
+
+      <div class="detail__meta">
+        <span class="detail__date">
+          {{ post.createdAt | date: 'MMMM d, y · h:mm a' }}
+          @if (isEdited()) {
+            <span class="detail__edited">· Edited</span>
+          }
+        </span>
+      </div>
 
       <footer class="detail__actions">
         <button
           type="button"
-          class="detail__action-item detail__action"
+          class="detail__action"
           (click)="toggleLike()"
           [attr.aria-pressed]="liked()"
-          aria-label="Like post"
+          [attr.aria-label]="liked() ? 'Unlike post' : 'Like post'"
         >
-          <ion-icon
-            [name]="liked() ? 'heart' : 'heart-outline'"
-            [color]="liked() ? 'redColor' : 'grayColor'"
-            class="detail__action-icon"
-            [class.detail__action-icon--liked]="liked()"
-            aria-hidden="true"
-          ></ion-icon>
           <span
-            class="detail__action-label"
-            [class.detail__action-label--active]="liked()"
-            >{{ liked() ? 'Liked' : 'Like' }}</span
+            class="detail__action-icon-wrap"
+            [class.detail__action-icon-wrap--liked]="liked()"
+            [class.detail__action-icon-wrap--burst]="liked()"
           >
+            <ion-icon
+              [name]="liked() ? 'heart' : 'heart-outline'"
+              [color]="liked() ? 'redColor' : 'grayColor'"
+              class="detail__action-icon"
+              [class.detail__action-icon--liked]="liked()"
+              aria-hidden="true"
+            ></ion-icon>
+          </span>
+          <span
+            class="detail__action-count"
+            [class.detail__action-count--liked]="liked()"
+          >
+            {{ likeCount() | shortNumber }}
+          </span>
         </button>
         <button
           type="button"
-          class="detail__action-item detail__action"
+          class="detail__action"
           (click)="goToComments()"
           aria-label="View comments"
         >
-          <ion-icon
-            name="chatbox-ellipses-outline"
-            color="grayColor"
-            class="detail__action-icon"
-            aria-hidden="true"
-          ></ion-icon>
-          <span class="detail__action-label">Comments</span>
+          <span class="detail__action-icon-wrap">
+            <ion-icon
+              name="chatbox-ellipses-outline"
+              color="grayColor"
+              class="detail__action-icon"
+              aria-hidden="true"
+            ></ion-icon>
+          </span>
+          <span class="detail__action-count">
+            {{ commentsCount() | shortNumber }}
+          </span>
+        </button>
+        <button
+          type="button"
+          class="detail__action"
+          (click)="toggleSave()"
+          [attr.aria-pressed]="saved()"
+          [attr.aria-label]="saved() ? 'Remove from saved' : 'Save post'"
+        >
+          <span
+            class="detail__action-icon-wrap"
+            [class.detail__action-icon-wrap--saved]="saved()"
+          >
+            <ion-icon
+              [name]="saved() ? 'bookmark' : 'bookmark-outline'"
+              [color]="saved() ? 'secondaryColor' : 'grayColor'"
+              class="detail__action-icon"
+              [class.detail__action-icon--saved]="saved()"
+              aria-hidden="true"
+            ></ion-icon>
+          </span>
+          <span
+            class="detail__action-count"
+            [class.detail__action-count--saved]="saved()"
+          >
+            {{ saveCount() | shortNumber }}
+          </span>
+        </button>
+        <button
+          type="button"
+          class="detail__action"
+          (click)="sharePost()"
+          aria-label="Share post"
+        >
+          <span class="detail__action-icon-wrap">
+            <ion-icon
+              name="share-outline"
+              color="grayColor"
+              class="detail__action-icon"
+              aria-hidden="true"
+            ></ion-icon>
+          </span>
         </button>
       </footer>
+
+      <app-post-comments [postId]="postId()"></app-post-comments>
     </article>
   }
 </ion-content>
+
+@if (viewerOpen()) {
+  <app-image-lightbox
+    [images]="images()"
+    [startIndex]="viewerIndex()"
+    (closed)="closeViewer()"
+  ></app-image-lightbox>
+}
