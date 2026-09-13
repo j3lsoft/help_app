@@ -1,20 +1,10 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import {
-  IonContent,
-  IonIcon,
-  IonText,
-  IonToast,
-  ToastController,
-} from '@ionic/angular/standalone';
+import { IonContent, IonIcon, IonText } from '@ionic/angular/standalone';
 import { TopBarComponent } from '@shared/components/top-bar/top-bar.component';
 import { addIcons } from 'ionicons';
 import { notificationsOff } from 'ionicons/icons';
+import { NotificationService } from '@core/services/notification.service';
 import { FollowRequestCardComponent } from '../../components/follow-request-card/follow-request-card.component';
 import { NotificationListComponent } from '../../components/notification-list/notification-list.component';
 import { NotificationsService } from '../../services/notifications.service';
@@ -33,14 +23,6 @@ import { NotificationsService } from '../../services/notifications.service';
           (delete)="removeNotification($event)"
         />
       </div>
-
-      <ion-toast
-        [isOpen]="isToastOpen()"
-        message="Notification Dismissed!"
-        [duration]="2000"
-        (didDismiss)="isToastOpen.set(false)"
-        class="whiteColor14Medium"
-      ></ion-toast>
 
       @if (notificationsService.notifications().length === 0) {
       <div class="notifications-empty-state">
@@ -61,7 +43,6 @@ import { NotificationsService } from '../../services/notifications.service';
   styleUrls: ['./notifications.page.scss'],
   imports: [
     IonContent,
-    IonToast,
     IonIcon,
     IonText,
     TopBarComponent,
@@ -72,10 +53,8 @@ import { NotificationsService } from '../../services/notifications.service';
 })
 export class NotificationsPage {
   private readonly router = inject(Router);
-  private readonly toastCtrl = inject(ToastController);
+  private readonly notificationService = inject(NotificationService);
   readonly notificationsService = inject(NotificationsService);
-
-  isToastOpen = signal(false);
 
   constructor() {
     addIcons({ notificationsOff });
@@ -83,7 +62,7 @@ export class NotificationsPage {
 
   removeNotification(id: string): void {
     this.notificationsService.removeNotification(id);
-    this.isToastOpen.set(true);
+    this.notificationService.showInfo('Notification dismissed');
   }
 
   goTo(screen: string): void {

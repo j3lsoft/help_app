@@ -118,10 +118,141 @@ ion-content {
 
 ion-toast {
   --color: var(--whiteColor);
-  --background: var(--secondaryColor);
+  --background: transparent;
+  --border-radius: 16px;
+  --box-shadow: none;
+  --max-width: min(92vw, 460px);
+  --start: 16px;
+  --end: 16px;
+  --button-color: rgba(255, 255, 255, 0.55);
+  --app-toast-accent: var(--primaryColor);
+  --app-toast-accent-rgb: 18, 195, 236;
+  --app-toast-duration: 3000ms;
   transform: translateY(-60px);
-  --box-shadow: 0 0 0;
-  --border-radius: 5px;
+  font-family: "OpenSans";
+
+  &::part(wrapper) {
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    background:
+      linear-gradient(
+        155deg,
+        rgba(255, 255, 255, 0.1) 0%,
+        rgba(255, 255, 255, 0) 44%
+      ),
+      linear-gradient(
+        160deg,
+        rgba(14, 42, 92, 0.94) 0%,
+        rgba(7, 27, 62, 0.96) 48%,
+        rgba(4, 19, 49, 0.97) 100%
+      );
+    box-shadow:
+      0 26px 50px -18px rgba(2, 10, 28, 0.78),
+      0 8px 20px -6px rgba(2, 10, 28, 0.45),
+      inset 0 1px 0 rgba(255, 255, 255, 0.09);
+    backdrop-filter: blur(18px) saturate(140%);
+  }
+
+  &::part(container) {
+    animation: app-toast-content-in 340ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  &::part(icon) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 36px;
+    height: 36px;
+    margin-inline-start: 14px;
+    font-size: 19px;
+    border-radius: 11px;
+    color: var(--app-toast-accent);
+    background: rgba(var(--app-toast-accent-rgb), 0.14);
+    border: 1px solid rgba(var(--app-toast-accent-rgb), 0.34);
+    box-shadow: 0 0 20px -4px rgba(var(--app-toast-accent-rgb), 0.6);
+  }
+
+  &::part(message) {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+    letter-spacing: 0.1px;
+    color: rgba(255, 255, 255, 0.94);
+  }
+
+  &::part(button) {
+    min-width: 34px;
+    min-height: 34px;
+    padding: 8px;
+    border-radius: 50%;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.55);
+    transition: color 160ms ease, background-color 160ms ease;
+  }
+
+  &::part(button):hover {
+    color: var(--whiteColor);
+    background: rgba(255, 255, 255, 0.09);
+  }
+}
+
+ion-toast.app-toast::part(wrapper)::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  transform-origin: left center;
+  background: linear-gradient(
+    90deg,
+    rgba(var(--app-toast-accent-rgb), 0.15),
+    var(--app-toast-accent)
+  );
+  box-shadow: 0 0 14px rgba(var(--app-toast-accent-rgb), 0.75);
+  animation: app-toast-progress var(--app-toast-duration) linear forwards;
+}
+
+ion-toast.app-toast--success {
+  --app-toast-accent: var(--greenColor);
+  --app-toast-accent-rgb: 53, 203, 0;
+}
+
+ion-toast.app-toast--error {
+  --app-toast-accent: var(--redColor);
+  --app-toast-accent-rgb: 255, 0, 0;
+}
+
+ion-toast.app-toast--warning {
+  --app-toast-accent: var(--orangeColor);
+  --app-toast-accent-rgb: 255, 172, 51;
+}
+
+ion-toast.app-toast--info {
+  --app-toast-accent: var(--primaryColor);
+  --app-toast-accent-rgb: 18, 195, 236;
+}
+
+@keyframes app-toast-progress {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes app-toast-content-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 // Use only on screens without a header.
