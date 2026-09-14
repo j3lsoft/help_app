@@ -1,0 +1,151 @@
+<div class="photo-editor__container">
+  <app-back-header title="Edit Photo" (backClick)="closeEditor()">
+    <ng-template #rightAction>
+      <button
+        type="button"
+        class="photo-editor__done"
+        (click)="closeEditor()"
+      >
+        Done
+      </button>
+    </ng-template>
+  </app-back-header>
+
+  <div class="photo-editor__preview">
+    <ion-img
+      [src]="selectedImageSrc()"
+      class="photo-editor__image"
+      [style.filter]="effectiveFilter()"
+      [style.transform]="effectiveTransform()"
+    ></ion-img>
+  </div>
+
+  <!-- Dynamic Tool Panel -->
+  <div class="photo-editor__panel">
+    <!-- Reset bar (space always reserved so the preview never jumps) -->
+    <div class="photo-editor__reset-bar">
+      @if (hasNonNeutralVisuals()) {
+        <button
+          type="button"
+          class="photo-editor__reset-btn"
+          (click)="resetAll()"
+        >
+          <ion-icon name="refresh-outline"></ion-icon>
+          Reset All Edits
+        </button>
+      }
+    </div>
+
+    <!-- Tab 1: Filters -->
+    @if (activeTab() === 'filters') {
+      <div class="photo-editor__filters">
+        @for (item of filters; track item.filterName) {
+          <div
+            class="photo-editor__filter"
+            role="button"
+            tabindex="0"
+            [attr.aria-pressed]="isFilterActive(item.filter)"
+            (click)="selectFilter(item.filter)"
+            (keydown.enter)="selectFilter(item.filter)"
+          >
+            <div
+              class="photo-editor__thumb-wrapper"
+              [class.photo-editor__thumb-wrapper--active]="isFilterActive(item.filter)"
+            >
+              <img
+                [src]="selectedImageSrc()"
+                class="photo-editor__thumb"
+                [style.filter]="item.filter"
+                alt=""
+              />
+            </div>
+            <ion-text class="photo-editor__filter-name">
+              {{ item.filterName }}
+            </ion-text>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Tab 2: Adjust -->
+    @if (activeTab() === 'adjust') {
+      <div class="photo-editor__adjust-list">
+        @for (ctrl of adjustControls(); track ctrl.key) {
+          <div class="photo-editor__adjust-row">
+            <ion-icon [name]="ctrl.icon" class="photo-editor__adjust-icon"></ion-icon>
+            <span class="photo-editor__adjust-label">{{ ctrl.label }}</span>
+            <ion-range
+              [min]="ctrl.min"
+              [max]="ctrl.max"
+              [step]="ctrl.step"
+              [value]="ctrl.value"
+              (ionChange)="onAdjustChange(ctrl.key, $event)"
+              class="photo-editor__adjust-slider"
+            ></ion-range>
+            <span class="photo-editor__adjust-value">
+              {{ ctrl.value > 0 && ctrl.key !== 'blur' ? '+' + ctrl.value : ctrl.value }}{{ ctrl.unit ?? '' }}
+            </span>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Tab 3: Rotate -->
+    @if (activeTab() === 'rotate') {
+      <div class="photo-editor__rotate-panel">
+        <div class="photo-editor__rotate-status">
+          Current Angle: {{ selectedEdits().rotate * 90 }}°
+        </div>
+        <div class="photo-editor__rotate-actions">
+          <ion-button
+            class="photo-editor__rotate-btn"
+            (click)="rotateClockwise()"
+          >
+            <ion-icon name="sync-outline" slot="start"></ion-icon>
+            Rotate 90°
+          </ion-button>
+          <ion-button
+            class="photo-editor__rotate-btn photo-editor__rotate-btn--outline"
+            fill="outline"
+            (click)="resetRotate()"
+          >
+            Reset Angle
+          </ion-button>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Bottom Toolbar -->
+  <div class="photo-editor__toolbar">
+    <button
+      type="button"
+      class="photo-editor__tool-btn"
+      [class.photo-editor__tool-btn--active]="activeTab() === 'filters'"
+      (click)="setTab('filters')"
+    >
+      <ion-icon name="color-palette-outline"></ion-icon>
+      <span>Filter</span>
+    </button>
+
+    <button
+      type="button"
+      class="photo-editor__tool-btn"
+      [class.photo-editor__tool-btn--active]="activeTab() === 'adjust'"
+      (click)="setTab('adjust')"
+    >
+      <ion-icon name="options-outline"></ion-icon>
+      <span>Adjust</span>
+    </button>
+
+    <button
+      type="button"
+      class="photo-editor__tool-btn"
+      [class.photo-editor__tool-btn--active]="activeTab() === 'rotate'"
+      (click)="setTab('rotate')"
+    >
+      <ion-icon name="sync-outline"></ion-icon>
+      <span>Rotate</span>
+    </button>
+  </div>
+</div>

@@ -45,8 +45,8 @@ export const routes: Routes = [
       {
         path: 'create-post',
         loadComponent: () =>
-          import('./features/posts/pages/create-post/create-post.page').then(
-            (m) => m.CreatePostPage
+          import('./features/posts/pages/composer/composer.page').then(
+            (m) => m.ComposerPage
           ),
       },
       {
@@ -167,22 +167,6 @@ export const routes: Routes = [
       import('./features/profile/pages/follow-requests/follow-requests.page').then(
         (m) => m.FollowRequestsPage
       ),
-  },
-  {
-    path: 'post-filter',
-    canMatch: [authGuard],
-    loadComponent: () =>
-      import('./features/posts/pages/post-filter/post-filter.page').then(
-        (m) => m.PostFilterPage
-      ),
-  },
-  {
-    path: 'post-caption-and-tag',
-    canMatch: [authGuard],
-    loadComponent: () =>
-      import(
-        './features/posts/pages/post-caption-and-tag/post-caption-and-tag.page'
-      ).then((m) => m.PostCaptionAndTagPage),
   },
   {
     path: 'chat',

@@ -1,0 +1,78 @@
+<div
+  class="media-grid"
+  [ngClass]="gridClass"
+  [class.media-grid--dragging]="isDragging"
+>
+  @for (item of items; track item.id; let i = $index) {
+    <div
+      class="media-grid__cell"
+      [class.media-grid__cell--dragging]="draggedIndex() === i"
+      [class.media-grid__cell--drag-over]="dragOverIndex() === i"
+      [attr.data-index]="i"
+      draggable="true"
+      (dragstart)="onDragStart(i, $event)"
+      (dragover)="onDragOver(i, $event)"
+      (dragleave)="onDragLeave(i)"
+      (drop)="onDrop(i, $event)"
+      (dragend)="onDragEnd()"
+      (pointerdown)="onPointerDown(i, $event)"
+      (pointermove)="onPointerMove($event)"
+      (pointerup)="onPointerUp($event)"
+      (pointercancel)="onPointerCancel($event)"
+      (click)="onCellClick(item, $event)"
+    >
+      <img
+        class="media-grid__image"
+        [src]="item.image.src"
+        [style.filter]="getItemFilter(item)"
+        [style.transform]="getItemTransform(item)"
+        alt="Selected post media"
+      />
+
+      <div class="media-grid__overlay">
+        <!-- Remove x button -->
+        <button
+          type="button"
+          class="media-grid__remove"
+          title="Eliminar imagen"
+          aria-label="Eliminar imagen"
+          (click)="onRemoveClick(item, $event)"
+        >
+          <ion-icon name="close"></ion-icon>
+        </button>
+
+        <!-- Tap to edit badge indicator -->
+        <div class="media-grid__edit-badge">
+          <ion-icon name="create-outline"></ion-icon>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+
+@if (dragPreview(); as preview) {
+  <div
+    class="media-grid__preview"
+    [class.media-grid__preview--settling]="preview.settling"
+    [style.width.px]="preview.width"
+    [style.height.px]="preview.height"
+    [style.transform]="
+      'translate3d(' +
+      preview.x +
+      'px, ' +
+      preview.y +
+      'px, 0) rotate(' +
+      preview.rotate +
+      'deg)'
+    "
+    aria-hidden="true"
+  >
+    <img
+      class="media-grid__preview-image"
+      [src]="preview.src"
+      [style.filter]="preview.filter"
+      [style.transform]="preview.transform"
+      alt=""
+    />
+  </div>
+}

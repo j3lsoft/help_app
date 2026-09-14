@@ -64,9 +64,10 @@ describe('image-bake.util', () => {
     expect(file.size).toBeGreaterThan(0);
   });
 
-  it('should bake Gingham-like filter plus brightness via effectiveFilter', async () => {
-    const file = await bakeImageFilter(PIXEL_PNG, 'grayscale(100%) brightness(1.5)', {
-      transform: 'rotate(0deg)',
+  it('should bake with vignette and sharpen options', async () => {
+    const file = await bakeImageFilter(PIXEL_PNG, 'saturate(1.5)', {
+      vignette: 50,
+      sharpen: 30,
     });
     expect(['image/webp', 'image/jpeg']).toContain(file.type);
     expect(file.size).toBeGreaterThan(0);
@@ -96,8 +97,6 @@ describe('image-bake.util', () => {
       quality?: number
     ): void {
       if (type === 'image/webp') {
-        // iOS Safari decodes WebP but never encodes it: per spec it falls
-        // back to PNG instead of returning null.
         callback(new Blob(['fake-png-bytes'], { type: 'image/png' }));
         return;
       }

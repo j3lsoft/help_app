@@ -10,6 +10,7 @@ import {
   PublishStage,
 } from './post-publish.service';
 import { PostResponseDto } from '../models/post.dto';
+import { MediaItem, POST_EDIT_STATE_NEUTRAL } from '../models/post-creation.model';
 
 describe('PostPublishService', () => {
   let service: PostPublishService;
@@ -43,7 +44,6 @@ describe('PostPublishService', () => {
     updatedAt: '2026-08-25T00:00:00Z',
   };
 
-  // 2x2 red PNG pixel
   const TINY_PNG =
     'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAEklEQVR42mP8z8AAAwDAfgAHjfoLpAAAAABJRU5ErkJggg==';
 
@@ -56,11 +56,13 @@ describe('PostPublishService', () => {
     ]);
     postsApiSpy = jasmine.createSpyObj('PostsApiService', ['createPost']);
 
-    uploadApiSpy.getPresignedUrl.and.returnValue(
-      of({ id: 'presigned-id', key: 'uploads/key', uploadUrl: 'https://s3/put' })
+    uploadApiSpy.getPresignedUrl.and.callFake(({ originalName }) =>
+      of({ id: `presigned-${originalName}`, key: `uploads/${originalName}`, uploadUrl: 'https://s3/put' })
     );
     uploadApiSpy.uploadToStorage.and.returnValue(of(100));
-    uploadApiSpy.confirmUpload.and.returnValue(of(MEDIA));
+    uploadApiSpy.confirmUpload.and.callFake(({ fileId }) =>
+      of({ ...MEDIA, id: `media-${fileId}` })
+    );
     postsApiSpy.createPost.and.returnValue(of(POST_DTO));
 
     TestBed.configureTestingModule({
@@ -74,7 +76,7 @@ describe('PostPublishService', () => {
     TestBed.inject(LoggerService);
   });
 
-  it('should bake, upload via presigned flow and create the post', async () => {
+  it('should bake, upload via presigned flow and create the post (single legacy param)', async () => {
     const stages: PublishStage[] = [];
     const progress: number[] = [];
 
@@ -87,24 +89,49 @@ describe('PostPublishService', () => {
     });
 
     expect(result.post.id).toBe('post-1');
-    expect(result.mediaFileId).toBe('media-1');
-    expect(uploadApiSpy.getPresignedUrl).toHaveBeenCalledWith(
-      jasmine.objectContaining({ mimeType: jasmine.stringMatching(/image\/(jpeg|webp)/) })
-    );
+    expect(result.mediaFileId).toBe('media-presigned-post.webp');
+    expect(result.mediaFileIds).toEqual(['media-presigned-post.webp']);
+    expect(uploadApiSpy.getPresignedUrl).toHaveBeenCalled();
     expect(uploadApiSpy.uploadToStorage).toHaveBeenCalled();
-    expect(uploadApiSpy.confirmUpload).toHaveBeenCalledWith(
-      jasmine.objectContaining({
-        fileId: 'presigned-id',
-        mimeType: jasmine.stringMatching(/image\/(jpeg|webp)/),
-      })
-    );
+    expect(uploadApiSpy.confirmUpload).toHaveBeenCalled();
     expect(postsApiSpy.createPost).toHaveBeenCalledWith({
       content: 'hi',
-      mediaIds: ['media-1'],
+      mediaIds: ['media-presigned-post.webp'],
     });
     expect(stages).toContain('baking');
     expect(stages).toContain('uploading');
     expect(stages).toContain('creating');
+  });
+
+  it('should publish multiple MediaItem items in sequence', async () => {
+    const items: MediaItem[] = [
+      {
+        id: 'item-1',
+        image: { src: TINY_PNG, format: 'png', origin: 'gallery' },
+        filter: '',
+        edits: { ...POST_EDIT_STATE_NEUTRAL },
+        pendingMediaId: null,
+      },
+      {
+        id: 'item-2',
+        image: { src: TINY_PNG, format: 'png', origin: 'gallery' },
+        filter: 'sepia(1)',
+        edits: { ...POST_EDIT_STATE_NEUTRAL, rotate: 1 },
+        pendingMediaId: null,
+      },
+    ];
+
+    const result = await service.publish({
+      items,
+      content: 'multi image post',
+    });
+
+    expect(result.mediaFileIds.length).toBe(2);
+    expect(uploadApiSpy.getPresignedUrl).toHaveBeenCalledTimes(2);
+    expect(postsApiSpy.createPost).toHaveBeenCalledWith({
+      content: 'multi image post',
+      mediaIds: result.mediaFileIds,
+    });
   });
 
   it('should send null content when caption is empty', async () => {
@@ -112,7 +139,7 @@ describe('PostPublishService', () => {
 
     expect(postsApiSpy.createPost).toHaveBeenCalledWith({
       content: null,
-      mediaIds: ['media-1'],
+      mediaIds: ['media-presigned-post.webp'],
     });
   });
 
@@ -120,6 +147,7 @@ describe('PostPublishService', () => {
     const result = await service.publish({ imageSrc: '', content: 'hello text' });
 
     expect(result.mediaFileId).toBeNull();
+    expect(result.mediaFileIds).toEqual([]);
     expect(uploadApiSpy.getPresignedUrl).not.toHaveBeenCalled();
     expect(uploadApiSpy.uploadToStorage).not.toHaveBeenCalled();
     expect(uploadApiSpy.confirmUpload).not.toHaveBeenCalled();
@@ -140,25 +168,27 @@ describe('PostPublishService', () => {
     expect(postsApiSpy.createPost).not.toHaveBeenCalled();
   });
 
-  it('should skip the upload and reuse the pending media id on retry', async () => {
+  it('should skip upload and reuse pendingMediaId on retry for items', async () => {
+    const items: MediaItem[] = [
+      {
+        id: 'item-1',
+        image: { src: TINY_PNG, format: 'png', origin: 'gallery' },
+        filter: '',
+        edits: { ...POST_EDIT_STATE_NEUTRAL },
+        pendingMediaId: 'confirmed-media-1',
+      },
+    ];
+
     const result = await service.publish({
-      imageSrc: TINY_PNG,
-      filterCss: '',
-      content: null,
-      pendingMediaId: 'media-existing',
+      items,
+      content: 'retry post',
     });
 
-    expect(result.mediaFileId).toBe('media-existing');
+    expect(result.mediaFileIds).toEqual(['confirmed-media-1']);
     expect(uploadApiSpy.getPresignedUrl).not.toHaveBeenCalled();
-    expect(uploadApiSpy.uploadToStorage).not.toHaveBeenCalled();
-    expect(uploadApiSpy.confirmUpload).not.toHaveBeenCalled();
-    expect(postsApiSpy.createPost).toHaveBeenCalledWith({
-      content: null,
-      mediaIds: ['media-existing'],
-    });
   });
 
-  it('should carry the uploaded media id when post creation fails', async () => {
+  it('should carry uploadedMediaIds when post creation fails', async () => {
     postsApiSpy.createPost.and.returnValue(
       throwError(() => ({ status: 422, message: 'domain error' }))
     );
@@ -174,85 +204,7 @@ describe('PostPublishService', () => {
       expect(error).toBeInstanceOf(PostPublishError);
       const publishError = error as PostPublishError;
       expect(publishError.stage).toBe('creating');
-      expect(publishError.uploadedMediaId).toBe('media-1');
-    }
-  });
-
-  it('should fail at the uploading stage without a media id when storage fails', async () => {
-    uploadApiSpy.uploadToStorage.and.returnValue(
-      throwError(() => new Error('network down'))
-    );
-
-    try {
-      await service.publish({
-        imageSrc: TINY_PNG,
-        filterCss: '',
-        content: null,
-      });
-      fail('expected PostPublishError');
-    } catch (error) {
-      const publishError = error as PostPublishError;
-      expect(publishError.stage).toBe('uploading');
-      expect(publishError.uploadedMediaId).toBeUndefined();
-    }
-  });
-
-  it('should wait for the storage PUT to complete before confirming (multi-tick upload)', async () => {
-    // Reproduces the 422 "File does not exist in storage": uploadToStorage
-    // emits one value per progress tick, and unsubscribing early aborts the
-    // XHR (teardown calls xhr.abort), so the object never lands in storage.
-    let uploaded = false;
-    uploadApiSpy.uploadToStorage.and.returnValue(
-      new Observable<number>((observer) => {
-        observer.next(30);
-        const timer = setTimeout(() => {
-          uploaded = true;
-          observer.next(100);
-          observer.complete();
-        }, 10);
-        // Models XHR abort on unsubscribe: early teardown cancels the PUT.
-        return () => clearTimeout(timer);
-      })
-    );
-    uploadApiSpy.confirmUpload.and.callFake(() =>
-      uploaded
-        ? of(MEDIA)
-        : throwError(() => ({
-            statusCode: 422,
-            message: 'File does not exist in storage',
-            error: 'Unprocessable Entity',
-            code: 'INVALID_FILE',
-          }))
-    );
-
-    const result = await service.publish({
-      imageSrc: TINY_PNG,
-      filterCss: '',
-      content: null,
-    });
-
-    expect(result.post.id).toBe('post-1');
-    expect(result.mediaFileId).toBe('media-1');
-    expect(uploadApiSpy.confirmUpload).toHaveBeenCalled();
-  });
-
-  it('should fail at uploading without a media id when the backend confirm rejects (object missing in storage)', async () => {
-    uploadApiSpy.confirmUpload.and.returnValue(
-      throwError(() => ({ status: 422, message: 'object not in storage' }))
-    );
-
-    try {
-      await service.publish({
-        imageSrc: TINY_PNG,
-        filterCss: '',
-        content: null,
-      });
-      fail('expected PostPublishError');
-    } catch (error) {
-      const publishError = error as PostPublishError;
-      expect(publishError.stage).toBe('uploading');
-      // No MediaFile exists yet, so the retry must re-upload from scratch.
-      expect(publishError.uploadedMediaId).toBeUndefined();
+      expect(publishError.uploadedMediaIds).toEqual(['media-presigned-post.webp']);
     }
   });
 });

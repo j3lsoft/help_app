@@ -1,0 +1,119 @@
+<app-back-header title="New Post" (backClick)="goHome()">
+  <ng-template #rightAction>
+    <button
+      type="button"
+      class="composer-post-action"
+      [disabled]="!canPublish()"
+      (click)="publish()"
+    >
+      Post
+    </button>
+  </ng-template>
+</app-back-header>
+
+<ion-content
+  scrollY="true"
+  (dragover)="onDragOver($event)"
+  (drop)="onDrop($event)"
+>
+  <div class="composer-panel">
+    <form [formGroup]="form" (ngSubmit)="publish()">
+      <div class="composer-identity">
+        <img
+          [src]="currentUser()?.avatarUrl || 'assets/images/users/user43.png'"
+          class="composer-identity__avatar"
+          alt=""
+        />
+        <div class="composer-identity__names">
+          <ion-text class="blackColor16SemiBold">
+            {{ currentUser()?.displayName }}
+          </ion-text>
+          <ion-text class="grayColor14Regular">
+            @{{ currentUser()?.username }}
+          </ion-text>
+        </div>
+      </div>
+
+      <div class="composer-caption">
+        <div class="composer-caption__input">
+          <ion-textarea
+            formControlName="caption"
+            [maxlength]="captionMaxLength"
+            placeholder="What's happening?"
+            autocapitalize="sentences"
+            auto-grow="true"
+            rows="3"
+            mode="ios"
+            class="composer-caption__textarea"
+          ></ion-textarea>
+        </div>
+      </div>
+
+      @if (postCreation.hasMedia()) {
+        <div class="composer-media-wrapper">
+          <app-media-grid
+            [items]="postCreation.mediaItems()"
+            (edit)="openEditor($event)"
+            (remove)="removeItem($event)"
+            (reorder)="onReorder($event)"
+          ></app-media-grid>
+        </div>
+      }
+
+      <div class="composer-actions">
+        <button
+          type="button"
+          class="composer-actions__button"
+          (click)="pickFromGallery()"
+          [disabled]="isSelecting() || !postCreation.canAddMedia()"
+          aria-label="Add photo from gallery"
+        >
+          <ion-icon name="image-outline" aria-hidden="true"></ion-icon>
+        </button>
+        <button
+          type="button"
+          class="composer-actions__button"
+          (click)="takePhoto()"
+          [disabled]="isSelecting() || !postCreation.canAddMedia()"
+          aria-label="Take photo with camera"
+        >
+          <ion-icon name="camera-outline" aria-hidden="true"></ion-icon>
+        </button>
+      </div>
+    </form>
+  </div>
+</ion-content>
+
+<ion-modal
+  [isOpen]="isEditorOpen()"
+  (didDismiss)="closeEditor()"
+  class="composer-editor-modal"
+>
+  <ng-template>
+    <app-photo-editor (done)="closeEditor()"></app-photo-editor>
+  </ng-template>
+</ion-modal>
+
+@if (isSelecting()) {
+  <div class="composer-overlay">
+    <ion-spinner name="crescent"></ion-spinner>
+  </div>
+}
+
+@if (isPublishing()) {
+  <div class="composer-overlay composer-overlay--publish">
+    <div class="composer-publish">
+      <ion-spinner name="crescent"></ion-spinner>
+      <ion-text class="composer-publish__stage">
+        @if (publishStage() === 'baking') { Processing media… }
+        @else if (publishStage() === 'uploading') {
+          Uploading… {{ uploadProgress() }}%
+        } @else { Creating post… }
+      </ion-text>
+      <ion-progress-bar
+        [value]="uploadProgress() / 100"
+        class="composer-publish__bar"
+      ></ion-progress-bar>
+    </div>
+  </div>
+}

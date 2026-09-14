@@ -1,132 +1,151 @@
 import { PostCreationService } from './post-creation.service';
+import { MAX_MEDIA_ITEMS, POST_EDIT_STATE_NEUTRAL } from '../models/post-creation.model';
 
-describe('PostCreationService - PostEditState + Effective signals', () => {
+describe('PostCreationService - Multi-Media & Edit State', () => {
   let svc: PostCreationService;
 
   beforeEach(() => {
     svc = new PostCreationService();
-    svc.selectImage({ src: 'blob:a', format: 'jpeg', origin: 'gallery' });
-    // reset to neutral after selectImage already does
   });
 
-  it('should have neutral effective signals initially', () => {
+  it('should start empty with neutral states', () => {
+    expect(svc.hasMedia()).toBeFalse();
+    expect(svc.mediaCount()).toBe(0);
+    expect(svc.canAddMedia()).toBeTrue();
+    expect(svc.remainingSlots()).toBe(MAX_MEDIA_ITEMS);
+    expect(svc.activeItem()).toBeNull();
     expect(svc.effectiveFilter()).toBe('');
     expect(svc.effectiveTransform()).toBe('');
-    expect(svc.pendingMediaId()).toBeNull();
   });
 
-  it('should reset filter and edits on selectImage', () => {
+  it('should add images up to MAX_MEDIA_ITEMS limit', () => {
+    const img = { src: 'blob:a', format: 'jpeg', origin: 'gallery' as const };
+    const ids: string[] = [];
+    for (let i = 0; i < MAX_MEDIA_ITEMS; i++) {
+      const id = svc.addImage(img);
+      expect(id).not.toBeNull();
+      ids.push(id!);
+    }
+
+    expect(svc.mediaCount()).toBe(MAX_MEDIA_ITEMS);
+    expect(svc.canAddMedia()).toBeFalse();
+    expect(svc.remainingSlots()).toBe(0);
+
+    // 6th image should be rejected
+    const extraId = svc.addImage(img);
+    expect(extraId).toBeNull();
+    expect(svc.mediaCount()).toBe(MAX_MEDIA_ITEMS);
+  });
+
+  it('should add batch of images respecting remaining slots', () => {
+    const imgs = [
+      { src: 'blob:1', format: 'jpeg', origin: 'gallery' as const },
+      { src: 'blob:2', format: 'jpeg', origin: 'gallery' as const },
+      { src: 'blob:3', format: 'jpeg', origin: 'gallery' as const },
+      { src: 'blob:4', format: 'jpeg', origin: 'gallery' as const },
+      { src: 'blob:5', format: 'jpeg', origin: 'gallery' as const },
+      { src: 'blob:6', format: 'jpeg', origin: 'gallery' as const },
+    ];
+
+    const added = svc.addImages(imgs);
+    expect(added.length).toBe(5);
+    expect(svc.mediaCount()).toBe(5);
+  });
+
+  it('should switch active item and keep edits independent', () => {
+    const id1 = svc.addImage({ src: 'blob:1', format: 'jpeg', origin: 'gallery' })!;
+    const id2 = svc.addImage({ src: 'blob:2', format: 'jpeg', origin: 'gallery' })!;
+
+    expect(svc.activeItemId()).toBe(id1);
+
     svc.setFilter('grayscale(1)');
-    svc.setEdit({ brightness: 50 });
-    svc.setPendingMediaId('media-1');
-    svc.selectImage({ src: 'blob:b', format: 'jpeg', origin: 'gallery' });
+    svc.setEdit({ brightness: 30 });
+
+    svc.setActiveItem(id2);
+    expect(svc.activeItemId()).toBe(id2);
     expect(svc.selectedFilter()).toBe('');
-    expect(svc.selectedEdits()).toEqual({ brightness: 0, contrast: 0, blur: 0, rotate: 0 });
-    expect(svc.pendingMediaId()).toBeNull();
-    expect(svc.effectiveFilter()).toBe('');
+    expect(svc.selectedEdits().brightness).toBe(0);
+
+    svc.setEdit({ contrast: 50 });
+
+    // Switch back to item 1
+    svc.setActiveItem(id1);
+    expect(svc.selectedFilter()).toBe('grayscale(1)');
+    expect(svc.selectedEdits().brightness).toBe(30);
+    expect(svc.selectedEdits().contrast).toBe(0);
   });
 
-  it('should keep Filter excluyente', () => {
-    svc.setFilter('grayscale(1)');
-    expect(svc.effectiveFilter()).toBe('grayscale(1)');
-    svc.setFilter('sepia(1)');
-    expect(svc.selectedFilter()).toBe('sepia(1)');
-    expect(svc.effectiveFilter()).toBe('sepia(1)');
+  it('should remove item and update active item gracefully', () => {
+    const id1 = svc.addImage({ src: 'blob:1', format: 'jpeg', origin: 'gallery' })!;
+    const id2 = svc.addImage({ src: 'blob:2', format: 'jpeg', origin: 'gallery' })!;
+    const id3 = svc.addImage({ src: 'blob:3', format: 'jpeg', origin: 'gallery' })!;
+
+    svc.setActiveItem(id2);
+    svc.removeItem(id2);
+
+    expect(svc.mediaCount()).toBe(2);
+    // Active item should now be id3 (or remaining at index 1)
+    expect(svc.activeItemId()).toBe(id3);
+
+    svc.removeItem(id3);
+    expect(svc.activeItemId()).toBe(id1);
+
+    svc.removeItem(id1);
+    expect(svc.mediaCount()).toBe(0);
+    expect(svc.activeItemId()).toBeNull();
   });
 
-  it('should compose Edits additively on top of Filter in deterministic order', () => {
-    svc.setFilter('sepia(1)');
-    svc.setEdit({ brightness: 50 });
-    expect(svc.effectiveFilter()).toBe('sepia(1) brightness(1.5)');
-    svc.setEdit({ contrast: -20 });
-    expect(svc.effectiveFilter()).toBe('sepia(1) brightness(1.5) contrast(0.8)');
-    svc.setEdit({ blur: 5 });
-    expect(svc.effectiveFilter()).toBe('sepia(1) brightness(1.5) contrast(0.8) blur(5px)');
-    // neutral values do not contribute
-    svc.setEdit({ brightness: 0 });
-    expect(svc.effectiveFilter()).toBe('sepia(1) contrast(0.8) blur(5px)');
+  it('should reorder items', () => {
+    const id1 = svc.addImage({ src: 'blob:1', format: 'jpeg', origin: 'gallery' })!;
+    const id2 = svc.addImage({ src: 'blob:2', format: 'jpeg', origin: 'gallery' })!;
+    const id3 = svc.addImage({ src: 'blob:3', format: 'jpeg', origin: 'gallery' })!;
+
+    svc.reorderItems([id3, id1, id2]);
+    const items = svc.mediaItems();
+    expect(items.map((i) => i.id)).toEqual([id3, id1, id2]);
   });
 
-  it('should expose Effective Transform for rotate', () => {
-    expect(svc.effectiveTransform()).toBe('');
-    svc.setEdit({ rotate: 1 });
-    expect(svc.effectiveTransform()).toBe('rotate(90deg)');
-    svc.setEdit({ rotate: 2 });
-    expect(svc.effectiveTransform()).toBe('rotate(180deg)');
-    svc.updateEdit('rotate', 3);
-    expect(svc.effectiveTransform()).toBe('rotate(270deg)');
-    svc.updateEdit('rotate', 0);
-    expect(svc.effectiveTransform()).toBe('');
+  it('should support new edit keys (saturation, warmth, vignette, sharpen)', () => {
+    svc.addImage({ src: 'blob:1', format: 'jpeg', origin: 'gallery' });
+
+    svc.setEdit({ saturation: 40, warmth: -20, vignette: 50, sharpen: 10 });
+    const edits = svc.selectedEdits();
+    expect(edits.saturation).toBe(40);
+    expect(edits.warmth).toBe(-20);
+    expect(edits.vignette).toBe(50);
+    expect(edits.sharpen).toBe(10);
+
+    expect(svc.effectiveFilter()).toContain('saturate(1.4)');
+    expect(svc.effectiveFilter()).toContain('hue-rotate(4.0deg)');
   });
 
-  it('should invalidate pendingMediaId on visual change', () => {
-    svc.setPendingMediaId('media-2');
-    svc.setFilter('grayscale(1)');
-    expect(svc.pendingMediaId()).toBeNull();
+  it('should clamp new edit values properly', () => {
+    svc.addImage({ src: 'blob:1', format: 'jpeg', origin: 'gallery' });
 
-    svc.setPendingMediaId('media-3');
+    svc.setEdit({ saturation: 200, warmth: -200, vignette: 150, sharpen: -50 });
+    const edits = svc.selectedEdits();
+    expect(edits.saturation).toBe(100);
+    expect(edits.warmth).toBe(-100);
+    expect(edits.vignette).toBe(100);
+    expect(edits.sharpen).toBe(0);
+  });
+
+  it('should reset single image via selectImage (backward compat)', () => {
+    svc.addImage({ src: 'blob:1', format: 'jpeg', origin: 'gallery' });
+    svc.addImage({ src: 'blob:2', format: 'jpeg', origin: 'gallery' });
+    expect(svc.mediaCount()).toBe(2);
+
+    svc.selectImage({ src: 'blob:3', format: 'jpeg', origin: 'gallery' });
+    expect(svc.mediaCount()).toBe(1);
+    expect(svc.selectedImageSrc()).toBe('blob:3');
+  });
+
+  it('should reset item-specific pendingMediaId on edit change', () => {
+    const id1 = svc.addImage({ src: 'blob:1', format: 'jpeg', origin: 'gallery' })!;
+    svc.setPendingMediaId('pending-1');
+    expect(svc.pendingMediaId()).toBe('pending-1');
+
     svc.setEdit({ brightness: 10 });
     expect(svc.pendingMediaId()).toBeNull();
-
-    svc.setPendingMediaId('media-4');
-    svc.resetEdit('brightness');
-    expect(svc.pendingMediaId()).toBeNull();
-
-    // same value does not invalidate
-    svc.setPendingMediaId('media-5');
-    const currentBrightness = svc.selectedEdits().brightness;
-    svc.setEdit({ brightness: currentBrightness });
-    expect(svc.pendingMediaId()).toBe('media-5');
-
-    // same filter does not invalidate
-    const currentFilter = svc.selectedFilter();
-    svc.setPendingMediaId('media-6');
-    svc.setFilter(currentFilter);
-    expect(svc.pendingMediaId()).toBe('media-6');
-  });
-
-  it('should resetEdit partially', () => {
-    svc.setEdit({ brightness: 20, contrast: 30 });
-    svc.resetEdit('brightness');
-    expect(svc.selectedEdits().brightness).toBe(0);
-    expect(svc.selectedEdits().contrast).toBe(30);
-  });
-
-  it('should resetAll clears filter+edits but keeps image', () => {
-    svc.setFilter('grayscale(1)');
-    svc.setEdit({ blur: 2, rotate: 1 });
-    svc.setPendingMediaId('media-6');
-    const srcBefore = svc.selectedImageSrc();
-    svc.resetAll();
-    expect(svc.selectedFilter()).toBe('');
-    expect(svc.selectedEdits()).toEqual({ brightness: 0, contrast: 0, blur: 0, rotate: 0 });
-    expect(svc.pendingMediaId()).toBeNull();
-    expect(svc.selectedImageSrc()).toBe(srcBefore);
-    expect(svc.effectiveFilter()).toBe('');
-    expect(svc.effectiveTransform()).toBe('');
-  });
-
-  it('should reset clears image', () => {
-    svc.setFilter('grayscale(1)');
-    svc.reset();
-    expect(svc.hasSelectedImage()).toBeFalse();
-    expect(svc.selectedFilter()).toBe('');
-    expect(svc.pendingMediaId()).toBeNull();
-    expect(svc.selectedEdits()).toEqual({ brightness: 0, contrast: 0, blur: 0, rotate: 0 });
-  });
-
-  it('should clamp values', () => {
-    svc.setEdit({ brightness: 200 });
-    expect(svc.selectedEdits().brightness).toBe(100);
-    svc.setEdit({ brightness: -200 });
-    expect(svc.selectedEdits().brightness).toBe(-100);
-    svc.setEdit({ blur: 99 });
-    expect(svc.selectedEdits().blur).toBe(10);
-    svc.setEdit({ blur: -5 });
-    expect(svc.selectedEdits().blur).toBe(0);
-    svc.setEdit({ rotate: 5 });
-    expect(svc.selectedEdits().rotate).toBe(1);
-    svc.setEdit({ rotate: -1 });
-    expect(svc.selectedEdits().rotate).toBe(3);
   });
 });

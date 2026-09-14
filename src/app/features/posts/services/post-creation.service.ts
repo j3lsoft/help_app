@@ -1,10 +1,19 @@
 import { Injectable, computed, signal } from '@angular/core';
 import {
+  MAX_MEDIA_ITEMS,
+  MediaItem,
   POST_EDIT_STATE_NEUTRAL,
   PostEditKey,
   PostEditState,
   SelectedPostImage,
 } from '../models/post-creation.model';
+
+function generateId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return 'media-' + Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
+}
 
 function clampBrightness(value: number): number {
   return Math.max(-100, Math.min(100, Math.round(value)));
@@ -22,6 +31,22 @@ function clampRotate(value: number): number {
   return ((Math.round(value) % 4) + 4) % 4;
 }
 
+function clampSaturation(value: number): number {
+  return Math.max(-100, Math.min(100, Math.round(value)));
+}
+
+function clampWarmth(value: number): number {
+  return Math.max(-100, Math.min(100, Math.round(value)));
+}
+
+function clampVignette(value: number): number {
+  return Math.max(0, Math.min(100, Math.round(value)));
+}
+
+function clampSharpen(value: number): number {
+  return Math.max(0, Math.min(100, Math.round(value)));
+}
+
 function toBrightnessFilter(value: number): string {
   if (value === 0) return '';
   return `brightness(${1 + value / 100})`;
@@ -37,56 +62,190 @@ function toBlurFilter(value: number): string {
   return `blur(${value}px)`;
 }
 
+function toSaturationFilter(value: number): string {
+  if (value === 0) return '';
+  return `saturate(${1 + value / 100})`;
+}
+
+function toWarmthFilter(value: number): string {
+  if (value === 0) return '';
+  if (value > 0) {
+    const sepiaVal = (value / 100) * 0.35;
+    const hueVal = -value * 0.15;
+    return `sepia(${sepiaVal.toFixed(2)}) hue-rotate(${hueVal.toFixed(1)}deg)`;
+  }
+  const hueVal = Math.abs(value) * 0.2;
+  return `hue-rotate(${hueVal.toFixed(1)}deg)`;
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class PostCreationService {
-  private readonly _image = signal<SelectedPostImage | null>(null);
-  private readonly _selectedFilter = signal<string>('');
-  private readonly _edits = signal<PostEditState>({ ...POST_EDIT_STATE_NEUTRAL });
-  private readonly _pendingMediaId = signal<string | null>(null);
+  private readonly _items = signal<MediaItem[]>([]);
+  private readonly _activeItemId = signal<string | null>(null);
 
-  readonly selectedImageSrc = computed(() => this._image()?.src ?? '');
-  readonly hasSelectedImage = computed(() => this._image() !== null);
-  readonly selectedFilter = this._selectedFilter.asReadonly();
-  readonly selectedEdits = this._edits.asReadonly();
-  readonly pendingMediaId = this._pendingMediaId.asReadonly();
+  readonly mediaItems = this._items.asReadonly();
+  readonly activeItemId = this._activeItemId.asReadonly();
+
+  readonly activeItem = computed(() => {
+    const items = this._items();
+    const activeId = this._activeItemId();
+    if (!activeId) return items[0] ?? null;
+    return items.find((item) => item.id === activeId) ?? items[0] ?? null;
+  });
+
+  readonly hasMedia = computed(() => this._items().length > 0);
+  readonly canAddMedia = computed(() => this._items().length < MAX_MEDIA_ITEMS);
+  readonly mediaCount = computed(() => this._items().length);
+  readonly remainingSlots = computed(() => MAX_MEDIA_ITEMS - this._items().length);
+
+  // Backward compatibility & convenience signals delegating to active item
+  readonly selectedImageSrc = computed(() => this.activeItem()?.image.src ?? '');
+  readonly hasSelectedImage = computed(() => this.hasMedia());
+  readonly selectedFilter = computed(() => this.activeItem()?.filter ?? '');
+  readonly selectedEdits = computed(
+    () => this.activeItem()?.edits ?? { ...POST_EDIT_STATE_NEUTRAL }
+  );
+  readonly pendingMediaId = computed(() => this.activeItem()?.pendingMediaId ?? null);
 
   readonly effectiveFilter = computed(() => {
-    const base = this._selectedFilter().trim();
-    const { brightness, contrast, blur } = this._edits();
+    const item = this.activeItem();
+    if (!item) return '';
+    const base = item.filter.trim();
+    const { brightness, contrast, blur, saturation, warmth } = item.edits;
     const parts = [
       base,
       toBrightnessFilter(brightness),
       toContrastFilter(contrast),
+      toSaturationFilter(saturation),
+      toWarmthFilter(warmth),
       toBlurFilter(blur),
     ].filter(Boolean);
     return parts.join(' ');
   });
 
   readonly effectiveTransform = computed(() => {
-    const { rotate } = this._edits();
+    const item = this.activeItem();
+    if (!item) return '';
+    const { rotate } = item.edits;
     if (rotate === 0) return '';
     return `rotate(${rotate * 90}deg)`;
   });
 
+  addImage(image: SelectedPostImage): string | null {
+    if (!this.canAddMedia()) return null;
+    const newItem: MediaItem = {
+      id: generateId(),
+      image,
+      filter: '',
+      edits: { ...POST_EDIT_STATE_NEUTRAL },
+      pendingMediaId: null,
+    };
+    this._items.update((items) => [...items, newItem]);
+    if (this._items().length === 1 || !this._activeItemId()) {
+      this._activeItemId.set(newItem.id);
+    }
+    return newItem.id;
+  }
+
+  addImages(images: SelectedPostImage[]): string[] {
+    const slots = this.remainingSlots();
+    if (slots <= 0) return [];
+    const toAdd = images.slice(0, slots);
+    const addedIds: string[] = [];
+    const newItems: MediaItem[] = toAdd.map((image) => {
+      const id = generateId();
+      addedIds.push(id);
+      return {
+        id,
+        image,
+        filter: '',
+        edits: { ...POST_EDIT_STATE_NEUTRAL },
+        pendingMediaId: null,
+      };
+    });
+
+    this._items.update((items) => [...items, ...newItems]);
+    if (newItems.length > 0 && !this._activeItemId()) {
+      this._activeItemId.set(newItems[0].id);
+    }
+    return addedIds;
+  }
+
+  removeItem(id: string): void {
+    const currentItems = this._items();
+    const index = currentItems.findIndex((item) => item.id === id);
+    if (index === -1) return;
+
+    const remaining = currentItems.filter((item) => item.id !== id);
+    this._items.set(remaining);
+
+    if (this._activeItemId() === id) {
+      if (remaining.length === 0) {
+        this._activeItemId.set(null);
+      } else {
+        const nextIndex = Math.min(index, remaining.length - 1);
+        this._activeItemId.set(remaining[nextIndex].id);
+      }
+    }
+  }
+
+  reorderItems(orderedIds: string[]): void {
+    const currentItems = this._items();
+    const itemMap = new Map(currentItems.map((item) => [item.id, item]));
+    const reordered: MediaItem[] = [];
+
+    for (const id of orderedIds) {
+      const item = itemMap.get(id);
+      if (item) {
+        reordered.push(item);
+        itemMap.delete(id);
+      }
+    }
+    // Append any items not included in orderedIds
+    for (const item of itemMap.values()) {
+      reordered.push(item);
+    }
+
+    this._items.set(reordered);
+  }
+
+  setActiveItem(id: string | null): void {
+    if (id === null) {
+      this._activeItemId.set(null);
+      return;
+    }
+    const exists = this._items().some((item) => item.id === id);
+    if (exists) {
+      this._activeItemId.set(id);
+    }
+  }
+
+  /** Single-image backward compatible API */
   selectImage(image: SelectedPostImage): void {
-    this._image.set(image);
-    this._selectedFilter.set('');
-    this._edits.set({ ...POST_EDIT_STATE_NEUTRAL });
-    this._pendingMediaId.set(null);
+    this.reset();
+    this.addImage(image);
   }
 
   setFilter(filterCss: string): void {
+    const active = this.activeItem();
+    if (!active) return;
     const next = filterCss ?? '';
-    const current = this._selectedFilter();
-    if (next === current) return;
-    this._selectedFilter.set(next);
-    this._pendingMediaId.set(null);
+    if (active.filter === next) return;
+
+    this.updateActiveItem((item) => ({
+      ...item,
+      filter: next,
+      pendingMediaId: null,
+    }));
   }
 
   setEdit(patch: Partial<PostEditState>): void {
-    const current = this._edits();
+    const active = this.activeItem();
+    if (!active) return;
+
+    const current = active.edits;
     const next: PostEditState = { ...current };
     let changed = false;
 
@@ -118,10 +277,42 @@ export class PostCreationService {
         changed = true;
       }
     }
+    if (patch.saturation !== undefined) {
+      const clamped = clampSaturation(patch.saturation);
+      if (clamped !== current.saturation) {
+        next.saturation = clamped;
+        changed = true;
+      }
+    }
+    if (patch.warmth !== undefined) {
+      const clamped = clampWarmth(patch.warmth);
+      if (clamped !== current.warmth) {
+        next.warmth = clamped;
+        changed = true;
+      }
+    }
+    if (patch.vignette !== undefined) {
+      const clamped = clampVignette(patch.vignette);
+      if (clamped !== current.vignette) {
+        next.vignette = clamped;
+        changed = true;
+      }
+    }
+    if (patch.sharpen !== undefined) {
+      const clamped = clampSharpen(patch.sharpen);
+      if (clamped !== current.sharpen) {
+        next.sharpen = clamped;
+        changed = true;
+      }
+    }
 
     if (!changed) return;
-    this._edits.set(next);
-    this._pendingMediaId.set(null);
+
+    this.updateActiveItem((item) => ({
+      ...item,
+      edits: next,
+      pendingMediaId: null,
+    }));
   }
 
   updateEdit(key: PostEditKey, value: number): void {
@@ -129,35 +320,68 @@ export class PostCreationService {
   }
 
   resetEdit(key: PostEditKey): void {
-    const current = this._edits();
+    const active = this.activeItem();
+    if (!active) return;
     const neutral = POST_EDIT_STATE_NEUTRAL[key];
-    if (current[key] === neutral) return;
-    this._edits.set({ ...current, [key]: neutral });
-    this._pendingMediaId.set(null);
+    if (active.edits[key] === neutral) return;
+
+    this.updateActiveItem((item) => ({
+      ...item,
+      edits: { ...item.edits, [key]: neutral },
+      pendingMediaId: null,
+    }));
   }
 
   resetAll(): void {
-    const hasFilter = this._selectedFilter() !== '';
-    const edits = this._edits();
+    const active = this.activeItem();
+    if (!active) return;
+    const hasFilter = active.filter !== '';
+    const edits = active.edits;
     const hasEdits =
       edits.brightness !== 0 ||
       edits.contrast !== 0 ||
       edits.blur !== 0 ||
-      edits.rotate !== 0;
+      edits.rotate !== 0 ||
+      edits.saturation !== 0 ||
+      edits.warmth !== 0 ||
+      edits.vignette !== 0 ||
+      edits.sharpen !== 0;
+
     if (!hasFilter && !hasEdits) return;
-    if (hasFilter) this._selectedFilter.set('');
-    if (hasEdits) this._edits.set({ ...POST_EDIT_STATE_NEUTRAL });
-    this._pendingMediaId.set(null);
+
+    this.updateActiveItem((item) => ({
+      ...item,
+      filter: '',
+      edits: { ...POST_EDIT_STATE_NEUTRAL },
+      pendingMediaId: null,
+    }));
   }
 
   setPendingMediaId(mediaFileId: string | null): void {
-    this._pendingMediaId.set(mediaFileId);
+    const active = this.activeItem();
+    if (!active) return;
+    this.updateActiveItem((item) => ({
+      ...item,
+      pendingMediaId: mediaFileId,
+    }));
+  }
+
+  setItemPendingMediaId(id: string, mediaFileId: string | null): void {
+    this._items.update((items) =>
+      items.map((item) => (item.id === id ? { ...item, pendingMediaId: mediaFileId } : item))
+    );
   }
 
   reset(): void {
-    this._image.set(null);
-    this._selectedFilter.set('');
-    this._edits.set({ ...POST_EDIT_STATE_NEUTRAL });
-    this._pendingMediaId.set(null);
+    this._items.set([]);
+    this._activeItemId.set(null);
+  }
+
+  private updateActiveItem(updater: (item: MediaItem) => MediaItem): void {
+    const active = this.activeItem();
+    if (!active) return;
+    this._items.update((items) =>
+      items.map((item) => (item.id === active.id ? updater(item) : item))
+    );
   }
 }

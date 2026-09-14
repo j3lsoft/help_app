@@ -37,14 +37,17 @@ describe('post-view.adapter', () => {
       id: 'post-1',
       userProfilePic: 'https://cdn.example.com/avatar.png',
       userName: 'Tester One',
-      userDetail: '',
+      username: 'tester',
       aboutPost: 'hello world',
       postLikes: '0',
       postComments: '0',
       postShares: '0',
+      postSaves: '0',
+      postSaved: false,
       postImage: 'blob:image-src',
       postImages: ['blob:image-src'],
       postLike: false,
+      createdAt: '2026-08-25T00:00:00Z',
     });
   });
 
