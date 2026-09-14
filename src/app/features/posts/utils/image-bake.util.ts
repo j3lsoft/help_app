@@ -1,8 +1,15 @@
-export const POST_IMAGE_MAX_DIMENSION = 1920;
-const WEBP_QUALITY = 0.8;
-const JPEG_FALLBACK_QUALITY = 0.8;
+export const POST_IMAGE_MAX_DIMENSION = 2048;
+const JPEG_PHOTO_QUALITY = 0.85;
+const WEBP_SCREENSHOT_QUALITY = 0.88;
+const WEBP_ALPHA_QUALITY = 0.88;
+// Back-compat aliases
+const WEBP_QUALITY = JPEG_PHOTO_QUALITY;
+const JPEG_FALLBACK_QUALITY = JPEG_PHOTO_QUALITY;
 const RETRY_QUALITY = 0.7;
 const SIZE_THRESHOLD_BYTES = 800 * 1024;
+const MAX_CLIENT_BYTES = 2 * 1024 * 1024;
+const SCREENSHOT_MAX_WIDTH = 1600;
+const SCREENSHOT_SIZE_THRESHOLD = 900 * 1024;
 
 export function loadImageElement(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -20,6 +27,71 @@ function canvasToBlob(canvas: HTMLCanvasElement, mime: string, quality: number):
   });
 }
 
+function parseDataUrlMime(src: string): string | null {
+  const match = src.match(/^data:([^;]+);/);
+  return match ? match[1].toLowerCase() : null;
+}
+
+function estimateDataUrlSize(src: string): number | null {
+  if (!src.startsWith('data:')) return null;
+  const comma = src.indexOf(',');
+  if (comma === -1) return null;
+  const base64 = src.slice(comma + 1);
+  // approx: 3 bytes per 4 base64 chars
+  return Math.floor((base64.length * 3) / 4);
+}
+
+function detectHasAlpha(canvas: HTMLCanvasElement): boolean {
+  try {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return false;
+    // sample 32x32 thumbnail to avoid reading full 2048² for alpha check when not needed
+    const w = Math.min(canvas.width, 32);
+    const h = Math.min(canvas.height, 32);
+    const tmp = document.createElement('canvas');
+    tmp.width = w;
+    tmp.height = h;
+    const tctx = tmp.getContext('2d');
+    if (!tctx) return false;
+    tctx.drawImage(canvas, 0, 0, w, h);
+    const data = tctx.getImageData(0, 0, w, h).data;
+    for (let i = 3; i < data.length; i += 4) {
+      if (data[i] < 255) return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+type ImageKind = 'photo' | 'screenshot' | 'alpha';
+
+function classifyImageKind(
+  src: string,
+  image: HTMLImageElement,
+  canvas: HTMLCanvasElement,
+  options: BakeOptions
+): ImageKind {
+  // explicit hint from caller wins
+  const hintMime = (options as { originalMime?: string }).originalMime?.toLowerCase() ?? parseDataUrlMime(src);
+  const hintSize =
+    (options as { originalSize?: number }).originalSize ?? estimateDataUrlSize(src) ?? null;
+
+  const hasAlpha = detectHasAlpha(canvas);
+  if (hasAlpha) return 'alpha';
+
+  const isPngSource = hintMime === 'image/png';
+  if (isPngSource) {
+    const smallDimension = image.naturalWidth <= SCREENSHOT_MAX_WIDTH;
+    const smallFile = hintSize !== null && hintSize < SCREENSHOT_SIZE_THRESHOLD;
+    if (smallDimension || smallFile) return 'screenshot';
+    // Fallback: large PNG photos (e.g. camera PNG) stay as photo → JPEG
+    // but PNG screenshots with large dimensions still count if file is reasonably small
+    // keep photo default for large PNGs
+  }
+  return 'photo';
+}
+
 async function exportOptimizedBlob(
   canvas: HTMLCanvasElement,
   preferredMime: string,
@@ -28,24 +100,58 @@ async function exportOptimizedBlob(
   let mime = preferredMime;
   let blob = await canvasToBlob(canvas, mime, quality);
 
-  if ((!blob || blob.type !== mime) && mime === 'image/webp') {
+  if (preferredMime === 'image/webp' && (!blob || blob.type !== mime)) {
+    // WebP not supported or iOS Safari returns PNG for webp request → fallback to JPEG for screenshot/photo
+    // Alpha path is handled separately via exportAlphaBlob which falls back to PNG
     mime = 'image/jpeg';
     blob = await canvasToBlob(canvas, mime, quality);
   }
 
+  // PNG fallback for alpha: if we asked webp and got png, keep it
   if (!blob) {
     throw new Error('Canvas export failed');
   }
   mime = blob.type || mime;
 
-  if (blob.size > SIZE_THRESHOLD_BYTES && quality > RETRY_QUALITY) {
-    const retryBlob = await canvasToBlob(canvas, mime, RETRY_QUALITY);
-    if (retryBlob && retryBlob.size < blob.size) {
-      blob = retryBlob;
+  // New budget: allow up to 2MB, only retry if exceeds MAX_CLIENT_BYTES
+  if (blob.size > MAX_CLIENT_BYTES) {
+    const retries = quality === WEBP_SCREENSHOT_QUALITY || quality === WEBP_ALPHA_QUALITY
+      ? [0.8, 0.75]
+      : quality === JPEG_PHOTO_QUALITY
+        ? [0.8, 0.75]
+        : [RETRY_QUALITY];
+    for (const q of retries) {
+      if (q >= quality) continue;
+      const retryBlob = await canvasToBlob(canvas, mime, q);
+      if (retryBlob && retryBlob.size < blob.size) {
+        blob = retryBlob;
+        mime = retryBlob.type || mime;
+        if (blob.size <= MAX_CLIENT_BYTES) break;
+      }
     }
+    // Legacy 800KB retry kept for back-compat when quality still high and size >800KB but <=2MB?
+    // Skipped: new budget is 2MB, we don't downscale 1.5MB photo to 0.70 anymore.
   }
 
   return { blob, mime };
+}
+
+async function exportAlphaBlob(
+  canvas: HTMLCanvasElement,
+  quality: number
+): Promise<{ blob: Blob; mime: string }> {
+  let blob = await canvasToBlob(canvas, 'image/webp', quality);
+  if (blob && blob.type === 'image/webp') {
+    if (blob.size > MAX_CLIENT_BYTES) {
+      const retry = await canvasToBlob(canvas, 'image/webp', 0.8);
+      if (retry && retry.size < blob.size) blob = retry;
+    }
+    return { blob, mime: blob.type || 'image/webp' };
+  }
+  // Fallback to PNG (lossless, preserves alpha)
+  blob = await canvasToBlob(canvas, 'image/png', 1.0);
+  if (!blob) throw new Error('Canvas export failed');
+  return { blob, mime: blob.type || 'image/png' };
 }
 
 export interface BakeOptions {
@@ -56,6 +162,10 @@ export interface BakeOptions {
   transform?: string | null;
   vignette?: number; // 0..100
   sharpen?: number; // 0..100
+  /** Hint for auto-classification: original mime (e.g. image/png) */
+  originalMime?: string;
+  /** Hint for auto-classification: original file size in bytes */
+  originalSize?: number;
 }
 
 function parseRotateDegrees(transform: string | null | undefined): number {
@@ -148,7 +258,7 @@ export async function bakeImageFilter(
 ): Promise<File> {
   const { filter, transform, options } = resolveBakeArgs(cssFilter, optionsOrTransform, maybeOptions);
   const maxDimension = options?.maxDimension ?? POST_IMAGE_MAX_DIMENSION;
-  const preferredQuality = options?.quality ?? WEBP_QUALITY;
+  const hasExplicitQuality = options?.quality !== undefined && options?.quality !== null;
 
   const image = await loadImageElement(src);
 
@@ -195,8 +305,43 @@ export async function bakeImageFilter(
     applyVignette(ctx, canvasWidth, canvasHeight, options.vignette);
   }
 
-  const { blob, mime } = await exportOptimizedBlob(canvas, 'image/webp', preferredQuality);
-  const defaultName = mime === 'image/webp' ? 'post.webp' : 'post.jpg';
+  // Differentiated pipeline: foto→JPEG 0.85, screenshot→WebP 0.88, alpha→WebP/PNG
+  const kind = classifyImageKind(src, image, canvas, options);
+  let blob: Blob;
+  let mime: string;
+
+  if (kind === 'alpha') {
+    const q = hasExplicitQuality ? options.quality! : WEBP_ALPHA_QUALITY;
+    const res = await exportAlphaBlob(canvas, q);
+    blob = res.blob;
+    mime = res.mime;
+  } else if (kind === 'screenshot') {
+    const q = hasExplicitQuality ? options.quality! : WEBP_SCREENSHOT_QUALITY;
+    const res = await exportOptimizedBlob(canvas, 'image/webp', q);
+    blob = res.blob;
+    mime = res.mime;
+  } else {
+    const q = hasExplicitQuality ? options.quality! : JPEG_PHOTO_QUALITY;
+    // Photo path: JPEG directly with 2MB budget retries
+    let initial = await canvasToBlob(canvas, 'image/jpeg', q);
+    if (!initial) throw new Error('Canvas export failed');
+    blob = initial;
+    mime = initial.type || 'image/jpeg';
+    if (blob.size > MAX_CLIENT_BYTES) {
+      for (const rq of [0.8, 0.75]) {
+        if (rq >= q) continue;
+        const retry = await canvasToBlob(canvas, 'image/jpeg', rq);
+        if (retry && retry.size < blob.size) {
+          blob = retry;
+          mime = retry.type || mime;
+          if (blob.size <= MAX_CLIENT_BYTES) break;
+        }
+      }
+    }
+  }
+
+  const defaultName =
+    mime === 'image/webp' ? 'post.webp' : mime === 'image/png' ? 'post.png' : 'post.jpeg';
   return new File([blob], options?.fileName ?? defaultName, {
     type: mime,
   });

@@ -26,7 +26,7 @@ export const environment = {
       enabled: true,
       rules: {
         avatar: { maxSizeMB: 0.3, maxWidthOrHeight: 512 },
-        post_image: { maxSizeMB: 1, maxWidthOrHeight: 1920 },
+        post_image: { maxSizeMB: 2, maxWidthOrHeight: 2048 },
         post_video: null,
         story: { maxSizeMB: 0.8, maxWidthOrHeight: 1080 },
       },

@@ -19,12 +19,11 @@ export const environment = {
     retryAttempts: 3,
     retryDelay: 1000,
 
-    // Compression logic is not yet implemented
     compression: {
       enabled: true,
       rules: {
         avatar: { maxSizeMB: 0.3, maxWidthOrHeight: 512 },
-        post_image: { maxSizeMB: 1, maxWidthOrHeight: 1920 },
+        post_image: { maxSizeMB: 2, maxWidthOrHeight: 2048 },
         post_video: null,
         story: { maxSizeMB: 0.8, maxWidthOrHeight: 1080 },
       },
