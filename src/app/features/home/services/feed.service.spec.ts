@@ -19,7 +19,7 @@ describe('FeedService', () => {
       id: 'new-post',
       userProfilePic: '',
       userName: 'Tester',
-      userDetail: '',
+      username: 'tester',
       aboutPost: 'hi',
       postLikes: '0',
       postComments: '0',
@@ -27,6 +27,7 @@ describe('FeedService', () => {
       postImage: 'blob:image-src',
       postImages: ['blob:image-src'],
       postLike: false,
+      createdAt: '2026-09-13T00:00:00Z',
     };
 
     service.prependPost(newPost);
@@ -45,6 +46,16 @@ describe('FeedService', () => {
 
     service.toggleLike(target.id);
     expect(service.posts()[0].postLike).toBe(target.postLike);
+  });
+
+  it('should toggle save for a specific post', () => {
+    const target = MOCK_TODAY_POSTS[0];
+
+    service.toggleSave(target.id);
+    expect(service.posts()[0].postSaved).toBe(!target.postSaved);
+
+    service.toggleSave(target.id);
+    expect(service.posts()[0].postSaved).toBe(target.postSaved);
   });
 
   it('should update the content of a post in place', () => {

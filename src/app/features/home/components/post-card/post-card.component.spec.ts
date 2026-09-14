@@ -5,11 +5,14 @@ const SINGLE: Post = {
   id: 'p1',
   userProfilePic: 'avatar.png',
   userName: 'Alicia',
-  userDetail: '',
+  username: 'alicia',
+  createdAt: '2026-09-01T00:00:00Z',
   aboutPost: 'hello',
   postLikes: '10k',
   postComments: '100',
   postShares: '35',
+  postSaves: '35',
+  postSaved: false,
   postImage: 'a.png',
   postImages: ['a.png'],
   postLike: false,
@@ -81,5 +84,48 @@ describe('PostCardComponent', () => {
     media.click();
 
     expect(emitted).toBe('p1');
+  });
+
+  it('should render the username and date inline after the author name', () => {
+    fixture.componentRef.setInput('post', SINGLE);
+    fixture.detectChanges();
+
+    const meta = (fixture.nativeElement as HTMLElement).querySelector(
+      '.post-card__author-meta'
+    ) as HTMLElement;
+    const lines = Array.from(meta.querySelectorAll('ion-text')).map((el) =>
+      el.textContent?.trim()
+    );
+
+    expect(lines[0]).toBe('Alicia');
+    expect(lines[1]).toBe('@alicia');
+    expect(lines[2]).toContain('·');
+  });
+
+  it('should size the media like the detail page', () => {
+    fixture.componentRef.setInput('post', SINGLE);
+    fixture.detectChanges();
+
+    const carousel = (fixture.nativeElement as HTMLElement).querySelector(
+      'app-post-media-carousel'
+    ) as HTMLElement;
+    expect(carousel.getAttribute('style')).toContain(
+      '--post-carousel-height: 320px'
+    );
+  });
+
+  it('should emit saveClick when tapping the bookmark action', () => {
+    fixture.componentRef.setInput('post', SINGLE);
+    fixture.detectChanges();
+
+    let emitted = false;
+    component.saveClick.subscribe(() => (emitted = true));
+
+    const save = (fixture.nativeElement as HTMLElement).querySelectorAll(
+      '.post-card__action'
+    )[2] as HTMLElement;
+    save.click();
+
+    expect(emitted).toBeTrue();
   });
 });

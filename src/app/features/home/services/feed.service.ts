@@ -37,4 +37,10 @@ export class FeedService {
       posts.map((p) => (p.id === postId ? { ...p, postLike: !p.postLike } : p))
     );
   }
+
+  toggleSave(postId: string): void {
+    this._posts.update((posts) =>
+      posts.map((p) => (p.id === postId ? { ...p, postSaved: !p.postSaved } : p))
+    );
+  }
 }

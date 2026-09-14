@@ -1,84 +1,314 @@
 .post-card {
+  position: relative;
   display: flex;
   flex-direction: column;
-  margin-top: 20px;
+  padding-bottom: calc(4px + env(safe-area-inset-bottom));
 
-  &__header {
+  &__masthead {
     display: flex;
-    flex-direction: row;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
+    gap: 8px;
+    padding: 10px 0 0;
   }
 
-  &__user-info {
+  &__author {
     display: flex;
-    flex-direction: row;
-    align-items: center;
     flex: 1;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 0 6px;
+    min-width: 0;
     cursor: pointer;
   }
 
+  &__avatar-wrap {
+    position: relative;
+    flex: 0 0 auto;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--secondaryColor);
+    box-shadow: 0 0 0 2px var(--whiteColor), 0 0 0 3px var(--extraLightGrayColor);
+    overflow: hidden;
+  }
+
+  &__avatar-fallback {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--whiteColor);
+    background: var(--secondaryColor);
+  }
+
   &__avatar {
-    width: 50px;
-    height: 50px;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
     border-radius: 50%;
     object-fit: cover;
     overflow: hidden;
   }
 
-  &__user-meta {
+  &__author-meta {
     display: flex;
-    flex-direction: column;
     flex: 1;
-    margin-left: 10px;
+    align-items: baseline;
+    gap: 4px;
+    min-width: 0;
+    overflow: hidden;
   }
 
-  &__options-icon {
-    font-size: 18px;
+  // Name and handle share the row. Flex shrink is proportional to content, so
+  // the longer of the two is the one that gets ellipsized first; when both are
+  // long, both give way, matching the X/Twitter masthead.
+  &__author-name,
+  &__author-username {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__date {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  &__dot {
+    margin-right: 2px;
+  }
+
+  &__options-btn {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    margin-left: auto;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
     cursor: pointer;
   }
 
-  &__description {
-    margin-top: 4px;
-    margin-bottom: 10px;
+  &__options-icon {
+    font-size: 20px;
   }
 
-  &__content {
-    display: flex;
-    flex-direction: column;
-    background-color: var(--whiteColor);
-    border-radius: 10px;
+  &__body {
+    display: block;
+    margin: 4px 0 8px;
+    font-size: 15px;
+    line-height: 1.65;
+    color: var(--blackColor);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  &__media {
+    position: relative;
+    margin: 4px 0 2px;
+    border: 1px solid var(--extraLightGrayColor);
+    border-radius: 18px;
     overflow: hidden;
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+    background: #f6f8fa;
+    box-shadow: 0 10px 30px rgba(4, 19, 49, 0.1);
+
+    app-post-media-carousel {
+      display: block;
+    }
+  }
+
+  &__media-count {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: rgba(4, 19, 49, 0.42);
+    color: var(--whiteColor);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    pointer-events: none;
+    box-shadow: 0 2px 8px rgba(4, 19, 49, 0.18);
+    backdrop-filter: blur(8px) saturate(140%);
+    -webkit-backdrop-filter: blur(8px) saturate(140%);
+
+    ion-icon {
+      font-size: 14px;
+    }
   }
 
   &__actions {
     display: flex;
-    flex-direction: row;
     align-items: center;
-    justify-content: space-between;
-    padding: 14px 10px;
+    margin: 2px 0 0;
+    padding: 2px 0;
+    border-bottom: 1px solid rgba(4, 19, 49, 0.16);
   }
 
-  &__action-item {
+  &__action {
     display: flex;
-    flex-direction: row;
-    align-items: center;
     flex: 1;
-    margin: 0 2px;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    min-height: 48px;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border: none;
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  &__action-icon-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    overflow: hidden;
+    transition: transform 160ms ease;
+  }
+
+  &__action:active &__action-icon-wrap {
+    transform: scale(0.9);
+  }
+
+  @media (hover: hover) {
+    &__action:hover &__action-icon-wrap {
+      transform: scale(1.08);
+    }
+  }
+
+  &__action-icon-wrap--liked,
+  &__action-icon-wrap--saved {
+    transform: scale(1.05);
+  }
+
+  &__action-icon-wrap--burst::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle,
+      rgba(255, 0, 0, 0.22) 0%,
+      rgba(255, 0, 0, 0) 70%
+    );
+    animation: post-card-like-flash 480ms ease-out forwards;
   }
 
   &__action-icon {
-    font-size: 19px;
-    margin-right: 8px;
+    font-size: 24px;
   }
 
-  .line-clamp-1 {
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    line-clamp: 1;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+  &__action-icon--liked {
+    animation: post-card-like-pop 460ms cubic-bezier(0.18, 0.89, 0.32, 1.28);
+  }
+
+  &__action-icon--saved {
+    animation: post-card-save-drop 420ms cubic-bezier(0.2, 0.9, 0.3, 1.3);
+  }
+
+  &__action-count {
+    display: inline-block;
+    margin-left: -8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--grayColor);
+    transition: color 160ms ease;
+
+    &--liked {
+      color: var(--redColor);
+      animation: post-card-count-pop 380ms cubic-bezier(0.2, 0.9, 0.3, 1.2);
+    }
+
+    &--saved {
+      color: var(--secondaryColor);
+      animation: post-card-count-pop 380ms cubic-bezier(0.2, 0.9, 0.3, 1.2);
+    }
+  }
+
+  // Keyboard users get a visible ring; pointer users do not.
+  &__options-btn:focus-visible {
+    outline: 2px solid var(--primaryColor);
+    outline-offset: 2px;
+  }
+
+  // The ring follows the circular hit area, not the full flex column.
+  &__action:focus-visible {
+    outline: none;
+  }
+
+  &__action:focus-visible &__action-icon-wrap {
+    outline: 2px solid var(--primaryColor);
+    outline-offset: 2px;
+  }
+}
+
+@keyframes post-card-like-pop {
+  0% { transform: scale(0.6); }
+  35% { transform: scale(1.35); }
+  60% { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+
+@keyframes post-card-like-flash {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.3);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+
+@keyframes post-card-save-drop {
+  0% { transform: translateY(-4px) scale(0.85); }
+  55% { transform: translateY(1px) scale(1.12); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+@keyframes post-card-count-pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.16); }
+  100% { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .post-card {
+    &__action-icon--liked,
+    &__action-icon--saved,
+    &__action-count--liked,
+    &__action-count--saved,
+    &__action-icon-wrap--burst::after {
+      animation: none;
+    }
+
+    &__options-btn,
+    &__action,
+    &__action-icon-wrap,
+    &__action-icon {
+      transition: none;
+    }
   }
 }

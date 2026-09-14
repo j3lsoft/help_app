@@ -85,6 +85,10 @@ export class HomePage implements ViewWillEnter {
     this.feed.toggleLike(postId);
   }
 
+  handlePostSave(postId: string) {
+    this.feed.toggleSave(postId);
+  }
+
   handleFollowToggle(suggestion: { id: string; isFollow: boolean }) {
     this.followService
       .toggleFollow(suggestion.id, suggestion.isFollow)

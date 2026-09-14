@@ -1,71 +1,152 @@
-<div class="post-card">
-  <div class="post-card__header">
-    <div class="post-card__user-info" (click)="userClick.emit(post().userName)">
-      <ion-img
-        [src]="post().userProfilePic"
-        class="post-card__avatar"
-      ></ion-img>
-      <div class="post-card__user-meta">
-        <ion-text class="blackColor14SemiBold ellipseText line-clamp-1">
+<article class="post-card" [attr.aria-label]="'Post by ' + post().userName">
+  <header class="post-card__masthead">
+    <div class="post-card__author" (click)="userClick.emit(post().userName)">
+      <span class="post-card__avatar-wrap" aria-hidden="true">
+        <span class="post-card__avatar-fallback">{{ authorInitial() }}</span>
+        <ion-img
+          [src]="post().userProfilePic"
+          class="post-card__avatar"
+          alt=""
+        ></ion-img>
+      </span>
+      <div class="post-card__author-meta">
+        <ion-text class="blackColor14SemiBold post-card__author-name">
           {{ post().userName }}
         </ion-text>
-        <ion-text class="grayColor12Regular ellipseText line-clamp-1">
-          {{ post().userDetail }}
-        </ion-text>
+        @if (post().username) {
+          <ion-text class="grayColor12Regular post-card__author-username">
+            @{{ post().username }}
+          </ion-text>
+        }
+        @if (post().createdAt) {
+          <ion-text class="grayColor12Regular post-card__date">
+            <span class="post-card__dot" aria-hidden="true">·</span>
+            {{ post().createdAt | timeAgo }}
+          </ion-text>
+        }
       </div>
     </div>
-    <ion-icon
-      name="ellipsis-vertical"
-      color="blackColor"
-      class="post-card__options-icon"
-    ></ion-icon>
-  </div>
+    <button
+      type="button"
+      class="post-card__options-btn"
+      aria-label="Post options"
+    >
+      <ion-icon
+        name="ellipsis-vertical"
+        color="blackColor"
+        class="post-card__options-icon"
+        aria-hidden="true"
+      ></ion-icon>
+    </button>
+  </header>
 
-  <ion-text class="grayColor12Regular post-card__description">
-    {{ post().aboutPost }}
-  </ion-text>
+  @if (post().aboutPost) {
+    <p class="post-card__body">{{ post().aboutPost }}</p>
+  }
 
-  <div class="post-card__content">
-    @if (post().postImages.length > 0) {
-      <div class="post-card__media" (click)="postClick.emit(post().id)">
-        <app-post-media-carousel
-          [images]="post().postImages"
-        ></app-post-media-carousel>
-      </div>
-    }
-    <div class="post-card__actions">
-      <div class="post-card__action-item" (click)="likeClick.emit()">
+  @if (post().postImages.length > 0) {
+    <figure class="post-card__media" (click)="postClick.emit(post().id)">
+      <app-post-media-carousel
+        [images]="post().postImages"
+        style="--post-carousel-height: 320px"
+      ></app-post-media-carousel>
+      @if (post().postImages.length > 1) {
+        <figcaption class="post-card__media-count">
+          <ion-icon name="images-outline" aria-hidden="true"></ion-icon>
+          <span>{{ post().postImages.length }}</span>
+        </figcaption>
+      }
+    </figure>
+  }
+
+
+  <footer class="post-card__actions">
+    <button
+      type="button"
+      class="post-card__action"
+      (click)="likeClick.emit()"
+      [attr.aria-pressed]="post().postLike"
+      [attr.aria-label]="post().postLike ? 'Unlike post' : 'Like post'"
+    >
+      <span
+        class="post-card__action-icon-wrap"
+        [class.post-card__action-icon-wrap--liked]="post().postLike"
+        [class.post-card__action-icon-wrap--burst]="post().postLike"
+      >
         <ion-icon
           [name]="post().postLike ? 'heart' : 'heart-outline'"
           [color]="post().postLike ? 'redColor' : 'grayColor'"
           class="post-card__action-icon"
+          [class.post-card__action-icon--liked]="post().postLike"
+          aria-hidden="true"
         ></ion-icon>
-        <ion-text class="grayColor14SemiBold ellipseText line-clamp-1">
-          {{ post().postLikes }} Likes
-        </ion-text>
-      </div>
-
-      <div class="post-card__action-item" (click)="commentClick.emit()">
+      </span>
+      <span
+        class="post-card__action-count"
+        [class.post-card__action-count--liked]="post().postLike"
+      >
+        {{ post().postLikes | shortNumber }}
+      </span>
+    </button>
+    <button
+      type="button"
+      class="post-card__action"
+      (click)="commentClick.emit()"
+      aria-label="View comments"
+    >
+      <span class="post-card__action-icon-wrap">
         <ion-icon
           name="chatbox-ellipses-outline"
           color="grayColor"
           class="post-card__action-icon"
+          aria-hidden="true"
         ></ion-icon>
-        <ion-text class="grayColor14SemiBold ellipseText line-clamp-1">
-          {{ post().postComments }} Comments
-        </ion-text>
-      </div>
-
-      <div class="post-card__action-item" (click)="shareClick.emit()">
+      </span>
+      <span class="post-card__action-count">
+        {{ post().postComments | shortNumber }}
+      </span>
+    </button>
+    <button
+      type="button"
+      class="post-card__action"
+      (click)="saveClick.emit()"
+      [attr.aria-pressed]="!!post().postSaved"
+      [attr.aria-label]="post().postSaved ? 'Remove from saved' : 'Save post'"
+    >
+      <span
+        class="post-card__action-icon-wrap"
+        [class.post-card__action-icon-wrap--saved]="post().postSaved"
+      >
         <ion-icon
-          name="share-social"
+          [name]="post().postSaved ? 'bookmark' : 'bookmark-outline'"
+          [color]="post().postSaved ? 'secondaryColor' : 'grayColor'"
+          class="post-card__action-icon"
+          [class.post-card__action-icon--saved]="post().postSaved"
+          aria-hidden="true"
+        ></ion-icon>
+      </span>
+      <span
+        class="post-card__action-count"
+        [class.post-card__action-count--saved]="post().postSaved"
+      >
+        {{ post().postSaves | shortNumber }}
+      </span>
+    </button>
+    <button
+      type="button"
+      class="post-card__action"
+      (click)="shareClick.emit()"
+      aria-label="Share post"
+    >
+      <span class="post-card__action-icon-wrap">
+        <ion-icon
+          name="share-outline"
           color="grayColor"
           class="post-card__action-icon"
+          aria-hidden="true"
         ></ion-icon>
-        <ion-text class="grayColor14SemiBold ellipseText line-clamp-1">
-          {{ post().postShares }} Share
-        </ion-text>
-      </div>
-    </div>
-  </div>
-</div>
+      </span>
+    </button>
+  </footer>
+
+</article>
