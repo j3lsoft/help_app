@@ -1,17 +1,20 @@
-import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
-import { NavController, IonicModule } from '@ionic/angular';
 import { NgFor } from '@angular/common';
+import { Component, inject } from '@angular/core';
+import { Router } from '@angular/router';
+import { IonicModule, NavController } from '@ionic/angular';
 
 @Component({
-    selector: 'app-user-posts',
-    templateUrl: './user-posts.page.html',
-    styleUrls: ['./user-posts.page.scss'],
-    imports: [IonicModule, NgFor],
+  selector: 'app-user-posts',
+  templateUrl: './user-posts.page.html',
+  styleUrls: ['./user-posts.page.scss'],
+  imports: [IonicModule, NgFor],
 })
-export class UserPostsPage implements OnInit {
+export class UserPostsPage {
+  private router = inject(Router);
+  private navCtrl = inject(NavController);
 
-  dummyText = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ipsum amet pellentesque in rhoncus, in erat. Placerat et nunc ipsum donec urna feugiat suspendisse.';
+  dummyText =
+    'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ipsum amet pellentesque in rhoncus, in erat. Placerat et nunc ipsum donec urna feugiat suspendisse.';
 
   postsList = [
     {
@@ -61,13 +64,7 @@ export class UserPostsPage implements OnInit {
     },
   ];
 
-  constructor(private router: Router, private navCtrl: NavController) { }
-
-  ngOnInit() {
-  }
-
   goBack() {
-    this.navCtrl.back()
+    this.navCtrl.back();
   }
-
 }

@@ -1,19 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+import { NgFor, NgIf } from '@angular/common';
+import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { NavController, IonicModule } from '@ionic/angular';
-import { NgIf, NgFor } from '@angular/common';
+import { IonicModule, NavController } from '@ionic/angular';
 
 @Component({
-    selector: 'app-search-detail',
-    templateUrl: './search-detail.page.html',
-    styleUrls: ['./search-detail.page.scss'],
-    imports: [
-        IonicModule,
-        NgIf,
-        NgFor,
-    ],
+  selector: 'app-search-detail',
+  templateUrl: './search-detail.page.html',
+  styleUrls: ['./search-detail.page.scss'],
+  imports: [IonicModule, NgIf, NgFor],
 })
-export class SearchDetailPage implements OnInit {
+export class SearchDetailPage {
+  private navCtrl = inject(NavController);
+  private router = inject(Router);
 
   topSearchesList: any = [
     {
@@ -206,7 +204,22 @@ export class SearchDetailPage implements OnInit {
       userProfileName: 'benafsha.',
       userFullName: 'Benafsha Doe',
       isFollow: false,
-      followedByUsers: ['smiti_', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+      followedByUsers: [
+        'smiti_',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+      ],
       storyAvailable: true,
     },
     {
@@ -308,20 +321,15 @@ export class SearchDetailPage implements OnInit {
 
   selectedTabValue = 'Top';
 
-  constructor(private navCtrl: NavController, private router: Router) { }
-
-  ngOnInit() {
+  goBack() {
+    this.navCtrl.back();
   }
 
-  goBack() {
-    this.navCtrl.back()
+  onFilterUpdate(event: any) {
+    this.selectedTabValue = event.detail.value;
   }
 
   goTo(screen: any) {
     this.router.navigateByUrl(screen);
-  }
-
-  onFilterUpdate(event: any) {
-    this.selectedTabValue = event.detail.value
   }
 }

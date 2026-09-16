@@ -1,14 +1,15 @@
-import { Component, OnInit } from '@angular/core';
-import { NavController, IonicModule } from '@ionic/angular';
 import { NgFor } from '@angular/common';
+import { Component, inject } from '@angular/core';
+import { IonicModule, NavController } from '@ionic/angular';
 
 @Component({
-    selector: 'app-search-chat',
-    templateUrl: './search-chat.page.html',
-    styleUrls: ['./search-chat.page.scss'],
-    imports: [IonicModule, NgFor],
+  selector: 'app-search-chat',
+  templateUrl: './search-chat.page.html',
+  styleUrls: ['./search-chat.page.scss'],
+  imports: [IonicModule, NgFor],
 })
-export class SearchChatPage implements OnInit {
+export class SearchChatPage {
+  private navCtrl = inject(NavController);
 
   recentSearchesList = [
     {
@@ -30,16 +31,10 @@ export class SearchChatPage implements OnInit {
       id: '4',
       userProfilePic: '../../../assets/images/users/user32.png',
       userProfileName: 'monaliali.',
-    }
+    },
   ];
-
-  constructor(private navCtrl: NavController) { }
-
-  ngOnInit() {
-  }
 
   goBack() {
     this.navCtrl.back();
   }
-
 }

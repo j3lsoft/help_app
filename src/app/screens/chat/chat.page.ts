@@ -1,21 +1,24 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
-import { Router } from '@angular/router';
-import { IonContent, NavController, Platform, IonicModule } from '@ionic/angular';
-import { FormsModule } from '@angular/forms';
 import { NgFor, NgIf } from '@angular/common';
+import { Component, ViewChild, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import {
+  IonContent,
+  IonicModule,
+  NavController,
+  Platform,
+} from '@ionic/angular';
 
 @Component({
-    selector: 'app-chat',
-    templateUrl: './chat.page.html',
-    styleUrls: ['./chat.page.scss'],
-    imports: [
-        IonicModule,
-        NgFor,
-        NgIf,
-        FormsModule,
-    ],
+  selector: 'app-chat',
+  templateUrl: './chat.page.html',
+  styleUrls: ['./chat.page.scss'],
+  imports: [IonicModule, NgFor, NgIf, FormsModule],
 })
-export class ChatPage implements OnInit {
+export class ChatPage {
+  private navCtrl = inject(NavController);
+  public platform = inject(Platform);
+  private router = inject(Router);
 
   @ViewChild('textArea') textArea: any;
   @ViewChild(IonContent) content: IonContent | undefined;
@@ -47,7 +50,8 @@ export class ChatPage implements OnInit {
     },
     {
       id: '5',
-      message: 'Lorem Ipsum is simply dummy text of the\nprinting and typesetting industry.',
+      message:
+        'Lorem Ipsum is simply dummy text of the\nprinting and typesetting industry.',
       isSender: true,
       messageTime: '10:52 am',
     },
@@ -83,34 +87,29 @@ export class ChatPage implements OnInit {
 
   newMsg = '';
 
-  constructor(private navCtrl: NavController, public platform: Platform, private router: Router) { }
-
-  ngOnInit() {
-  }
-
   goBack() {
-    this.navCtrl.back()
+    this.navCtrl.back();
   }
 
   addMessage() {
     if (this.newMsg) {
       let date = Date();
-      let hour = (new Date(date)).getHours();
-      let minute = (new Date(date)).getMinutes();
+      let hour = new Date(date).getHours();
+      let minute = new Date(date).getMinutes();
       let AmPm = hour >= 12 ? 'pm' : 'am';
-      let finalhour = hour > 12 ? (hour - 12) : hour;
+      let finalhour = hour > 12 ? hour - 12 : hour;
 
       const addedMessage = {
         id: (this.userMessages.length + 1).toString(),
         message: this.newMsg,
         messageTime: `${finalhour}:${minute} ${AmPm}`,
         isSender: true,
-      }
+      };
 
       this.userMessages.push(addedMessage);
       this.newMsg = '';
       setTimeout(() => {
-        this.content?.scrollToBottom(200)
+        this.content?.scrollToBottom(200);
       });
       this.textArea.setFocus();
     }
@@ -118,12 +117,11 @@ export class ChatPage implements OnInit {
 
   focus() {
     setTimeout(() => {
-      this.content?.scrollToBottom(200)
+      this.content?.scrollToBottom(200);
     });
   }
 
   goTo(screen: any) {
     this.router.navigateByUrl(screen);
   }
-
 }

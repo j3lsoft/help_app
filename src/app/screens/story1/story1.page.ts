@@ -1,21 +1,19 @@
-import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
-import { NavController, Platform, IonicModule } from '@ionic/angular';
+import { NgFor, NgIf } from '@angular/common';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { NgIf, NgFor } from '@angular/common';
+import { Router } from '@angular/router';
+import { IonicModule, NavController, Platform } from '@ionic/angular';
 
 @Component({
-    selector: 'app-story1',
-    templateUrl: './story1.page.html',
-    styleUrls: ['./story1.page.scss'],
-    imports: [
-        IonicModule,
-        NgIf,
-        FormsModule,
-        NgFor,
-    ],
+  selector: 'app-story1',
+  templateUrl: './story1.page.html',
+  styleUrls: ['./story1.page.scss'],
+  imports: [IonicModule, NgIf, FormsModule, NgFor],
 })
-export class Story1Page implements OnInit {
+export class Story1Page {
+  public platform = inject(Platform);
+  private navCtrl = inject(NavController);
+  private router = inject(Router);
 
   colorsList = [
     {
@@ -52,23 +50,17 @@ export class Story1Page implements OnInit {
   selectedColors: any = this.colorsList[0].colors;
   story = 'Hello 🖐';
 
-  constructor(public platform: Platform, private navCtrl: NavController, private router: Router) { }
-
-  ngOnInit() {
-  }
-
   goBack() {
-    this.navCtrl.back()
+    this.navCtrl.back();
   }
 
   goTo(screen: any) {
     this.router.navigateByUrl(screen);
   }
 
-  ionViewWillEnter(){
+  ionViewWillEnter() {
     this.isDone = false;
     this.selectedColors = this.colorsList[0].colors;
     this.story = 'Hello 🖐';
   }
-
 }

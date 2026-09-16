@@ -1,24 +1,28 @@
-import { AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, QueryList, ViewChild, ViewChildren } from '@angular/core';
-import { Router } from '@angular/router';
-import { NavController, IonicModule } from '@ionic/angular';
 import { NgFor, NgIf } from '@angular/common';
+import {
+  AfterViewInit,
+  Component,
+  CUSTOM_ELEMENTS_SCHEMA,
+  ElementRef,
+  inject,
+  QueryList,
+  ViewChild,
+  ViewChildren,
+} from '@angular/core';
+import { Router } from '@angular/router';
+import { IonicModule, NavController } from '@ionic/angular';
 
 @Component({
   selector: 'app-videos',
   templateUrl: './videos.page.html',
   styleUrls: ['./videos.page.scss'],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [
-        IonicModule,
-        NgFor,
-        NgIf,
-    ],
+  imports: [IonicModule, NgFor, NgIf],
 })
 export class VideosPage implements AfterViewInit {
-
   @ViewChild('video') myVideo?: ElementRef;
   @ViewChild('swiper') swiperRef: ElementRef | undefined;
-  @ViewChildren("video") divs?: QueryList<any>
+  @ViewChildren('video') divs?: QueryList<any>;
 
   currentIndex = 0;
 
@@ -77,15 +81,15 @@ export class VideosPage implements AfterViewInit {
     },
   ];
 
-  constructor(private router: Router, private navCtrl: NavController) { }
-
+  private router = inject(Router);
+  private navCtrl = inject(NavController);
 
   goBack() {
-    this.navCtrl.back()
+    this.navCtrl.back();
   }
 
   ionViewWillLeave() {
-    this.divs?.map(div => {
+    this.divs?.map((div) => {
       if (div.nativeElement.id == `video${this.currentIndex}`) {
         div?.nativeElement.pause();
         this.videoPostsList[this.currentIndex].isPlay = false;
@@ -94,7 +98,7 @@ export class VideosPage implements AfterViewInit {
   }
 
   ionViewWillEnter() {
-    this.divs?.map(div => {
+    this.divs?.map((div) => {
       if (div.nativeElement.id == `video${this.currentIndex}`) {
         this.videoPostsList[this.currentIndex].isPlay = false;
         div?.nativeElement.play();
@@ -103,7 +107,7 @@ export class VideosPage implements AfterViewInit {
   }
 
   ngAfterViewInit() {
-    this.divs?.map(div => {
+    this.divs?.map((div) => {
       if (div.nativeElement.id == `video0`) {
         div?.nativeElement.play();
       }
@@ -111,13 +115,14 @@ export class VideosPage implements AfterViewInit {
   }
 
   toggleVideo(index: any) {
-    this.divs?.map(div => {
+    this.divs?.map((div) => {
       if (div.nativeElement.id == `video${index}`) {
-        div?.nativeElement.paused ? div?.nativeElement.play() : div?.nativeElement.pause();
+        div?.nativeElement.paused
+          ? div?.nativeElement.play()
+          : div?.nativeElement.pause();
         if (!div?.nativeElement.paused) {
           this.videoPostsList[index].isPlay = false;
-        }
-        else {
+        } else {
           this.videoPostsList[index].isPlay = true;
         }
       }
@@ -125,9 +130,9 @@ export class VideosPage implements AfterViewInit {
   }
 
   getStatus(index: any) {
-    this.divs?.map(div => {
+    this.divs?.map((div) => {
       if (div.nativeElement.id == `video${index}`) {
-        return div?.nativeElement.paused
+        return div?.nativeElement.paused;
       }
     });
   }
@@ -144,7 +149,7 @@ export class VideosPage implements AfterViewInit {
     const prevIndex = this.swiperRef?.nativeElement.swiper.previousIndex;
     const newIndex = this.swiperRef?.nativeElement.swiper.activeIndex;
     this.currentIndex = this.swiperRef?.nativeElement.swiper.activeIndex;
-    this.divs?.map(div => {
+    this.divs?.map((div) => {
       if (div.nativeElement.id == `video${prevIndex}`) {
         div?.nativeElement.pause();
       }
@@ -154,5 +159,4 @@ export class VideosPage implements AfterViewInit {
     });
     this.videoPostsList[newIndex].isPlay = false;
   }
-
 }

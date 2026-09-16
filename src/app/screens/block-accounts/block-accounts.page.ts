@@ -1,20 +1,18 @@
-import { Component, OnInit } from '@angular/core';
-import { NavController, Platform, IonicModule } from '@ionic/angular';
-import { NgIf, NgFor } from '@angular/common';
+import { NgFor, NgIf } from '@angular/common';
+import { Component, inject } from '@angular/core';
+import { IonicModule, NavController, Platform } from '@ionic/angular';
 
 @Component({
-    selector: 'app-block-accounts',
-    templateUrl: './block-accounts.page.html',
-    styleUrls: ['./block-accounts.page.scss'],
-    imports: [
-        IonicModule,
-        NgIf,
-        NgFor,
-    ],
+  selector: 'app-block-accounts',
+  templateUrl: './block-accounts.page.html',
+  styleUrls: ['./block-accounts.page.scss'],
+  imports: [IonicModule, NgIf, NgFor],
 })
-export class BlockAccountsPage implements OnInit {
+export class BlockAccountsPage {
+  private navCtrl = inject(NavController);
+  public platform = inject(Platform);
 
-  blockAccountsList:any = [
+  blockAccountsList: any = [
     {
       id: '1',
       userProfilePic: '../../../assets/images/users/user27.png',
@@ -67,19 +65,16 @@ export class BlockAccountsPage implements OnInit {
   tostMsg = '';
   isToastOpen = false;
 
-  constructor(private navCtrl: NavController, public platform: Platform) { }
-
-  ngOnInit() {
-  }
-
   goBack() {
-    this.navCtrl.back()
+    this.navCtrl.back();
   }
 
   unBlockUser(id: any, index: any) {
-    this.tostMsg = this.blockAccountsList[index].userProfileName + ' is unblocked';
-    this.blockAccountsList = this.blockAccountsList.filter((item:any) => item.id !== id);
+    this.tostMsg =
+      this.blockAccountsList[index].userProfileName + ' is unblocked';
+    this.blockAccountsList = this.blockAccountsList.filter(
+      (item: any) => item.id !== id,
+    );
     this.isToastOpen = true;
   }
-
 }

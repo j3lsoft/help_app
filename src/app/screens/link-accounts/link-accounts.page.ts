@@ -1,14 +1,15 @@
-import { Component, OnInit } from '@angular/core';
-import { NavController, IonicModule } from '@ionic/angular';
 import { NgFor } from '@angular/common';
+import { Component, inject } from '@angular/core';
+import { IonicModule, NavController } from '@ionic/angular';
 
 @Component({
-    selector: 'app-link-accounts',
-    templateUrl: './link-accounts.page.html',
-    styleUrls: ['./link-accounts.page.scss'],
-    imports: [IonicModule, NgFor],
+  selector: 'app-link-accounts',
+  templateUrl: './link-accounts.page.html',
+  styleUrls: ['./link-accounts.page.scss'],
+  imports: [IonicModule, NgFor],
 })
-export class LinkAccountsPage implements OnInit {
+export class LinkAccountsPage {
+  private navCtrl = inject(NavController);
 
   linkedAccountsList = [
     {
@@ -33,12 +34,7 @@ export class LinkAccountsPage implements OnInit {
     },
   ];
 
-  constructor(private navCtrl: NavController) { }
-
-  ngOnInit() {
-  }
-
   goBack() {
-    this.navCtrl.back()
+    this.navCtrl.back();
   }
 }

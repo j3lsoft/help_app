@@ -1,20 +1,17 @@
-import { Component, OnInit } from '@angular/core';
-import { NavController, Platform, IonicModule } from '@ionic/angular';
-import { FormsModule } from '@angular/forms';
 import { NgFor, NgIf } from '@angular/common';
+import { Component, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { IonicModule, NavController, Platform } from '@ionic/angular';
 
 @Component({
-    selector: 'app-comments',
-    templateUrl: './comments.page.html',
-    styleUrls: ['./comments.page.scss'],
-    imports: [
-        IonicModule,
-        NgFor,
-        NgIf,
-        FormsModule,
-    ],
+  selector: 'app-comments',
+  templateUrl: './comments.page.html',
+  styleUrls: ['./comments.page.scss'],
+  imports: [IonicModule, NgFor, NgIf, FormsModule],
 })
-export class CommentsPage implements OnInit {
+export class CommentsPage {
+  private navCtrl = inject(NavController);
+  public platform = inject(Platform);
 
   commentsList: any = [
     {
@@ -70,7 +67,7 @@ export class CommentsPage implements OnInit {
           commentTime: '1h',
           commentLike: 2,
           isLike: false,
-        }
+        },
       ],
     },
     {
@@ -125,7 +122,7 @@ export class CommentsPage implements OnInit {
           commentTime: '1h',
           commentLike: 2,
           isLike: false,
-        }
+        },
       ],
     },
     {
@@ -148,7 +145,7 @@ export class CommentsPage implements OnInit {
           commentTime: '1h',
           commentLike: 1,
           isLike: false,
-        }
+        },
       ],
     },
     {
@@ -182,7 +179,7 @@ export class CommentsPage implements OnInit {
           commentTime: '1h',
           commentLike: 2,
           isLike: false,
-        }
+        },
       ],
     },
     {
@@ -237,24 +234,18 @@ export class CommentsPage implements OnInit {
           commentTime: '1h',
           commentLike: 2,
           isLike: true,
-        }
+        },
       ],
     },
   ];
 
   comment: any = '';
 
-  constructor(private navCtrl: NavController,public platform:Platform) { }
-
-  ngOnInit() {
-  }
-
   goBack() {
-    this.navCtrl.back()
+    this.navCtrl.back();
   }
 
   submitComment() {
     this.comment = '';
   }
-
 }

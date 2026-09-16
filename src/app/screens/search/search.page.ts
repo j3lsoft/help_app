@@ -1,21 +1,27 @@
-import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
-import { NavController, IonicModule } from '@ionic/angular';
 import { NgFor, NgIf } from '@angular/common';
+import { Component, inject } from '@angular/core';
+import { Router } from '@angular/router';
+import { IonicModule, NavController } from '@ionic/angular';
 
 @Component({
-    selector: 'app-search',
-    templateUrl: './search.page.html',
-    styleUrls: ['./search.page.scss'],
-    imports: [
-        IonicModule,
-        NgFor,
-        NgIf,
-    ],
+  selector: 'app-search',
+  templateUrl: './search.page.html',
+  styleUrls: ['./search.page.scss'],
+  imports: [IonicModule, NgFor, NgIf],
 })
-export class SearchPage implements OnInit {
+export class SearchPage {
+  private navCtrl = inject(NavController);
+  private router = inject(Router);
 
-  filterOptionsList = ['Style', 'Travel', 'Nature', 'Decore', 'Art', 'Animal', 'Beauty'];
+  filterOptionsList = [
+    'Style',
+    'Travel',
+    'Nature',
+    'Decore',
+    'Art',
+    'Animal',
+    'Beauty',
+  ];
   selectedFilterOptionIndex = 0;
   publicPostsList = [
     {
@@ -140,17 +146,11 @@ export class SearchPage implements OnInit {
     },
   ];
 
-  constructor(private navCtrl: NavController, private router: Router) { }
-
-  ngOnInit() {
-  }
-
   goBack() {
-    this.navCtrl.back()
+    this.navCtrl.back();
   }
 
   goTo(screen: any) {
     this.router.navigateByUrl(screen);
   }
-
 }

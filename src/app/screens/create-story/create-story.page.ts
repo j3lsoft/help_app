@@ -1,15 +1,17 @@
-import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
-import { NavController, IonicModule } from '@ionic/angular';
 import { NgFor } from '@angular/common';
+import { Component, inject } from '@angular/core';
+import { Router } from '@angular/router';
+import { IonicModule, NavController } from '@ionic/angular';
 
 @Component({
-    selector: 'app-create-story',
-    templateUrl: './create-story.page.html',
-    styleUrls: ['./create-story.page.scss'],
-    imports: [IonicModule, NgFor],
+  selector: 'app-create-story',
+  templateUrl: './create-story.page.html',
+  styleUrls: ['./create-story.page.scss'],
+  imports: [IonicModule, NgFor],
 })
-export class CreateStoryPage implements OnInit {
+export class CreateStoryPage {
+  private navCtrl = inject(NavController);
+  private router = inject(Router);
 
   storyOptions = [
     {
@@ -124,17 +126,11 @@ export class CreateStoryPage implements OnInit {
     },
   ];
 
-  constructor(private navCtrl: NavController, private router: Router,) { }
-
-  ngOnInit() {
-  }
-
   goBack() {
-    this.navCtrl.back()
+    this.navCtrl.back();
   }
 
   goTo(screen: any) {
     this.router.navigateByUrl(screen);
   }
-
 }

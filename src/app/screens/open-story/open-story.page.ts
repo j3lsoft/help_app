@@ -1,33 +1,30 @@
-import { Component, OnInit } from '@angular/core';
-import { NavController, Platform, IonicModule } from '@ionic/angular';
+import { Component, inject, OnInit } from '@angular/core';
+import { IonicModule, NavController, Platform } from '@ionic/angular';
 
 @Component({
-    selector: 'app-open-story',
-    templateUrl: './open-story.page.html',
-    styleUrls: ['./open-story.page.scss'],
-    imports: [IonicModule],
+  selector: 'app-open-story',
+  templateUrl: './open-story.page.html',
+  styleUrls: ['./open-story.page.scss'],
+  imports: [IonicModule],
 })
 export class OpenStoryPage implements OnInit {
-
   public progress = 0;
   isMessageFocus = false;
-  interval:any;
+  interval: any;
+  public platform = inject(Platform);
+  private navCtrl = inject(NavController);
 
-  constructor(public platform: Platform, private navCtrl: NavController) {
-   this.interval= setInterval(() => {
-      this.isMessageFocus ? null : this.progress += 0.01;
+  ngOnInit() {
+    this.interval = setInterval(() => {
+      this.isMessageFocus ? null : (this.progress += 0.01);
       if (this.progress > 1) {
-        this.goBack()
+        this.goBack();
       }
     }, 50);
   }
 
-  ngOnInit() {
-  }
-
   goBack() {
-    clearInterval(this.interval)
-    this.navCtrl.back()
+    clearInterval(this.interval);
+    this.navCtrl.back();
   }
-
 }

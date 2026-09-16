@@ -1,20 +1,22 @@
-import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
-import { NavController, IonicModule } from '@ionic/angular';
 import { NgFor } from '@angular/common';
+import { Component, inject } from '@angular/core';
+import { Router } from '@angular/router';
+import { IonicModule, NavController } from '@ionic/angular';
 
 @Component({
-    selector: 'app-help',
-    templateUrl: './help.page.html',
-    styleUrls: ['./help.page.scss'],
-    imports: [IonicModule, NgFor],
+  selector: 'app-help',
+  templateUrl: './help.page.html',
+  styleUrls: ['./help.page.scss'],
+  imports: [IonicModule, NgFor],
 })
-export class HelpPage implements OnInit {
+export class HelpPage {
+  private navCtrl = inject(NavController);
+  private router = inject(Router);
 
   topicDetails = [
     'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Risus penatibus amet tincidunt rhoncus gravida justo, sed non.',
     'Faucibus dignissim eget lacus at. Eget a pretium nunc id. Netus nulla ac odio bibendum tortor facilisis nibh porta quam. Tincidunt gravida scelerisque at nibh sollicitudin purus. Nisl eget viverra et, amet pellentesque congue. Aliquam interdum id semper bibendum.',
-    'Faucibus dignissim eget lacus at. Eget a pretium nunc id. Netus nulla ac odio bibendum tortor facilisis nibh porta quam sit.'
+    'Faucibus dignissim eget lacus at. Eget a pretium nunc id. Netus nulla ac odio bibendum tortor facilisis nibh porta quam sit.',
   ];
 
   popularTopicsList = [
@@ -60,18 +62,11 @@ export class HelpPage implements OnInit {
     },
   ];
 
-  constructor(private navCtrl: NavController,private router:Router) { }
-
-  ngOnInit() {
-  }
-
   goBack() {
-    this.navCtrl.back()
+    this.navCtrl.back();
   }
 
-  goToHelpDetail(title:any) {
-    this.router.navigate(['/', 'help-detail', title])
+  goToHelpDetail(title: any) {
+    this.router.navigate(['/', 'help-detail', title]);
   }
-
-
 }
