@@ -1,64 +1,34 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, filter, take } from 'rxjs';
+import { Observable, defer, finalize, shareReplay } from 'rxjs';
 
 /**
- * Service to manage the token refresh state.
- * Centralizes the refresh logic to avoid race conditions when multiple
- * requests trigger a 401 response simultaneously.
+ * Coordinates token refreshes triggered by concurrent 401 responses.
+ *
+ * The first caller starts the refresh; every other caller shares the same
+ * in-flight observable. The shared subscription is kept alive even if the
+ * caller that started it unsubscribes, so the refresh always reaches a
+ * terminal state and cannot strand later requests.
  */
 @Injectable({
   providedIn: 'root',
 })
 export class TokenRefreshService {
-  private isRefreshing = false;
-  private refreshTokenSubject = new BehaviorSubject<string | null>(null);
+  private inFlightRefresh$: Observable<string> | null = null;
 
   /**
-   * Checks if a token refresh is currently in progress.
+   * Runs `factory` once while a refresh is in flight and shares the resulting
+   * token with every concurrent caller.
    */
-  get refreshing(): boolean {
-    return this.isRefreshing;
-  }
+  refresh(factory: () => Observable<string>): Observable<string> {
+    if (!this.inFlightRefresh$) {
+      this.inFlightRefresh$ = defer(factory).pipe(
+        finalize(() => {
+          this.inFlightRefresh$ = null;
+        }),
+        shareReplay({ bufferSize: 1, refCount: false })
+      );
+    }
 
-  /**
-   * Starts a new refresh operation.
-   * Should be called before initiating the refresh request.
-   */
-  startRefresh(): void {
-    this.isRefreshing = true;
-    this.refreshTokenSubject.next(null);
-  }
-
-  /**
-   * Completes the refresh operation with the new token.
-   * @param token The new access token
-   */
-  completeRefresh(token: string): void {
-    this.isRefreshing = false;
-    this.refreshTokenSubject.next(token);
-  }
-
-  /**
-   * Signals that the refresh operation failed.
-   * Resets the state and notifies waiting requests.
-   * @param error The error that occurred
-   */
-  failRefresh(error: Error): void {
-    this.isRefreshing = false;
-    // Notify error before resetting to ensure waiting requests receive it
-    const oldSubject = this.refreshTokenSubject;
-    this.refreshTokenSubject = new BehaviorSubject<string | null>(null);
-    oldSubject.error(error);
-  }
-
-  /**
-   * Gets an observable that emits when the refresh completes successfully.
-   * Use this to wait for an ongoing refresh operation.
-   */
-  waitForRefresh(): Observable<string> {
-    return this.refreshTokenSubject.pipe(
-      filter((token): token is string => token !== null && token !== ''),
-      take(1)
-    );
+    return this.inFlightRefresh$;
   }
 }

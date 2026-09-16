@@ -95,6 +95,14 @@ export class AuthApiService {
     );
   }
 
+  logout() {
+    return this.http.post<{ message: string }>(
+      `${this.baseUrl}/api/v1/auth/logout`,
+      {},
+      { withCredentials: true }
+    );
+  }
+
   getMe() {
     return this.http.get<MeResponseDto>(`${this.baseUrl}/api/v1/users/me`);
   }

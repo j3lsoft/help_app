@@ -26,6 +26,8 @@ export class AuthService implements AuthState {
   readonly currentUser = this._currentUser.asReadonly();
   readonly isAuthenticated = computed(() => !!this._currentUser());
 
+  private logoutPromise: Promise<void> | null = null;
+
   async login(response: LoginResponseDto): Promise<void> {
     const transformedResponse =
       AuthResponseAdapter.transformLoginResponse(response);
@@ -46,19 +48,34 @@ export class AuthService implements AuthState {
     }
   }
 
-  async logout(): Promise<void> {
+  logout(): Promise<void> {
+    if (!this.logoutPromise) {
+      this.logoutPromise = this.performLogout().finally(() => {
+        this.logoutPromise = null;
+      });
+    }
+
+    return this.logoutPromise;
+  }
+
+  private async performLogout(): Promise<void> {
+    try {
+      await firstValueFrom(this.authApi.logout());
+    } catch {
+      // Local logout must always succeed, even if revocation fails.
+    }
+
     await this.secureStorage.remove(STORAGE_KEYS.accessToken);
     await this.storage.remove(STORAGE_KEYS.userData);
     this._currentUser.set(null);
-    // Note: ProfileService cache is in-memory only and will be cleared
-    // automatically when the app restarts. No need to explicitly clear it here
-    // to avoid circular dependency.
     await this.router.navigateByUrl('/auth/sign-in', { replaceUrl: true });
   }
 
   async restoreSession(): Promise<void> {
-    const token = await this.secureStorage.get(STORAGE_KEYS.accessToken);
+    const token = await this.getAccessToken();
     if (!token) {
+      await this.storage.remove(STORAGE_KEYS.userData);
+      this._currentUser.set(null);
       return;
     }
 
@@ -94,16 +111,25 @@ export class AuthService implements AuthState {
   }
 
   async getAccessToken(): Promise<string | null> {
-    return await this.secureStorage.get(STORAGE_KEYS.accessToken);
+    const token = await this.secureStorage.get(STORAGE_KEYS.accessToken);
+    if (!token) {
+      return null;
+    }
+
+    if (!AuthService.isUsableToken(token)) {
+      await this.secureStorage.remove(STORAGE_KEYS.accessToken);
+      return null;
+    }
+
+    return token;
   }
 
   async refreshSession(): Promise<void> {
-    try {
-      const response = await firstValueFrom(this.authApi.refresh());
-      await this.login(response);
-    } catch (error) {
-      await this.logout();
-      throw error;
-    }
+    const response = await firstValueFrom(this.authApi.refresh());
+    await this.login(response);
+  }
+
+  private static isUsableToken(token: string): boolean {
+    return token.length > 0 && !/[\u0000-\u001f\u007f]/.test(token);
   }
 }
