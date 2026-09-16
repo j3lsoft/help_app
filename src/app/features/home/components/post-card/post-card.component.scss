@@ -106,12 +106,7 @@
 
   &__body {
     display: block;
-    margin: 4px 0 8px;
-    font-size: 15px;
-    line-height: 1.65;
-    color: var(--blackColor);
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
+    // La tipografía vive en app-expandable-text; el host solo ocupa la fila.
   }
 
   &__media {

@@ -1,0 +1,12 @@
+<div class="profile-media-grid">
+  @for (item of media(); track item.key; let index = $index) {
+  <div class="profile-media-grid__item">
+    <ion-img
+      [src]="item.image"
+      class="profile-media-grid__image"
+      [alt]="'Media ' + (index + 1)"
+      (click)="mediaClick.emit(index)"
+    ></ion-img>
+  </div>
+  }
+</div>

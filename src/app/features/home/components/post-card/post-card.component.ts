@@ -18,6 +18,7 @@ import {
   shareOutline,
 } from 'ionicons/icons';
 import { PostMediaCarouselComponent } from '@shared/components/post-media-carousel/post-media-carousel.component';
+import { ExpandableTextComponent } from '@shared/components/expandable-text/expandable-text.component';
 import { ShortNumberPipe } from '@shared/pipes/short-number.pipe';
 import { TimeAgoPipe } from '@shared/pipes/time-ago.pipe';
 
@@ -49,6 +50,7 @@ export interface Post {
     IonImg,
     IonText,
     IonIcon,
+    ExpandableTextComponent,
     PostMediaCarouselComponent,
     ShortNumberPipe,
     TimeAgoPipe,

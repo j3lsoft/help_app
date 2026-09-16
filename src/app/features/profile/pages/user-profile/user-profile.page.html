@@ -57,7 +57,7 @@
   <div class="user-profile__empty" aria-label="User not found">
     <ion-text class="user-profile__empty-text">User not found</ion-text>
   </div>
-  } @else if (isLoadingPosts()) {
+  } @else if (isLoadingPosts() && profilePosts().length === 0) {
   <div class="user-profile__skeleton" aria-label="Loading posts">
     @for (i of [1,2,3,4,5,6]; track i) {
     <div class="user-profile__skeleton-item"></div>
@@ -68,15 +68,47 @@
     <ion-text class="user-profile__empty-text">No posts yet</ion-text>
   </div>
   } @else {
-  <app-profile-post-grid
-    [posts]="profilePosts()"
-    (postClick)="onPostClick($event)"
-  ></app-profile-post-grid>
+  <app-profile-tabs
+    [selectedTab]="activeTab()"
+    (tabChange)="onTabChange($event)"
+  ></app-profile-tabs>
+
+  @if (activeTab() === 'posts') {
+  @for (card of postCards(); track card.id) {
+  <div class="user-profile__post-wrapper">
+    <app-post-card
+      [post]="card"
+      (likeClick)="handlePostLike(card.id)"
+      (commentClick)="goToPostDetail(card.id)"
+      (saveClick)="handlePostSave(card.id)"
+      (postClick)="goToPostDetail($event)"
+    ></app-post-card>
+  </div>
+  }
+  } @else if (mediaItems().length === 0) {
+  <div class="user-profile__empty" aria-label="Empty media">
+    <ion-text class="user-profile__empty-text">No media yet</ion-text>
+  </div>
+  } @else {
+  <app-profile-media-grid
+    [media]="mediaItems()"
+    (mediaClick)="openMedia($event)"
+  ></app-profile-media-grid>
+  }
+
   @if (hasMorePosts()) {
   <ion-infinite-scroll threshold="30%" (ionInfinite)="loadMorePosts($event)">
     <ion-infinite-scroll-content></ion-infinite-scroll-content>
   </ion-infinite-scroll>
   }
+  }
+
+  @if (viewerOpen()) {
+  <app-image-lightbox
+    [images]="mediaUrls()"
+    [startIndex]="viewerIndex()"
+    (closed)="closeViewer()"
+  ></app-image-lightbox>
   }
   }
 </ion-content>

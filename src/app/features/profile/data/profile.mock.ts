@@ -1,31 +1,4 @@
 import { FollowRequestItem } from '../models/follow.dto';
-import { PostItem } from '../models/post-item.model';
-
-export const MOCK_ALL_POSTS: PostItem[] = [
-  { id: '1', image: 'assets/images/gallery/gallery1.png' },
-  { id: '2', image: 'assets/images/gallery/gallery2.png' },
-  { id: '3', image: 'assets/images/gallery/gallery3.png' },
-  { id: '4', image: 'assets/images/gallery/gallery4.png' },
-  { id: '5', image: 'assets/images/gallery/gallery5.png' },
-  { id: '6', image: 'assets/images/gallery/gallery6.png' },
-  { id: '7', image: 'assets/images/gallery/gallery7.png' },
-  { id: '8', image: 'assets/images/gallery/gallery8.png' },
-  { id: '9', image: 'assets/images/gallery/gallery9.png' },
-];
-
-export const MOCK_VIDEO_POSTS: PostItem[] = [
-  { id: 'v1', image: 'assets/images/gallery/gallery3.png' },
-  { id: 'v2', image: 'assets/images/gallery/gallery4.png' },
-  { id: 'v3', image: 'assets/images/gallery/gallery5.png' },
-];
-
-export const MOCK_TAGGED_POSTS: PostItem[] = [
-  { id: 't1', image: 'assets/images/gallery/gallery6.png' },
-  { id: 't2', image: 'assets/images/gallery/gallery7.png' },
-  { id: 't3', image: 'assets/images/gallery/gallery8.png' },
-  { id: 't4', image: 'assets/images/gallery/gallery9.png' },
-  { id: 't5', image: 'assets/images/gallery/gallery2.png' },
-];
 
 export const MOCK_FOLLOW_REQUESTS: FollowRequestItem[] = [
   { id: '1', avatarUrl: '../../../assets/images/users/user27.png', username: 'royyy._____', displayName: 'Roy Jain', isFollow: false, followsYou: false, bio: null, acceptRequest: false },

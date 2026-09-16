@@ -1,0 +1,55 @@
+// Subtle inline truncation marker. "…more" / "less" sits quietly at the
+// end of the text like a footnote — same font weight as body, muted color,
+// no decorative rule or underline.
+
+.expandable-text {
+  display: inline;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+
+  &__content {
+    display: inline;
+  }
+
+  &__marker {
+    color: var(--grayColor);
+  }
+
+  &__toggle {
+    display: inline;
+    margin: 0;
+    margin-left: 2px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font: inherit;
+    font-size: inherit;
+    color: var(--grayColor);
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+
+    &:focus-visible {
+      outline: 2px solid var(--primaryColor);
+      outline-offset: 2px;
+      border-radius: 2px;
+    }
+  }
+
+  @media (hover: hover) {
+    &__toggle:hover {
+      color: var(--blackColor);
+    }
+  }
+
+  &__toggle--less {
+    margin-left: 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .expandable-text__toggle {
+    transition: none;
+  }
+}

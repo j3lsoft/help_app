@@ -66,7 +66,11 @@ describe('ProfilePage', () => {
   });
 
   it('should handle post click navigation', () => {
-    expect(() => component.onPostClick({ id: '123', image: 'img' })).not.toThrow();
+    expect(() => component.goToPostDetail('123')).not.toThrow();
+  });
+
+  it('should default to the posts tab', () => {
+    expect(component.activeTab()).toBe('posts');
   });
 
   it('should load first posts page and reflect total count', () => {
@@ -99,7 +103,12 @@ describe('ProfilePage', () => {
     component.ionViewWillEnter();
 
     expect(component.profilePosts().length).toBe(1);
-    expect(component.profilePosts()[0].image).toBe('https://cdn.example.com/p1.jpg');
+    expect(component.postCards().length).toBe(1);
+    expect(component.postCards()[0].postImages).toEqual([
+      'https://cdn.example.com/p1.jpg',
+    ]);
+    expect(component.mediaItems().length).toBe(1);
+    expect(component.mediaUrls()).toEqual(['https://cdn.example.com/p1.jpg']);
     expect(component.postsCount()).toBe('5');
   });
 });

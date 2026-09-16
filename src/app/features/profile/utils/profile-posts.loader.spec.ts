@@ -68,7 +68,9 @@ describe('createProfilePostsLoader', () => {
     loader.loadFirst('u1');
 
     expect(loader.posts().length).toBe(1);
-    expect(loader.posts()[0].image).toBe('https://cdn.example.com/p1.jpg');
+    expect(loader.posts()[0].media[0].publicUrl).toBe(
+      'https://cdn.example.com/p1.jpg',
+    );
     expect(loader.postsCount()).toBe('5');
     expect(loader.hasMore()).toBeTrue();
     expect(loader.notFound()).toBeFalse();

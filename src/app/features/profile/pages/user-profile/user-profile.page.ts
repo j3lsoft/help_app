@@ -26,23 +26,35 @@ import {
   NavController,
 } from '@ionic/angular/standalone';
 import { BackHeaderComponent } from '@shared/components/back-header/back-header.component';
-import { ProfileHeaderComponent } from '@features/profile/components/profile-header/profile-header.component';
-import { ProfilePostGridComponent } from '@features/profile/components/profile-post-grid/profile-post-grid.component';
 import { FollowButtonComponent } from '@shared/components/follow-button/follow-button.component';
+import { ImageLightboxComponent } from '@shared/components/image-lightbox/image-lightbox.component';
+import { ProfileHeaderComponent } from '@features/profile/components/profile-header/profile-header.component';
+import { ProfileMediaGridComponent } from '@features/profile/components/profile-media-grid/profile-media-grid.component';
+import { ProfileTabsComponent } from '@features/profile/components/profile-tabs/profile-tabs.component';
+import {
+  Post,
+  PostCardComponent,
+} from '@features/home/components/post-card/post-card.component';
+import { FeedService } from '@features/home/services/feed.service';
 import { addIcons } from 'ionicons';
-import { chevronBack, playOutline } from 'ionicons/icons';
+import { chevronBack } from 'ionicons/icons';
 import { catchError, finalize, map, of, switchMap } from 'rxjs';
 import { ProfileErrorFacade } from '../../errors/profile-error.facade';
 import { SocialErrorFacade } from '../../errors/social-error.facade';
 import { ProfileService } from '../../services/profile.service';
 import { FollowService } from '../../services/follow.service';
 import { PostsApiService } from '@features/posts/services/posts-api.service';
+import { toFeedPost } from '@features/posts/utils/post-view.adapter';
+import { ProfileTab } from '../../models/profile-tab.model';
 import { createProfilePostsLoader } from '../../utils/profile-posts.loader';
+import {
+  resolveProfileMediaUrls,
+  toProfileMediaItems,
+} from '../../utils/profile-view.utils';
 import {
   normalizeWebsiteUrl,
   stripWebsiteProtocol,
 } from '../../utils/website-url.utils';
-import { PostItem } from '../../models/post-item.model';
 
 @Component({
   selector: 'app-user-profile',
@@ -57,7 +69,10 @@ import { PostItem } from '../../models/post-item.model';
     IonInfiniteScrollContent,
     BackHeaderComponent,
     ProfileHeaderComponent,
-    ProfilePostGridComponent,
+    ProfileTabsComponent,
+    ProfileMediaGridComponent,
+    PostCardComponent,
+    ImageLightboxComponent,
     FollowButtonComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -72,6 +87,7 @@ export class UserProfilePage implements OnDestroy {
   private readonly socialErrorFacade = inject(SocialErrorFacade);
   private readonly followService = inject(FollowService);
   private readonly postsApi = inject(PostsApiService);
+  private readonly feed = inject(FeedService);
 
   readonly userProfile = rxResource({
     stream: () =>
@@ -138,7 +154,8 @@ export class UserProfilePage implements OnDestroy {
   );
 
   private readonly postsLoader = createProfilePostsLoader({
-    fetchPage: (userId, cursor) => this.postsApi.getUserPosts(userId, { cursor }),
+    fetchPage: (userId, cursor) =>
+      this.postsApi.getUserPosts(userId, { cursor, includeTotal: true }),
     logger: this.logger,
   });
 
@@ -147,6 +164,17 @@ export class UserProfilePage implements OnDestroy {
   readonly hasMorePosts = this.postsLoader.hasMore;
   readonly postsNotFound = this.postsLoader.notFound;
   readonly postsCount = this.postsLoader.postsCount;
+
+  readonly activeTab = signal<ProfileTab>('posts');
+  readonly viewerOpen = signal(false);
+  readonly viewerIndex = signal(0);
+
+  readonly postCards = computed<Post[]>(() =>
+    this.profilePosts().map((dto) => toFeedPost(dto, this.userProfile.value() ?? null)),
+  );
+
+  readonly mediaItems = computed(() => toProfileMediaItems(this.profilePosts()));
+  readonly mediaUrls = computed(() => resolveProfileMediaUrls(this.profilePosts()));
 
   private readonly _isTogglingFollow = signal(false);
   readonly isTogglingFollow = this._isTogglingFollow.asReadonly();
@@ -159,7 +187,7 @@ export class UserProfilePage implements OnDestroy {
     stripWebsiteProtocol(url);
 
   constructor() {
-    addIcons({ chevronBack, playOutline });
+    addIcons({ chevronBack });
 
     effect(() => {
       const userId = this.profileId();
@@ -219,9 +247,31 @@ export class UserProfilePage implements OnDestroy {
     this.postsLoader.destroy();
   }
 
-  onPostClick(post: PostItem) {
-    if (post.id) {
-      this.router.navigateByUrl(`post-detail/${post.id}`);
+  onTabChange(tab: ProfileTab) {
+    this.activeTab.set(tab);
+  }
+
+  openMedia(index: number) {
+    if (this.mediaUrls().length === 0) return;
+    this.viewerIndex.set(index);
+    this.viewerOpen.set(true);
+  }
+
+  closeViewer() {
+    this.viewerOpen.set(false);
+  }
+
+  handlePostLike(postId: string) {
+    this.feed.toggleLike(postId);
+  }
+
+  handlePostSave(postId: string) {
+    this.feed.toggleSave(postId);
+  }
+
+  goToPostDetail(postId: string) {
+    if (postId) {
+      this.router.navigateByUrl(`post-detail/${postId}`);
     }
   }
 

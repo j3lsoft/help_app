@@ -41,7 +41,7 @@
   </header>
 
   @if (post().aboutPost) {
-    <p class="post-card__body">{{ post().aboutPost }}</p>
+    <app-expandable-text [text]="post().aboutPost" class="post-card__body" />
   }
 
   @if (post().postImages.length > 0) {

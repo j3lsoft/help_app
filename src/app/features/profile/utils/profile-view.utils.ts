@@ -1,5 +1,6 @@
 import { PostResponseDto } from '@features/posts/models/post.dto';
-import { PostItem } from '../models/post-item.model';
+import { resolvePostImageUrls } from '@features/posts/utils/post-view.adapter';
+import { ProfileMediaItem } from '../models/profile-media-item.model';
 import {
   normalizeWebsiteUrl,
   stripWebsiteProtocol,
@@ -18,16 +19,29 @@ export interface ProfileHeaderViewModel {
 }
 
 /**
- * Maps a Post DTO to the profile grid item, using the first media's publicUrl.
- * Falls back to a placeholder when no media or publicUrl is available.
+ * Flattens every media item of every post into a single ordered list for the
+ * profile Media tab. Media keeps post order (newest first) and each post's
+ * own position order, and each item carries a unique key for `@for` tracking.
  */
-export function toPostItem(post: PostResponseDto): PostItem {
-  return {
-    id: post.id,
-    image:
-      post.media?.[0]?.publicUrl || 'assets/images/gallery/gallery1.png',
-    createdAt: post.createdAt,
-  };
+export function toProfileMediaItems(
+  posts: PostResponseDto[],
+): ProfileMediaItem[] {
+  return posts.reduce<ProfileMediaItem[]>((items, post) => {
+    const media = resolvePostImageUrls(post).map((image, index) => ({
+      key: `${post.id}#${index}`,
+      image,
+      postId: post.id,
+    }));
+    return [...items, ...media];
+  }, []);
+}
+
+/** Ordered media URLs across all posts, for the fullscreen lightbox. */
+export function resolveProfileMediaUrls(posts: PostResponseDto[]): string[] {
+  return posts.reduce<string[]>(
+    (urls, post) => [...urls, ...resolvePostImageUrls(post)],
+    [],
+  );
 }
 
 interface ProfileSourceFields {

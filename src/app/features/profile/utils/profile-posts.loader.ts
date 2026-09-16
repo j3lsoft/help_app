@@ -1,12 +1,13 @@
-import { computed, signal } from '@angular/core';
+import { Signal, computed, signal } from '@angular/core';
 import { Observable, Subscription } from 'rxjs';
 import { LoggerService } from '@core/services/logger.service';
 import { createPaginatedListState } from '@core/state/paginated-list.state';
 import { loadPaginatedPage } from '@core/utils/paginated-list-loader.utils';
 import { toAppError } from '@core/utils/app-error.utils';
-import { PaginatedPostsResponseDto } from '@features/posts/models/post.dto';
-import { PostItem } from '../models/post-item.model';
-import { toPostItem } from './profile-view.utils';
+import {
+  PaginatedPostsResponseDto,
+  PostResponseDto,
+} from '@features/posts/models/post.dto';
 
 /** Dependencies required by the profile posts loader. */
 export interface ProfilePostsLoaderDeps {
@@ -19,17 +20,12 @@ export interface ProfilePostsLoaderDeps {
 }
 
 export interface ProfilePostsLoader {
-  readonly posts: ReturnType<
-    ReturnType<typeof createPaginatedListState<PostItem>>['items']['asReadonly']
-  >;
-  readonly isLoading: ReturnType<
-    ReturnType<typeof createPaginatedListState<PostItem>>['loading']['asReadonly']
-  >;
-  readonly hasMore: ReturnType<
-    ReturnType<typeof createPaginatedListState<PostItem>>['hasMore']['asReadonly']
-  >;
-  readonly postsCount: ReturnType<typeof computed<string>>;
-  readonly notFound: ReturnType<typeof computed<boolean>>;
+  /** Raw server posts, newest first, accumulated across pages. */
+  readonly posts: Signal<PostResponseDto[]>;
+  readonly isLoading: Signal<boolean>;
+  readonly hasMore: Signal<boolean>;
+  readonly postsCount: Signal<string>;
+  readonly notFound: Signal<boolean>;
   loadFirst(userId: string): void;
   loadMore(userId: string, onSettled?: () => void): void;
   destroy(): void;
@@ -40,12 +36,15 @@ export interface ProfilePostsLoader {
  * Accumulates pages via an opaque cursor, tracks the backend `total` when
  * present (only returned with `includeTotal=true`), and
  * applies the 422 reset-and-retry policy on any page load.
+ *
+ * Keeps the full `PostResponseDto` so consumers can derive both the feed
+ * `Post` view-model (Posts tab) and the flattened media (Media tab).
  */
 export function createProfilePostsLoader({
   fetchPage,
   logger,
 }: ProfilePostsLoaderDeps): ProfilePostsLoader {
-  const state = createPaginatedListState<PostItem>();
+  const state = createPaginatedListState<PostResponseDto>();
   const totalPosts = signal<number | undefined>(undefined);
 
   let sub: Subscription | undefined;
@@ -78,7 +77,7 @@ export function createProfilePostsLoader({
       },
       state,
       fetch: (cursor) => fetchPage(userId, cursor),
-      mapItems: (items) => items.map(toPostItem),
+      mapItems: (items) => items,
       onTotal: (total) => totalPosts.set(total),
       logContext: 'profile posts',
       logger,
