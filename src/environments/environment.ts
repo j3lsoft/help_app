@@ -7,7 +7,6 @@ export const environment = {
   apiBaseUrl: 'http://localhost:3000',
   minAgeYears: 13,
   upload: {
-    // Driver de subida: 'presigned' (recomendado) o 'direct'
     strategy: 'presigned',
     maxFileSize: 10 * 1024 * 1024, // 10MB
     allowedMimeTypes: [
