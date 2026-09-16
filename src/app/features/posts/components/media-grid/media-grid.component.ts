@@ -16,6 +16,14 @@ import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { addIcons } from 'ionicons';
 import { close, createOutline } from 'ionicons/icons';
 import { MediaItem } from '../../models/post-creation.model';
+import {
+  buildEffectiveFilterCssForItem,
+  buildEffectiveTransformCssForItem,
+} from '../../utils/post-effective-filter.util';
+import {
+  UploadRingComponent,
+  UploadRingStatus,
+} from '../upload-ring/upload-ring.component';
 
 /** How long a touch must be held before it grabs the tile (ms). */
 const LONG_PRESS_DELAY = 320;
@@ -42,17 +50,37 @@ export interface MediaDragPreview {
 @Component({
   selector: 'app-media-grid',
   standalone: true,
-  imports: [CommonModule, IonIcon],
+  imports: [CommonModule, IonIcon, UploadRingComponent],
   templateUrl: './media-grid.component.html',
   styleUrls: ['./media-grid.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MediaGridComponent {
   @Input({ required: true }) items: MediaItem[] = [];
+  /** Per-file progress 0..100 keyed by MediaItem.id. */
+  @Input() progressById: Record<string, number> = {};
+  /** Per-file stage keyed by MediaItem.id. */
+  @Input() statusById: Record<string, 'baking' | 'uploading' | 'creating' | 'done'> = {};
+  /** When true each tile shows its own circular life. */
+  @Input() uploadActive = false;
 
   @Output() edit = new EventEmitter<string>();
   @Output() remove = new EventEmitter<string>();
   @Output() reorder = new EventEmitter<string[]>();
+
+  progressFor(itemId: string): number {
+    return this.progressById[itemId] ?? 0;
+  }
+
+  ringStatusFor(itemId: string): UploadRingStatus {
+    if (!this.uploadActive) return 'idle';
+    const stage = this.statusById[itemId];
+    const progress = this.progressFor(itemId);
+    if (stage === 'done' || progress >= 100) return 'done';
+    if (stage === 'baking') return 'baking';
+    if (stage === 'creating') return 'creating';
+    return 'uploading';
+  }
 
   draggedIndex = signal<number | null>(null);
   dragOverIndex = signal<number | null>(null);
@@ -103,34 +131,18 @@ export class MediaGridComponent {
   }
 
   getItemFilter(item: MediaItem): string {
-    const base = item.filter.trim();
-    const { brightness, contrast, blur, saturation, warmth } = item.edits;
-
-    const parts: string[] = [base];
-
-    if (brightness !== 0) parts.push(`brightness(${1 + brightness / 100})`);
-    if (contrast !== 0) parts.push(`contrast(${1 + contrast / 100})`);
-    if (saturation !== 0) parts.push(`saturate(${1 + saturation / 100})`);
-    if (warmth !== 0) {
-      if (warmth > 0) {
-        parts.push(`sepia(${(warmth / 100) * 0.35}) hue-rotate(${-warmth * 0.15}deg)`);
-      } else {
-        parts.push(`hue-rotate(${Math.abs(warmth) * 0.2}deg)`);
-      }
-    }
-    if (blur > 0) parts.push(`blur(${blur}px)`);
-
-    return parts.filter(Boolean).join(' ');
+    return buildEffectiveFilterCssForItem(item);
   }
 
   getItemTransform(item: MediaItem): string {
-    const { rotate } = item.edits;
-    if (rotate === 0) return '';
-    return `rotate(${rotate * 90}deg)`;
+    return buildEffectiveTransformCssForItem(item);
   }
 
   onCellClick(item: MediaItem, event: MouseEvent): void {
     event.stopPropagation();
+    if (this.uploadActive) {
+      return;
+    }
     if (this.suppressClick) {
       this.suppressClick = false;
       return;
@@ -140,10 +152,17 @@ export class MediaGridComponent {
 
   onRemoveClick(item: MediaItem, event: MouseEvent): void {
     event.stopPropagation();
+    if (this.uploadActive) {
+      return;
+    }
     this.remove.emit(item.id);
   }
 
   onDragStart(index: number, event: DragEvent): void {
+    if (this.uploadActive) {
+      event.preventDefault();
+      return;
+    }
     const target = event.target as HTMLElement | null;
     if (target?.closest('button')) {
       event.preventDefault();
@@ -190,7 +209,7 @@ export class MediaGridComponent {
   }
 
   onPointerDown(index: number, event: PointerEvent): void {
-    if (!this.canReorder) return;
+    if (!this.canReorder || this.uploadActive) return;
     // Desktop uses native HTML5 drag-and-drop; touch/pen uses long-press.
     if (event.pointerType === 'mouse') return;
 

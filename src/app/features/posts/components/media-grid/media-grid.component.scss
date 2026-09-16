@@ -116,6 +116,32 @@
   transition: filter 0.15s ease, transform 0.15s ease;
 }
 
+.media-grid__ring {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(
+    circle at center,
+    rgba(4, 19, 49, 0.55) 0%,
+    rgba(4, 19, 49, 0.25) 60%,
+    transparent 100%
+  );
+  pointer-events: none;
+  animation: media-ring-in 0.4s ease both;
+}
+
+@keyframes media-ring-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .media-grid__overlay {
   position: absolute;
   inset: 0;

@@ -1,15 +1,15 @@
 export const POST_IMAGE_MAX_DIMENSION = 2048;
+/** Sharpen is O(w·h) on the main thread, so bound the working canvas for it. */
+export const POST_IMAGE_SHARPEN_MAX_DIMENSION = 1280;
 const JPEG_PHOTO_QUALITY = 0.85;
 const WEBP_SCREENSHOT_QUALITY = 0.88;
 const WEBP_ALPHA_QUALITY = 0.88;
-// Back-compat aliases
-const WEBP_QUALITY = JPEG_PHOTO_QUALITY;
-const JPEG_FALLBACK_QUALITY = JPEG_PHOTO_QUALITY;
-const RETRY_QUALITY = 0.7;
-const SIZE_THRESHOLD_BYTES = 800 * 1024;
 const MAX_CLIENT_BYTES = 2 * 1024 * 1024;
 const SCREENSHOT_MAX_WIDTH = 1600;
 const SCREENSHOT_SIZE_THRESHOLD = 900 * 1024;
+
+/** Client-side upload budget for an already-encoded image. */
+export const POST_IMAGE_MAX_BYTES = MAX_CLIENT_BYTES;
 
 export function loadImageElement(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -115,12 +115,7 @@ async function exportOptimizedBlob(
 
   // New budget: allow up to 2MB, only retry if exceeds MAX_CLIENT_BYTES
   if (blob.size > MAX_CLIENT_BYTES) {
-    const retries = quality === WEBP_SCREENSHOT_QUALITY || quality === WEBP_ALPHA_QUALITY
-      ? [0.8, 0.75]
-      : quality === JPEG_PHOTO_QUALITY
-        ? [0.8, 0.75]
-        : [RETRY_QUALITY];
-    for (const q of retries) {
+    for (const q of [0.8, 0.75]) {
       if (q >= quality) continue;
       const retryBlob = await canvasToBlob(canvas, mime, q);
       if (retryBlob && retryBlob.size < blob.size) {
@@ -129,8 +124,6 @@ async function exportOptimizedBlob(
         if (blob.size <= MAX_CLIENT_BYTES) break;
       }
     }
-    // Legacy 800KB retry kept for back-compat when quality still high and size >800KB but <=2MB?
-    // Skipped: new budget is 2MB, we don't downscale 1.5MB photo to 0.70 anymore.
   }
 
   return { blob, mime };
@@ -257,7 +250,11 @@ export async function bakeImageFilter(
   maybeOptions?: BakeOptions
 ): Promise<File> {
   const { filter, transform, options } = resolveBakeArgs(cssFilter, optionsOrTransform, maybeOptions);
-  const maxDimension = options?.maxDimension ?? POST_IMAGE_MAX_DIMENSION;
+  const maxDimension =
+    options?.maxDimension ??
+    (options?.sharpen
+      ? Math.min(POST_IMAGE_MAX_DIMENSION, POST_IMAGE_SHARPEN_MAX_DIMENSION)
+      : POST_IMAGE_MAX_DIMENSION);
   const hasExplicitQuality = options?.quality !== undefined && options?.quality !== null;
 
   const image = await loadImageElement(src);
@@ -345,4 +342,34 @@ export async function bakeImageFilter(
   return new File([blob], options?.fileName ?? defaultName, {
     type: mime,
   });
+}
+
+/**
+ * True when an already-encoded file is small enough and in a web-safe format,
+ * so the re-encoding pipeline can be skipped entirely.
+ */
+export function isUploadableAsIs(file: File): boolean {
+  return (
+    file.size > 0 &&
+    file.size <= POST_IMAGE_MAX_BYTES &&
+    (file.type === 'image/jpeg' || file.type === 'image/webp')
+  );
+}
+
+/** Best-effort load of the original source as a File; null when unavailable. */
+export async function loadSourceFile(
+  src: string,
+  format: string
+): Promise<File | null> {
+  try {
+    const response = await fetch(src);
+    const blob = await response.blob();
+    if (blob.size === 0) return null;
+    const type = blob.type || `image/${format}`;
+    const ext =
+      type === 'image/webp' ? 'webp' : type === 'image/png' ? 'png' : 'jpeg';
+    return new File([blob], `post.${ext}`, { type });
+  } catch {
+    return null;
+  }
 }

@@ -1,0 +1,54 @@
+<div
+  class="upload-ring"
+  [attr.data-status]="status()"
+  role="progressbar"
+  [attr.aria-valuemin]="0"
+  [attr.aria-valuemax]="100"
+  [attr.aria-valuenow]="clamped()"
+  [attr.aria-valuetext]="ariaText()"
+  [attr.aria-label]="label() || ariaText()"
+>
+  <svg class="upload-ring__svg" viewBox="0 0 38 38" aria-hidden="true">
+    <circle class="upload-ring__track" cx="19" cy="19" r="15" />
+    <circle
+      class="upload-ring__bar"
+      cx="19"
+      cy="19"
+      r="15"
+      [attr.pathLength]="ringPathLength"
+      [attr.stroke-dasharray]="ringPathLength"
+      [attr.stroke-dashoffset]="dashOffset()"
+    />
+  </svg>
+  <div class="upload-ring__center">
+    @if (status() === 'done') {
+      <svg class="upload-ring__icon" viewBox="0 0 16 16" aria-hidden="true">
+        <path
+          class="upload-ring__check"
+          d="M3.5 8.5L6.5 11.5L12.5 4.5"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    } @else if (status() === 'failed') {
+      <svg class="upload-ring__icon upload-ring__icon--failed" viewBox="0 0 16 16" aria-hidden="true">
+        <path
+          d="M4 4L12 12M12 4L4 12"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+        />
+      </svg>
+    } @else if (status() === 'baking') {
+      <span class="upload-ring__dot" aria-hidden="true"></span>
+    } @else if (status() === 'creating') {
+      <span class="upload-ring__spinner" aria-hidden="true"></span>
+    } @else {
+      <span class="upload-ring__pct">{{ clamped() }}<small>%</small></span>
+    }
+  </div>
+</div>

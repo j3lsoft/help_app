@@ -1,0 +1,146 @@
+:host {
+  display: inline-block;
+  --ring-size: 38px;
+}
+
+.upload-ring {
+  --ring-track: rgba(255, 255, 255, 0.18);
+  --ring-bar: var(--primaryColor, #12c3ec);
+  position: relative;
+  width: var(--ring-size);
+  height: var(--ring-size);
+  border-radius: 50%;
+  background: rgba(4, 19, 49, 0.5);
+  transition: background 0.3s ease;
+
+  &[data-status='baking'] {
+    --ring-bar: var(--orangeColor, #ffac33);
+  }
+
+  &[data-status='done'] {
+    --ring-bar: var(--greenColor, #35cb00);
+    background: rgba(4, 19, 49, 0.3);
+  }
+
+  &[data-status='failed'] {
+    --ring-bar: var(--redColor, #ff3b30);
+  }
+}
+
+.upload-ring__svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.upload-ring__track {
+  fill: none;
+  stroke: var(--ring-track);
+  stroke-width: 3;
+}
+
+.upload-ring__bar {
+  fill: none;
+  stroke: var(--ring-bar);
+  stroke-width: 3;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.3s ease-out, stroke 0.3s ease;
+}
+
+.upload-ring__center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--whiteColor, #fff);
+}
+
+.upload-ring__icon {
+  width: 14px;
+  height: 14px;
+  color: var(--greenColor, #35cb00);
+
+  &--failed {
+    color: var(--redColor, #ff3b30);
+    width: 12px;
+    height: 12px;
+  }
+}
+
+.upload-ring__check {
+  stroke-dasharray: 14;
+  stroke-dashoffset: 14;
+  animation: ring-check-draw 0.35s 0.1s ease-out forwards;
+}
+
+.upload-ring__pct {
+  font-size: 10px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  opacity: 0.9;
+
+  small {
+    font-size: 7px;
+    font-weight: 500;
+    opacity: 0.6;
+    margin-left: 0.5px;
+  }
+}
+
+.upload-ring__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--orangeColor, #ffac33);
+  animation: ring-pulse 1.8s ease-in-out infinite;
+}
+
+.upload-ring__spinner {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  border-top-color: var(--ring-bar);
+  animation: ring-spin 0.85s linear infinite;
+}
+
+@keyframes ring-check-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes ring-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes ring-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.85);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .upload-ring,
+  .upload-ring__check,
+  .upload-ring__spinner,
+  .upload-ring__bar {
+    animation: none;
+    transition: none;
+
+    &[class*='check'] {
+      stroke-dashoffset: 0;
+    }
+  }
+}

@@ -44,7 +44,7 @@ import {
   shareOutline,
   trashOutline,
 } from 'ionicons/icons';
-import { catchError, firstValueFrom, map, of } from 'rxjs';
+import { Observable, catchError, firstValueFrom, map, of } from 'rxjs';
 import { AuthService } from '@features/auth/services/auth.service';
 import { LoggerService } from '@core/services/logger.service';
 import { NotificationService } from '@core/services/notification.service';
@@ -115,7 +115,9 @@ export class PostDetailPage {
     this.draft.valueChanges
       .pipe(takeUntilDestroyed())
       .subscribe((value) => this.draftText.set(value ?? ''));
-    // Reset per-post transient UI whenever the route id changes.
+    // Reset per-post transient UI whenever the route id changes. The stored
+    // failure is cleared by the resource stream itself (see below), since it
+    // can fail synchronously before this effect gets a chance to run.
     effect(() => {
       const seed = createEngagementSeed(this.postId());
       this.liked.set(false);
@@ -138,10 +140,10 @@ export class PostDetailPage {
    * unit tests that stub only `snapshot`.
    */
   private readonly routePostId = toSignal(
-    ((this.route.paramMap as unknown as undefined) ??
-      of(this.route.snapshot.paramMap as ParamMap)).pipe(
-      map((params: ParamMap) => params.get('id') ?? '')
-    ),
+    (
+      (this.route.paramMap as Observable<ParamMap> | undefined) ??
+      of(this.route.snapshot.paramMap as ParamMap)
+    ).pipe(map((params: ParamMap) => params.get('id') ?? '')),
     { initialValue: this.initialPostId }
   );
 
@@ -167,19 +169,27 @@ export class PostDetailPage {
   private readonly loadError = signal<AppError | null>(null);
 
   private readonly postResource = rxResource({
-    stream: () =>
-      this.postsApi.getPostById(this.postId()).pipe(
+    // Reactive request: re-runs whenever the routed post id changes.
+    params: () => this.postId(),
+    stream: ({ params: postId }) => {
+      // Clear any previous failure first: the component is reused for
+      // /post-detail/A -> /post-detail/B, so a stale error would otherwise
+      // hide the newly loaded post.
+      this.loadError.set(null);
+      return this.postsApi.getPostById(postId).pipe(
         catchError((error: unknown) => {
           const appError = toAppError(error);
           this.loadError.set(appError);
           this.logger.error('Failed to load post detail', {
             context: 'PostDetailPage',
-            data: { postId: this.postId() },
+            data: { postId },
           });
-          this.postErrorFacade.handle(appError, 'post-detail');
+          // The page renders the failure inline (see `errorMessage`), so it
+          // intentionally does not surface a second toast for this context.
           throw appError;
         })
-      ),
+      );
+    },
   });
 
   readonly isLoading = computed(() => this.postResource.isLoading());
@@ -405,10 +415,15 @@ export class PostDetailPage {
       return;
     }
     const content = this.draft.value.trim() ? this.draft.value.trim() : null;
+    // `PUT` replaces the resource, so re-send the current media ids to avoid
+    // dropping the carousel when the backend treats the request as a full write.
+    const mediaIds = [...(post.media ?? [])]
+      .sort((a, b) => a.position - b.position)
+      .map((media) => media.mediaFileId);
     this.savingEdit.set(true);
     try {
       const updated = await firstValueFrom(
-        this.postsApi.editPost(post.id, { content })
+        this.postsApi.editPost(post.id, { content, mediaIds })
       );
       this.feed.updatePostContent(post.id, updated.content ?? '');
       this.editing.set(false);
@@ -461,7 +476,7 @@ export class PostDetailPage {
       await firstValueFrom(this.postsApi.deletePost(post.id));
       this.feed.removePost(post.id);
       await this.notification.showSuccess('Post deleted');
-      this.navCtrl.back();
+      this.goBack();
     } catch (error) {
       const appError = toAppError(error);
       this.logger.error('Failed to delete post', {
@@ -471,7 +486,7 @@ export class PostDetailPage {
       this.postErrorFacade.handle(appError, 'post-delete');
       if (isAppError(appError) && appError.status === 404) {
         this.feed.removePost(post.id);
-        this.navCtrl.back();
+        this.goBack();
       }
     } finally {
       this.deleting.set(false);

@@ -1,6 +1,6 @@
 import { AuthUserDto } from '@features/auth/models/auth.dto';
 import { PostResponseDto } from '../models/post.dto';
-import { toFeedPost } from './post-view.adapter';
+import { resolvePostImageUrls, toFeedPost } from './post-view.adapter';
 
 describe('post-view.adapter', () => {
   const POST_DTO: PostResponseDto = {
@@ -30,8 +30,8 @@ describe('post-view.adapter', () => {
     avatarUrl: 'https://cdn.example.com/avatar.png',
   };
 
-  it('should map dto + author to the feed view model', () => {
-    const post = toFeedPost(POST_DTO, AUTHOR, 'blob:image-src');
+  it('should map dto + author to the feed view model using server media urls', () => {
+    const post = toFeedPost(POST_DTO, AUTHOR, ['blob:image-src']);
 
     expect(post).toEqual({
       id: 'post-1',
@@ -44,11 +44,55 @@ describe('post-view.adapter', () => {
       postShares: '0',
       postSaves: '0',
       postSaved: false,
-      postImage: 'blob:image-src',
-      postImages: ['blob:image-src'],
+      postImage: 'https://storage.example.com/uploads/post.jpg',
+      postImages: ['https://storage.example.com/uploads/post.jpg'],
       postLike: false,
       createdAt: '2026-08-25T00:00:00Z',
     });
+  });
+
+  it('should order carousel urls by media position', () => {
+    const dto: PostResponseDto = {
+      ...POST_DTO,
+      media: [
+        {
+          id: 'ref-2',
+          mediaFileId: 'media-2',
+          position: 1,
+          publicUrl: 'https://cdn.example.com/second.jpg',
+          mimeType: 'image/jpeg',
+        },
+        {
+          id: 'ref-1',
+          mediaFileId: 'media-1',
+          position: 0,
+          publicUrl: 'https://cdn.example.com/first.jpg',
+          mimeType: 'image/jpeg',
+        },
+      ],
+    };
+
+    expect(resolvePostImageUrls(dto)).toEqual([
+      'https://cdn.example.com/first.jpg',
+      'https://cdn.example.com/second.jpg',
+    ]);
+  });
+
+  it('should fall back to local urls when publicUrl is missing', () => {
+    const dto: PostResponseDto = {
+      ...POST_DTO,
+      media: [
+        {
+          id: 'ref-1',
+          mediaFileId: 'media-1',
+          position: 0,
+          publicUrl: '',
+          mimeType: 'image/jpeg',
+        },
+      ],
+    };
+
+    expect(resolvePostImageUrls(dto, ['blob:local'])).toEqual(['blob:local']);
   });
 
   it('should fall back to username and default avatar without author data', () => {

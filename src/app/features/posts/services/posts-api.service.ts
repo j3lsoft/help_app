@@ -17,8 +17,8 @@ export interface GetUserPostsOptions {
   limit?: number;
   /**
    * Opt-in total count (extra COUNT query on the backend).
-   * Defaults to true so profile `postsCount` reflects the real total.
-   * Set to false to skip counting for perf-sensitive callers.
+   * Defaults to false; set true when the caller needs the real total
+   * (e.g. profile `postsCount`).
    */
   includeTotal?: boolean;
 }
@@ -63,8 +63,8 @@ export class PostsApiService {
       params = params.set('cursor', options.cursor);
     }
     // Backend only returns `total` when includeTotal is set (extra COUNT query).
-    // Default true to preserve the profile postsCount contract (Q2 A / Q4 B).
-    if (options.includeTotal ?? true) {
+    // Opt-in: only callers that render a real total pay for it.
+    if (options.includeTotal === true) {
       params = params.set('includeTotal', 'true');
     }
     return this.http.get<PaginatedPostsResponseDto>(

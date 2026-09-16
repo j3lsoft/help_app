@@ -131,6 +131,7 @@
   background: var(--whiteColor);
   border-radius: 12px;
   min-width: 240px;
+  max-width: min(92vw, 420px);
 
   &__stage {
     font-size: 15px;

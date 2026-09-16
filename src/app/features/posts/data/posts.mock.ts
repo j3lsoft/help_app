@@ -1,4 +1,4 @@
-import { PostEditOption, PostFilterOption } from '../models/post-creation.model';
+import { PostFilterOption } from '../models/post-creation.model';
 
 export const POST_FILTER_OPTIONS: PostFilterOption[] = [
   { filterName: 'Normal', filter: '' },
@@ -8,15 +8,4 @@ export const POST_FILTER_OPTIONS: PostFilterOption[] = [
   { filterName: 'Skyline', filter: 'hue-rotate(100deg)' },
   { filterName: 'Moon', filter: 'invert(90%)' },
   { filterName: 'Juno', filter: 'hue-rotate(200deg)' },
-];
-
-export const POST_EDIT_OPTIONS: PostEditOption[] = [
-  { id: '1', editOptionIcon: 'assets/images/icons/adjust.png', optionName: 'Brightness' },
-  { id: '2', editOptionIcon: 'assets/images/icons/contrast.png', optionName: 'Contrast' },
-  { id: '3', editOptionIcon: 'assets/images/icons/adjust.png', optionName: 'Saturation' },
-  { id: '4', editOptionIcon: 'assets/images/icons/curves.png', optionName: 'Warmth' },
-  { id: '5', editOptionIcon: 'assets/images/icons/blur.png', optionName: 'Blur' },
-  { id: '6', editOptionIcon: 'assets/images/icons/rotate.png', optionName: 'Rotate' },
-  { id: '7', editOptionIcon: 'assets/images/icons/perspective.png', optionName: 'Vignette' },
-  { id: '8', editOptionIcon: 'assets/images/icons/crop.png', optionName: 'Sharpen' },
 ];

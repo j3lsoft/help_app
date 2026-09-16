@@ -2,25 +2,31 @@ import { Injectable, inject } from '@angular/core';
 import { firstValueFrom, lastValueFrom } from 'rxjs';
 import { LoggerService } from '../../../core/services/logger.service';
 import { UploadApiService } from '../../../core/services/media/upload/services/upload-api.service';
-import { MediaItem, POST_EDIT_STATE_NEUTRAL } from '../models/post-creation.model';
+import { MediaItem } from '../models/post-creation.model';
 import { CreatePostRequestDto, PostResponseDto } from '../models/post.dto';
-import { bakeImageFilter } from '../utils/image-bake.util';
+import {
+  bakeImageFilter,
+  isUploadableAsIs,
+  loadSourceFile,
+} from '../utils/image-bake.util';
+import {
+  buildEffectiveFilterCssForItem,
+  buildEffectiveTransformCssForItem,
+  hasVisualChanges,
+} from '../utils/post-effective-filter.util';
 import { PostsApiService } from './posts-api.service';
 
 export type PublishStage = 'baking' | 'uploading' | 'creating';
 
 export interface PublishParams {
-  /** Optional array of MediaItem objects to publish (multi-media flow). */
+  /** Array of MediaItem objects to publish (multi-media flow). */
   items?: MediaItem[];
-  /** Legacy single-image fallback fields: */
-  imageSrc?: string | null;
-  filterCss?: string | null;
-  transformCss?: string | null;
-  pendingMediaId?: string | null;
 
   content: string | null;
   onStage?: (stage: PublishStage) => void;
   onUploadProgress?: (percent: number) => void;
+  /** Per-file progress: index in items, percent 0..100, client item id. */
+  onItemProgress?: (index: number, percent: number, itemId: string) => void;
 }
 
 export interface PublishResult {
@@ -32,13 +38,16 @@ export interface PublishResult {
 }
 
 /** Publish failure carrying which stage failed and any confirmed media. */
+const UPLOAD_CONCURRENCY = 3;
+
 export class PostPublishError extends Error {
   constructor(
     message: string,
     public readonly stage: PublishStage,
     public readonly cause?: unknown,
     public readonly uploadedMediaId?: string,
-    public readonly uploadedMediaIds?: string[]
+    /** Per-index alignment with the published items; holes are failed/unstarted. */
+    public readonly uploadedMediaIds?: (string | undefined)[],
   ) {
     super(message);
     this.name = 'PostPublishError';
@@ -53,11 +62,17 @@ export class PostPublishService {
   private readonly postsApi = inject(PostsApiService);
   private readonly logger = inject(LoggerService);
 
+  /**
+   * Image rasterizer. A writable instance seam so specs can stub the expensive
+   * canvas pipeline instead of patching the read-only ES module namespace.
+   */
+  bakeImage: typeof bakeImageFilter = bakeImageFilter;
+
   async publish(params: PublishParams): Promise<PublishResult> {
     const content = params.content?.trim() ? params.content.trim() : null;
 
     // Resolve items to process
-    const items = this.resolveMediaItems(params);
+    const items = params.items ?? [];
     const hasMedia = items.length > 0;
 
     if (!hasMedia && !content) {
@@ -72,47 +87,55 @@ export class PostPublishService {
         params.onStage?.('baking');
       }
 
-      // Upload items in order
       const itemProgress = new Array(items.length).fill(0);
+      const mediaIdsByIndex: (string | null)[] = new Array(items.length).fill(
+        null,
+      );
 
-      for (let i = 0; i < items.length; i++) {
-        const item = items[i];
+      try {
+        await mapWithConcurrency(
+          items.map((_, index) => index),
+          UPLOAD_CONCURRENCY,
+          async (i) => {
+            const mediaFileId = await this.uploadItemAtIndex(
+              items,
+              i,
+              itemProgress,
+              params,
+            );
+            mediaIdsByIndex[i] = mediaFileId;
+            return mediaFileId;
+          },
+        );
+      } catch (error) {
+        const partialIds = this.buildUploadedMediaIdsByIndex(
+          items,
+          mediaIdsByIndex,
+        );
+        const firstConfirmed = partialIds.find((id): id is string =>
+          Boolean(id),
+        );
+        const message =
+          error instanceof PostPublishError
+            ? error.message
+            : error instanceof Error
+              ? error.message
+              : 'Upload failed';
+        const stage =
+          error instanceof PostPublishError ? error.stage : 'uploading';
+        throw new PostPublishError(
+          message,
+          stage,
+          error,
+          firstConfirmed,
+          // Keep the per-index shape: the composer maps holes back to items.
+          partialIds,
+        );
+      }
 
-        if (item.pendingMediaId) {
-          this.logger.debug('Reusing previously uploaded media for retry', {
-            context: 'PostPublishService',
-            data: { mediaFileId: item.pendingMediaId, index: i },
-          });
-          confirmedMediaIds.push(item.pendingMediaId);
-          itemProgress[i] = 100;
-          continue;
-        }
-
-        try {
-          params.onStage?.('uploading');
-
-          const mediaFileId = await this.uploadSingleMedia(
-            item,
-            (percent) => {
-              itemProgress[i] = percent;
-              const totalProgress = Math.round(
-                itemProgress.reduce((sum, p) => sum + p, 0) / items.length
-              );
-              params.onUploadProgress?.(totalProgress);
-            }
-          );
-
-          item.pendingMediaId = mediaFileId;
-          confirmedMediaIds.push(mediaFileId);
-        } catch (error) {
-          const firstConfirmed = confirmedMediaIds[0];
-          throw new PostPublishError(
-            `Upload failed for image item ${i + 1}`,
-            error instanceof PostPublishError ? error.stage : 'uploading',
-            error,
-            firstConfirmed,
-            [...confirmedMediaIds]
-          );
+      for (const id of mediaIdsByIndex) {
+        if (id) {
+          confirmedMediaIds.push(id);
         }
       }
     }
@@ -133,68 +156,98 @@ export class PostPublishService {
         mediaFileIds: confirmedMediaIds,
       };
     } catch (error) {
+      const uploadedByIndex = items.map(
+        (item, i) => confirmedMediaIds[i] ?? item.pendingMediaId ?? undefined,
+      );
       const firstConfirmed = confirmedMediaIds[0];
       throw new PostPublishError(
         'Post creation failed',
         'creating',
         error,
         firstConfirmed,
-        [...confirmedMediaIds]
+        uploadedByIndex,
       );
     }
   }
 
-  private resolveMediaItems(params: PublishParams): MediaItem[] {
-    if (params.items && params.items.length > 0) {
-      return params.items;
+  private async uploadItemAtIndex(
+    items: MediaItem[],
+    index: number,
+    itemProgress: number[],
+    params: PublishParams,
+  ): Promise<string> {
+    const item = items[index];
+
+    if (item.pendingMediaId) {
+      this.logger.debug('Reusing previously uploaded media for retry', {
+        context: 'PostPublishService',
+        data: { mediaFileId: item.pendingMediaId, index },
+      });
+      itemProgress[index] = 100;
+      params.onItemProgress?.(index, 100, item.id);
+      return item.pendingMediaId;
     }
 
-    const imageSrc = (params.imageSrc ?? '').trim();
-    if (imageSrc.length > 0 || params.pendingMediaId) {
-      return [
-        {
-          id: 'legacy-item',
-          image: { src: imageSrc, format: 'jpeg', origin: 'gallery' },
-          filter: params.filterCss ?? '',
-          edits: {
-            ...POST_EDIT_STATE_NEUTRAL,
-            rotate: this.parseRotateSteps(params.transformCss),
-          },
-          pendingMediaId: params.pendingMediaId ?? null,
-        },
-      ];
-    }
+    params.onStage?.('uploading');
+    params.onItemProgress?.(index, 0, item.id);
 
-    return [];
+    const mediaFileId = await this.uploadSingleMedia(item, (percent) => {
+      itemProgress[index] = percent;
+      const totalProgress = Math.round(
+        itemProgress.reduce((sum, p) => sum + p, 0) / items.length,
+      );
+      params.onUploadProgress?.(totalProgress);
+      params.onItemProgress?.(index, percent, item.id);
+    });
+
+    params.onItemProgress?.(index, 100, item.id);
+    return mediaFileId;
   }
 
-  private parseRotateSteps(transformCss: string | null | undefined): number {
-    if (!transformCss) return 0;
-    const match = transformCss.match(/rotate\(\s*(-?\d+)\s*deg\s*\)/i);
-    if (!match) return 0;
-    const deg = parseInt(match[1], 10);
-    const steps = Math.round(deg / 90) % 4;
-    return (steps + 4) % 4;
+  private buildUploadedMediaIdsByIndex(
+    items: MediaItem[],
+    mediaIdsByIndex: (string | null)[],
+  ): (string | undefined)[] {
+    return items.map(
+      (item, i) => mediaIdsByIndex[i] ?? item.pendingMediaId ?? undefined,
+    );
+  }
+
+  private async prepareUploadFile(item: MediaItem): Promise<File> {
+    // A web blob with no visual edits is already an encoded file the user
+    // chose, so skip the canvas round-trip when it fits the upload budget.
+    // Gallery/camera sources are still normalized (size, format, EXIF).
+    if (!hasVisualChanges(item) && item.image.origin === 'web') {
+      const original = await loadSourceFile(item.image.src, item.image.format);
+      if (original && isUploadableAsIs(original)) {
+        this.logger.debug('Uploading original web image without re-encoding', {
+          context: 'PostPublishService',
+          data: { size: original.size, type: original.type },
+        });
+        return original;
+      }
+    }
+
+    const effectiveFilter = buildEffectiveFilterCssForItem(item);
+    const transformCss = buildEffectiveTransformCssForItem(item) || null;
+
+    return this.bakeImage(item.image.src, effectiveFilter || null, {
+      transform: transformCss,
+      vignette: item.edits.vignette,
+      sharpen: item.edits.sharpen,
+    });
   }
 
   private async uploadSingleMedia(
     item: MediaItem,
-    onProgress?: (percent: number) => void
+    onProgress?: (percent: number) => void,
   ): Promise<string> {
     let file: File;
 
     try {
-      const transformCss = item.edits.rotate
-        ? `rotate(${item.edits.rotate * 90}deg)`
-        : null;
-
-      file = await bakeImageFilter(item.image.src, item.filter, {
-        transform: transformCss,
-        vignette: item.edits.vignette,
-        sharpen: item.edits.sharpen,
-      });
+      file = await this.prepareUploadFile(item);
     } catch (error) {
-      this.logger.error('Failed to bake image filter', {
+      this.logger.error('Failed to prepare image for upload', {
         context: 'PostPublishService',
         data: { error },
       });
@@ -209,23 +262,19 @@ export class PostPublishService {
           mimeType: file.type,
           originalName: file.name,
           size: file.size,
-        })
+        }),
       );
     } catch (error) {
       throw new PostPublishError(
         'Could not request upload URL',
         'uploading',
-        error
+        error,
       );
     }
 
     try {
       await lastValueFrom(
-        this.uploadApi.uploadToStorage(
-          presigned.uploadUrl,
-          file,
-          onProgress
-        )
+        this.uploadApi.uploadToStorage(presigned.uploadUrl, file, onProgress),
       );
     } catch (error) {
       throw new PostPublishError('Storage upload failed', 'uploading', error);
@@ -239,7 +288,7 @@ export class PostPublishService {
           mimeType: file.type,
           originalName: file.name,
           size: file.size,
-        })
+        }),
       );
       return media.id;
     } catch (error) {
@@ -250,8 +299,52 @@ export class PostPublishService {
       throw new PostPublishError(
         'Upload confirmation failed',
         'uploading',
-        error
+        error,
       );
     }
   }
+}
+
+/**
+ * Runs async work over values with a fixed concurrency limit; results match input order.
+ * After the first failure it stops handing out new slots and waits for the in-flight
+ * workers to settle before rejecting, so callers never leave uploads running in the
+ * background (which would otherwise be re-uploaded on retry).
+ */
+async function mapWithConcurrency<T, R>(
+  values: T[],
+  limit: number,
+  fn: (value: T) => Promise<R>,
+): Promise<R[]> {
+  if (values.length === 0) {
+    return [];
+  }
+
+  const results: R[] = new Array(values.length);
+  let nextSlot = 0;
+  let firstError: unknown = null;
+
+  const worker = async (): Promise<void> => {
+    while (firstError === null) {
+      const slot = nextSlot++;
+      if (slot >= values.length) {
+        return;
+      }
+      try {
+        results[slot] = await fn(values[slot]);
+      } catch (error) {
+        if (firstError === null) {
+          firstError = error;
+        }
+      }
+    }
+  };
+
+  const workerCount = Math.min(Math.max(1, limit), values.length);
+  await Promise.all(Array.from({ length: workerCount }, () => worker()));
+
+  if (firstError !== null) {
+    throw firstError;
+  }
+  return results;
 }

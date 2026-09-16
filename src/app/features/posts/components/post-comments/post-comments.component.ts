@@ -86,7 +86,7 @@ export class PostCommentsComponent {
     }
     const user = this.auth.currentUser();
     const comment: PostComment = {
-      id: `comment-local-${Date.now()}`,
+      id: this.nextCommentId(),
       authorId: user?.id ?? 'me',
       authorName: this.viewerName(),
       authorAvatar: this.viewerAvatar(),
@@ -95,6 +95,13 @@ export class PostCommentsComponent {
     };
     this.comments.update((list) => [...list, comment]);
     this.draft.set('');
+  }
+
+  private nextCommentId(): string {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return `comment-local-${crypto.randomUUID()}`;
+    }
+    return `comment-local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   }
 
   /** Brings the composer into view and focuses it (used by the Comments action). */

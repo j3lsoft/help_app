@@ -16,7 +16,7 @@ describe('PhotoEditorComponent', () => {
     fixture = TestBed.createComponent(PhotoEditorComponent);
     component = fixture.componentInstance;
     postCreationService = TestBed.inject(PostCreationService);
-    postCreationService.selectImage({
+    postCreationService.addImage({
       src: 'blob:image-src',
       format: 'jpeg',
       origin: 'gallery',
@@ -26,7 +26,7 @@ describe('PhotoEditorComponent', () => {
 
   it('should create with the selected image', () => {
     expect(component).toBeTruthy();
-    expect(postCreationService.hasSelectedImage()).toBeTrue();
+    expect(postCreationService.hasMedia()).toBeTrue();
   });
 
   it('should apply the selected filter', () => {

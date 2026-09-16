@@ -47,6 +47,20 @@ describe('PostPublishService', () => {
   const TINY_PNG =
     'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAEklEQVR42mP8z8AAAwDAfgAHjfoLpAAAAABJRU5ErkJggg==';
 
+  const TINY_JPEG =
+    'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAT8AABn/2Q==';
+
+  function makeItem(overrides: Partial<MediaItem> = {}): MediaItem {
+    return {
+      id: 'item-1',
+      image: { src: TINY_PNG, format: 'png', origin: 'gallery' },
+      filter: '',
+      edits: { ...POST_EDIT_STATE_NEUTRAL },
+      pendingMediaId: null,
+      ...overrides,
+    };
+  }
+
   beforeEach(() => {
     uploadApiSpy = jasmine.createSpyObj('UploadApiService', [
       'getPresignedUrl',
@@ -76,13 +90,12 @@ describe('PostPublishService', () => {
     TestBed.inject(LoggerService);
   });
 
-  it('should bake, upload via presigned flow and create the post (single legacy param)', async () => {
+  it('should bake, upload via presigned flow and create the post', async () => {
     const stages: PublishStage[] = [];
     const progress: number[] = [];
 
     const result = await service.publish({
-      imageSrc: TINY_PNG,
-      filterCss: 'grayscale(1)',
+      items: [makeItem({ filter: 'grayscale(1)' })],
       content: 'hi',
       onStage: (stage) => stages.push(stage),
       onUploadProgress: (percent) => progress.push(percent),
@@ -101,6 +114,27 @@ describe('PostPublishService', () => {
     expect(stages).toContain('baking');
     expect(stages).toContain('uploading');
     expect(stages).toContain('creating');
+  });
+
+  it('should bake effective filter including adjust edits', async () => {
+    const bakeSpy = spyOn(service, 'bakeImage').and.callThrough();
+    const items: MediaItem[] = [
+      {
+        id: 'item-1',
+        image: { src: TINY_PNG, format: 'png', origin: 'gallery' },
+        filter: 'grayscale(1)',
+        edits: { ...POST_EDIT_STATE_NEUTRAL, brightness: 25, contrast: 10 },
+        pendingMediaId: null,
+      },
+    ];
+
+    await service.publish({ items, content: 'adjusted' });
+
+    expect(bakeSpy).toHaveBeenCalled();
+    const filterArg = bakeSpy.calls.mostRecent().args[1] as string;
+    expect(filterArg).toContain('grayscale(1)');
+    expect(filterArg).toContain('brightness(1.25)');
+    expect(filterArg).toContain('contrast(1.1)');
   });
 
   it('should publish multiple MediaItem items in sequence', async () => {
@@ -135,7 +169,7 @@ describe('PostPublishService', () => {
   });
 
   it('should send null content when caption is empty', async () => {
-    await service.publish({ imageSrc: TINY_PNG, filterCss: '', content: '   ' });
+    await service.publish({ items: [makeItem()], content: '   ' });
 
     expect(postsApiSpy.createPost).toHaveBeenCalledWith({
       content: null,
@@ -144,7 +178,7 @@ describe('PostPublishService', () => {
   });
 
   it('should publish text-only posts with empty mediaIds without uploading', async () => {
-    const result = await service.publish({ imageSrc: '', content: 'hello text' });
+    const result = await service.publish({ content: 'hello text' });
 
     expect(result.mediaFileId).toBeNull();
     expect(result.mediaFileIds).toEqual([]);
@@ -188,17 +222,94 @@ describe('PostPublishService', () => {
     expect(uploadApiSpy.getPresignedUrl).not.toHaveBeenCalled();
   });
 
+  it('should preserve mediaIds carousel order when uploads finish out of order', async () => {
+    const delaysMs = [30, 5, 20];
+    let bakeIndex = 0;
+    spyOn(service, 'bakeImage').and.callFake(async () => {
+      const index = bakeIndex++;
+      return new File([new Blob(['x'])], `post-${index}.webp`, { type: 'image/webp' });
+    });
+    uploadApiSpy.uploadToStorage.and.callFake((_url, file) => {
+      const match = /post-(\d+)\./.exec(file.name);
+      const index = match ? Number(match[1]) : 0;
+      const delay = delaysMs[index] ?? 0;
+      return new Observable<number>((subscriber) => {
+        const timerId = setTimeout(() => {
+          subscriber.next(100);
+          subscriber.complete();
+        }, delay);
+        return () => clearTimeout(timerId);
+      });
+    });
+    uploadApiSpy.confirmUpload.and.callFake(({ originalName }) =>
+      of({ ...MEDIA, id: `media-${originalName}` })
+    );
+
+    const items: MediaItem[] = delaysMs.map((_, index) => ({
+      id: `item-${index}`,
+      image: { src: TINY_PNG, format: 'png', origin: 'gallery' },
+      filter: '',
+      edits: { ...POST_EDIT_STATE_NEUTRAL },
+      pendingMediaId: null,
+    }));
+
+    const result = await service.publish({ items, content: 'ordered carousel' });
+
+    expect(result.mediaFileIds).toEqual([
+      'media-post-0.webp',
+      'media-post-1.webp',
+      'media-post-2.webp',
+    ]);
+    expect(postsApiSpy.createPost).toHaveBeenCalledWith({
+      content: 'ordered carousel',
+      mediaIds: result.mediaFileIds,
+    });
+  });
+
+  it('should expose per-index uploadedMediaIds when a parallel upload fails', async () => {
+    let bakeIndex = 0;
+    spyOn(service, 'bakeImage').and.callFake(async () => {
+      const index = bakeIndex++;
+      return new File([new Blob(['x'])], `post-${index}.webp`, { type: 'image/webp' });
+    });
+    uploadApiSpy.uploadToStorage.and.callFake((_url, file) => {
+      if (file.name.includes('post-1.')) {
+        return throwError(() => new Error('storage failed'));
+      }
+      return of(100);
+    });
+    uploadApiSpy.confirmUpload.and.callFake(({ originalName }) =>
+      of({ ...MEDIA, id: `media-${originalName}` })
+    );
+
+    const items: MediaItem[] = [0, 1, 2].map((index) => ({
+      id: `item-${index}`,
+      image: { src: TINY_PNG, format: 'png', origin: 'gallery' },
+      filter: '',
+      edits: { ...POST_EDIT_STATE_NEUTRAL },
+      pendingMediaId: null,
+    }));
+
+    try {
+      await service.publish({ items, content: 'partial' });
+      fail('expected PostPublishError');
+    } catch (error) {
+      expect(error).toBeInstanceOf(PostPublishError);
+      const publishError = error as PostPublishError;
+      expect(publishError.stage).toBe('uploading');
+      expect(publishError.uploadedMediaIds?.[0]).toBe('media-post-0.webp');
+      expect(publishError.uploadedMediaIds?.[1]).toBeUndefined();
+      expect(publishError.uploadedMediaIds?.[2]).toBe('media-post-2.webp');
+    }
+  });
+
   it('should carry uploadedMediaIds when post creation fails', async () => {
     postsApiSpy.createPost.and.returnValue(
       throwError(() => ({ status: 422, message: 'domain error' }))
     );
 
     try {
-      await service.publish({
-        imageSrc: TINY_PNG,
-        filterCss: '',
-        content: 'x',
-      });
+      await service.publish({ items: [makeItem()], content: 'x' });
       fail('expected PostPublishError');
     } catch (error) {
       expect(error).toBeInstanceOf(PostPublishError);
@@ -206,5 +317,64 @@ describe('PostPublishService', () => {
       expect(publishError.stage).toBe('creating');
       expect(publishError.uploadedMediaIds).toEqual(['media-presigned-post.webp']);
     }
+  });
+
+  it('should upload an unedited web image without re-encoding it', async () => {
+    const bakeSpy = spyOn(service, 'bakeImage').and.callThrough();
+    const item = makeItem({
+      image: { src: TINY_JPEG, format: 'jpeg', origin: 'web' },
+    });
+
+    await service.publish({ items: [item], content: 'original' });
+
+    expect(bakeSpy).not.toHaveBeenCalled();
+    expect(uploadApiSpy.getPresignedUrl).toHaveBeenCalled();
+    const presignedArg = uploadApiSpy.getPresignedUrl.calls.mostRecent()
+      .args[0];
+    expect(presignedArg.mimeType).toBe('image/jpeg');
+  });
+
+  it('should not mutate input items with confirmed media ids', async () => {
+    const item = makeItem();
+
+    await service.publish({ items: [item], content: 'no mutation' });
+
+    expect(item.pendingMediaId).toBeNull();
+  });
+
+  it('should stop starting new uploads after the first failure', async () => {
+    let bakeIndex = 0;
+    spyOn(service, 'bakeImage').and.callFake(async () => {
+      const index = bakeIndex++;
+      return new File([new Blob(['x'])], `post-${index}.webp`, {
+        type: 'image/webp',
+      });
+    });
+    uploadApiSpy.uploadToStorage.and.callFake((_url, file) => {
+      if (file.name.includes('post-1.')) {
+        return throwError(() => new Error('storage failed'));
+      }
+      return of(100);
+    });
+    uploadApiSpy.confirmUpload.and.callFake(({ originalName }) =>
+      of({ ...MEDIA, id: `media-${originalName}` })
+    );
+
+    const items = [0, 1, 2, 3, 4].map((index) =>
+      makeItem({ id: `item-${index}` })
+    );
+
+    try {
+      await service.publish({ items, content: 'partial' });
+      fail('expected PostPublishError');
+    } catch (error) {
+      expect(error).toBeInstanceOf(PostPublishError);
+      const publishError = error as PostPublishError;
+      expect(publishError.uploadedMediaIds?.[3]).toBeUndefined();
+      expect(publishError.uploadedMediaIds?.[4]).toBeUndefined();
+    }
+
+    // Only the initial concurrency window is attempted; later slots never start.
+    expect(uploadApiSpy.getPresignedUrl).toHaveBeenCalledTimes(3);
   });
 });

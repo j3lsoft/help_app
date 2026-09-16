@@ -89,17 +89,58 @@ export class DeviceGalleryService {
         input.multiple = true;
       }
 
-      input.onchange = () => {
-        const files = input.files;
-        if (!files || files.length === 0) {
-          resolve([]);
-          return;
+      let settled = false;
+      let focusTimer: number | null = null;
+
+      const cleanup = () => {
+        input.removeEventListener('change', onChange);
+        input.removeEventListener('cancel', onCancel);
+        if (typeof window !== 'undefined') {
+          window.removeEventListener('focus', onWindowFocus);
         }
-        const selected = this.fromFiles(files, maxCount);
-        resolve(selected);
+        if (focusTimer !== null) {
+          window.clearTimeout(focusTimer);
+          focusTimer = null;
+        }
+        input.remove();
       };
 
-      input.oncancel = () => resolve([]);
+      const finish = (images: SelectedPostImage[]) => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        cleanup();
+        resolve(images);
+      };
+
+      const onChange = () => {
+        const files = input.files;
+        if (!files || files.length === 0) {
+          finish([]);
+          return;
+        }
+        finish(this.fromFiles(files, maxCount));
+      };
+
+      const onCancel = () => finish([]);
+
+      // Older WebViews (notably iOS Safari) never fire `cancel`. Regaining
+      // window focus after the picker closes is the fallback dismissal signal;
+      // the short delay lets a `change` event win the race first.
+      const onWindowFocus = () => {
+        if (focusTimer !== null) {
+          window.clearTimeout(focusTimer);
+        }
+        focusTimer = window.setTimeout(() => finish([]), 300);
+      };
+
+      input.addEventListener('change', onChange);
+      input.addEventListener('cancel', onCancel);
+      if (typeof window !== 'undefined') {
+        window.addEventListener('focus', onWindowFocus);
+      }
+
       input.click();
     });
   }

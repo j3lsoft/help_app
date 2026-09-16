@@ -107,17 +107,17 @@ describe('PostsApiService', () => {
     expect(completed).toBeTrue();
   });
 
-  it('should GET a user posts page with default limit', () => {
+  it('should GET a user posts page with default limit and no total by default', () => {
     service.getUserPosts('user-1').subscribe((result) => {
       expect(result).toEqual(PAGE);
     });
 
     const req = httpMock.expectOne(
-      `${baseUrl}/users/user-1/posts?limit=20&includeTotal=true`
+      `${baseUrl}/users/user-1/posts?limit=20`
     );
     expect(req.request.method).toBe('GET');
     expect(req.request.params.get('limit')).toBe('20');
-    expect(req.request.params.get('includeTotal')).toBe('true');
+    expect(req.request.params.has('includeTotal')).toBeFalse();
     expect(req.request.params.has('cursor')).toBeFalse();
     req.flush(PAGE);
   });
@@ -128,19 +128,23 @@ describe('PostsApiService', () => {
       .subscribe();
 
     const req = httpMock.expectOne(
-      `${baseUrl}/users/user-1/posts?limit=10&cursor=next-cursor&includeTotal=true`
+      `${baseUrl}/users/user-1/posts?limit=10&cursor=next-cursor`
     );
     expect(req.request.params.get('cursor')).toBe('next-cursor');
     expect(req.request.params.get('limit')).toBe('10');
-    expect(req.request.params.get('includeTotal')).toBe('true');
+    expect(req.request.params.has('includeTotal')).toBeFalse();
     req.flush(PAGE);
   });
 
-  it('should omit includeTotal when explicitly disabled', () => {
-    service.getUserPosts('user-1', { includeTotal: false }).subscribe();
+  it('should include the total count only when explicitly requested', () => {
+    service
+      .getUserPosts('user-1', { includeTotal: true })
+      .subscribe();
 
-    const req = httpMock.expectOne(`${baseUrl}/users/user-1/posts?limit=20`);
-    expect(req.request.params.has('includeTotal')).toBeFalse();
-    req.flush({ items: [POST_DTO], nextCursor: null });
+    const req = httpMock.expectOne(
+      `${baseUrl}/users/user-1/posts?limit=20&includeTotal=true`
+    );
+    expect(req.request.params.get('includeTotal')).toBe('true');
+    req.flush(PAGE);
   });
 });

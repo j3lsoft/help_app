@@ -6,7 +6,11 @@
       [disabled]="!canPublish()"
       (click)="publish()"
     >
-      Post
+      @if (isPublishing() && publishingMediaCount() > 0) {
+        Posting… {{ uploadProgress() }}%
+      } @else {
+        Post
+      }
     </button>
   </ng-template>
 </app-back-header>
@@ -53,6 +57,9 @@
         <div class="composer-media-wrapper">
           <app-media-grid
             [items]="postCreation.mediaItems()"
+            [progressById]="itemProgress()"
+            [statusById]="itemStatus()"
+            [uploadActive]="isPublishing()"
             (edit)="openEditor($event)"
             (remove)="removeItem($event)"
             (reorder)="onReorder($event)"
@@ -65,7 +72,7 @@
           type="button"
           class="composer-actions__button"
           (click)="pickFromGallery()"
-          [disabled]="isSelecting() || !postCreation.canAddMedia()"
+          [disabled]="isSelecting() || isPublishing() || !postCreation.canAddMedia()"
           aria-label="Add photo from gallery"
         >
           <ion-icon name="image-outline" aria-hidden="true"></ion-icon>
@@ -74,7 +81,7 @@
           type="button"
           class="composer-actions__button"
           (click)="takePhoto()"
-          [disabled]="isSelecting() || !postCreation.canAddMedia()"
+          [disabled]="isSelecting() || isPublishing() || !postCreation.canAddMedia()"
           aria-label="Take photo with camera"
         >
           <ion-icon name="camera-outline" aria-hidden="true"></ion-icon>
@@ -100,20 +107,13 @@
   </div>
 }
 
-@if (isPublishing()) {
+@if (isPublishing() && publishingMediaCount() === 0) {
   <div class="composer-overlay composer-overlay--publish">
     <div class="composer-publish">
       <ion-spinner name="crescent"></ion-spinner>
       <ion-text class="composer-publish__stage">
-        @if (publishStage() === 'baking') { Processing media… }
-        @else if (publishStage() === 'uploading') {
-          Uploading… {{ uploadProgress() }}%
-        } @else { Creating post… }
+        Creating post…
       </ion-text>
-      <ion-progress-bar
-        [value]="uploadProgress() / 100"
-        class="composer-publish__bar"
-      ></ion-progress-bar>
     </div>
   </div>
 }

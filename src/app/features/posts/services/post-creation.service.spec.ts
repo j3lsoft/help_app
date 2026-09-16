@@ -130,12 +130,15 @@ describe('PostCreationService - Multi-Media & Edit State', () => {
     expect(edits.sharpen).toBe(0);
   });
 
-  it('should reset single image via selectImage (backward compat)', () => {
+  it('should reset all media and allow a fresh single image', () => {
     svc.addImage({ src: 'blob:1', format: 'jpeg', origin: 'gallery' });
     svc.addImage({ src: 'blob:2', format: 'jpeg', origin: 'gallery' });
     expect(svc.mediaCount()).toBe(2);
 
-    svc.selectImage({ src: 'blob:3', format: 'jpeg', origin: 'gallery' });
+    svc.reset();
+    expect(svc.mediaCount()).toBe(0);
+
+    svc.addImage({ src: 'blob:3', format: 'jpeg', origin: 'gallery' });
     expect(svc.mediaCount()).toBe(1);
     expect(svc.selectedImageSrc()).toBe('blob:3');
   });
@@ -147,5 +150,47 @@ describe('PostCreationService - Multi-Media & Edit State', () => {
 
     svc.setEdit({ brightness: 10 });
     expect(svc.pendingMediaId()).toBeNull();
+  });
+
+  describe('web blob URL cleanup', () => {
+    it('should revoke blob URL on removeItem when origin is web', () => {
+      const revokeSpy = spyOn(URL, 'revokeObjectURL');
+      const id = svc.addImage({
+        src: 'blob:web-pick-1',
+        format: 'jpeg',
+        origin: 'web',
+      })!;
+
+      svc.removeItem(id);
+
+      expect(revokeSpy).toHaveBeenCalledOnceWith('blob:web-pick-1');
+    });
+
+    it('should not revoke on removeItem for gallery blob URLs', () => {
+      const revokeSpy = spyOn(URL, 'revokeObjectURL');
+      const id = svc.addImage({
+        src: 'blob:gallery-1',
+        format: 'jpeg',
+        origin: 'gallery',
+      })!;
+
+      svc.removeItem(id);
+
+      expect(revokeSpy).not.toHaveBeenCalled();
+    });
+
+    it('should revoke all web blob URLs on reset', () => {
+      const revokeSpy = spyOn(URL, 'revokeObjectURL');
+      svc.addImage({ src: 'blob:w1', format: 'jpeg', origin: 'web' });
+      svc.addImage({ src: 'blob:w2', format: 'png', origin: 'web' });
+      svc.addImage({ src: 'blob:g1', format: 'jpeg', origin: 'gallery' });
+
+      svc.reset();
+
+      expect(revokeSpy).toHaveBeenCalledTimes(2);
+      expect(revokeSpy).toHaveBeenCalledWith('blob:w1');
+      expect(revokeSpy).toHaveBeenCalledWith('blob:w2');
+      expect(svc.hasMedia()).toBeFalse();
+    });
   });
 });

@@ -112,7 +112,7 @@ describe('ComposerPage', () => {
   });
 
   it('should enable Post with a selected image', () => {
-    postCreationService.selectImage({
+    postCreationService.addImage({
       src: 'blob:x',
       format: 'jpeg',
       origin: 'gallery',
@@ -139,7 +139,7 @@ describe('ComposerPage', () => {
     await component.pickFromGallery();
 
     expect(postCreationService.selectedImageSrc()).toBe('blob:image-src');
-    expect(postCreationService.hasSelectedImage()).toBeTrue();
+    expect(postCreationService.hasMedia()).toBeTrue();
   });
 
   it('should keep nothing selected when user dismisses picker', async () => {
@@ -147,7 +147,7 @@ describe('ComposerPage', () => {
 
     await component.pickFromGallery();
 
-    expect(postCreationService.hasSelectedImage()).toBeFalse();
+    expect(postCreationService.hasMedia()).toBeFalse();
   });
 
   it('should map camera result to selected image', async () => {
@@ -188,7 +188,7 @@ describe('ComposerPage', () => {
       dataTransfer: { files: [] },
     } as unknown as DragEvent);
 
-    expect(postCreationService.hasSelectedImage()).toBeFalse();
+    expect(postCreationService.hasMedia()).toBeFalse();
   });
 
   it('should remove image keeping form content', () => {
@@ -201,7 +201,7 @@ describe('ComposerPage', () => {
 
     component.removeItem(id);
 
-    expect(postCreationService.hasSelectedImage()).toBeFalse();
+    expect(postCreationService.hasMedia()).toBeFalse();
     expect(component.form.controls.caption.value).toBe('keep me');
   });
 
@@ -221,7 +221,7 @@ describe('ComposerPage', () => {
   });
 
   it('should publish, prepend to feed and navigate home', async () => {
-    postCreationService.selectImage({
+    postCreationService.addImage({
       src: 'blob:image-src',
       format: 'jpeg',
       origin: 'gallery',
@@ -239,7 +239,7 @@ describe('ComposerPage', () => {
     expect(routerSpy.navigate).toHaveBeenCalledWith(['/tabs/home'], {
       replaceUrl: true,
     });
-    expect(postCreationService.hasSelectedImage()).toBeFalse();
+    expect(postCreationService.hasMedia()).toBeFalse();
   });
 
   it('should publish text-only posts without an image when content is present', async () => {
@@ -263,7 +263,7 @@ describe('ComposerPage', () => {
   });
 
   it('should show publishing overlay with stage and progress', fakeAsync(() => {
-    postCreationService.selectImage({
+    postCreationService.addImage({
       src: 'blob:image-src',
       format: 'jpeg',
       origin: 'gallery',
@@ -293,7 +293,7 @@ describe('ComposerPage', () => {
   }));
 
   it('should keep content and reuse pending media for retry when publish fails', async () => {
-    postCreationService.selectImage({
+    postCreationService.addImage({
       src: 'blob:image-src',
       format: 'jpeg',
       origin: 'gallery',
@@ -325,9 +325,24 @@ describe('ComposerPage', () => {
     expect(postCreationService.pendingMediaId()).toBeNull();
   });
 
+  it('should clear local draft when leaving without server pending media', () => {
+    postCreationService.addImage({
+      src: 'blob:local',
+      format: 'jpeg',
+      origin: 'gallery',
+    });
+    component.form.controls.caption.setValue('draft caption');
+
+    component.ionViewWillLeave();
+
+    expect(postCreationService.hasMedia()).toBeFalse();
+    expect(component.form.controls.caption.value).toBe('');
+    expect(uploadApiSpy.deleteFile).not.toHaveBeenCalled();
+  });
+
   it('should not clean up media after a successful publish', async () => {
     uploadApiSpy.deleteFile.and.returnValue(of({ success: true }));
-    postCreationService.selectImage({
+    postCreationService.addImage({
       src: 'blob:image-src',
       format: 'jpeg',
       origin: 'gallery',

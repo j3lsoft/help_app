@@ -2,16 +2,17 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  DestroyRef,
   inject,
   signal,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import {
   IonContent,
   IonIcon,
   IonModal,
-  IonProgressBar,
   IonSpinner,
   IonText,
   IonTextarea,
@@ -44,7 +45,6 @@ import {
 import { toFeedPost } from '../../utils/post-view.adapter';
 import { PhotoEditorComponent } from '../../components/photo-editor/photo-editor.component';
 import { MediaGridComponent } from '../../components/media-grid/media-grid.component';
-
 export const CAPTION_MAX_LENGTH = 2200;
 
 @Component({
@@ -56,7 +56,6 @@ export const CAPTION_MAX_LENGTH = 2200;
     IonContent,
     IonIcon,
     IonModal,
-    IonProgressBar,
     IonSpinner,
     IonText,
     IonTextarea,
@@ -79,6 +78,7 @@ export class ComposerPage implements ViewWillLeave {
   private readonly notification = inject(NotificationService);
   private readonly auth = inject(AuthService);
   private readonly feed = inject(FeedService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly captionMaxLength = CAPTION_MAX_LENGTH;
   readonly currentUser = this.auth.currentUser;
@@ -88,7 +88,16 @@ export class ComposerPage implements ViewWillLeave {
   readonly isPublishing = signal(false);
   readonly publishStage = signal<PublishStage | null>(null);
   readonly uploadProgress = signal(0);
+  /** Per-file life: progress 0..100 keyed by MediaItem.id. */
+  readonly itemProgress = signal<Record<string, number>>({});
+  /** Per-file stage keyed by MediaItem.id. */
+  readonly itemStatus = signal<Record<string, 'baking' | 'uploading' | 'creating' | 'done'>>({});
   private publishedSuccessfully = false;
+
+  /** Count of media items while publishing (text-only posts use 0 for overlay branch). */
+  readonly publishingMediaCount = computed(() =>
+    this.isPublishing() ? this.postCreation.mediaItems().length : 0
+  );
 
   readonly form = this.fb.nonNullable.group({
     caption: ['', [Validators.maxLength(CAPTION_MAX_LENGTH)]],
@@ -113,23 +122,26 @@ export class ComposerPage implements ViewWillLeave {
       imageOutline,
       cameraOutline,
     });
-    this.form.valueChanges.subscribe(() =>
-      this.contentSignal.set(this.form.getRawValue())
-    );
+    this.form.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.contentSignal.set(this.form.getRawValue()));
   }
 
   goHome(): void {
+    if (this.isPublishing()) {
+      return;
+    }
     const items = this.postCreation.mediaItems();
     const pendingIds = items.map((i) => i.pendingMediaId).filter((id): id is string => Boolean(id));
     if (pendingIds.length > 0) {
       void this.discardPendingMedias(pendingIds);
     }
-    this.postCreation.reset();
+    this.clearComposerDraft();
     this.router.navigateByUrl('/tabs/home');
   }
 
   async pickFromGallery(): Promise<void> {
-    if (this.isSelecting() || !this.postCreation.canAddMedia()) {
+    if (this.isSelecting() || this.isPublishing() || !this.postCreation.canAddMedia()) {
       return;
     }
     this.isSelecting.set(true);
@@ -150,7 +162,7 @@ export class ComposerPage implements ViewWillLeave {
   }
 
   async takePhoto(): Promise<void> {
-    if (this.isSelecting() || !this.postCreation.canAddMedia()) {
+    if (this.isSelecting() || this.isPublishing() || !this.postCreation.canAddMedia()) {
       return;
     }
     this.isSelecting.set(true);
@@ -174,6 +186,9 @@ export class ComposerPage implements ViewWillLeave {
   }
 
   openEditor(itemId: string): void {
+    if (this.isPublishing()) {
+      return;
+    }
     this.postCreation.setActiveItem(itemId);
     this.isEditorOpen.set(true);
   }
@@ -183,15 +198,24 @@ export class ComposerPage implements ViewWillLeave {
   }
 
   removeItem(itemId: string): void {
+    if (this.isPublishing()) {
+      return;
+    }
     this.postCreation.removeItem(itemId);
   }
 
   onReorder(orderedIds: string[]): void {
+    if (this.isPublishing()) {
+      return;
+    }
     this.postCreation.reorderItems(orderedIds);
   }
 
   onDrop(event: DragEvent): void {
     event.preventDefault();
+    if (this.isPublishing()) {
+      return;
+    }
     const files = event.dataTransfer?.files;
     if (!files || files.length === 0 || !this.postCreation.canAddMedia()) {
       return;
@@ -221,13 +245,47 @@ export class ComposerPage implements ViewWillLeave {
     this.isPublishing.set(true);
     this.uploadProgress.set(0);
     this.publishStage.set('baking');
+    const initialProgress: Record<string, number> = {};
+    const initialStatus: Record<string, 'baking' | 'uploading' | 'creating' | 'done'> = {};
+    for (const item of items) {
+      initialProgress[item.id] = item.pendingMediaId ? 100 : 0;
+      initialStatus[item.id] = item.pendingMediaId ? 'done' : 'baking';
+    }
+    this.itemProgress.set(initialProgress);
+    this.itemStatus.set(initialStatus);
 
     try {
       const result = await this.postPublish.publish({
         items: [...items],
         content,
-        onStage: (stage) => this.publishStage.set(stage),
+        onStage: (stage) => {
+          this.publishStage.set(stage);
+          if (stage === 'baking') {
+            this.itemStatus.update((prev) => {
+              const next = { ...prev };
+              for (const item of items) {
+                if ((this.itemProgress()[item.id] ?? 0) < 100) next[item.id] = 'baking';
+              }
+              return next;
+            });
+          } else if (stage === 'creating') {
+            this.itemStatus.update((prev) => {
+              const next = { ...prev };
+              for (const item of items) {
+                next[item.id] = 'creating';
+              }
+              return next;
+            });
+          }
+        },
         onUploadProgress: (percent) => this.uploadProgress.set(percent),
+        onItemProgress: (_index, percent, itemId) => {
+          this.itemProgress.update((prev) => ({ ...prev, [itemId]: percent }));
+          this.itemStatus.update((prev) => ({
+            ...prev,
+            [itemId]: percent >= 100 ? 'done' : 'uploading',
+          }));
+        },
       });
 
       this.publishedSuccessfully = true;
@@ -237,7 +295,7 @@ export class ComposerPage implements ViewWillLeave {
         toFeedPost(
           result.post,
           this.auth.currentUser(),
-          items[0]?.image.src ?? ''
+          items.map((item) => item.image.src)
         )
       );
 
@@ -253,8 +311,9 @@ export class ComposerPage implements ViewWillLeave {
       if (error instanceof PostPublishError && error.uploadedMediaIds) {
         // Save pending ids back on items
         items.forEach((item, idx) => {
-          if (error.uploadedMediaIds![idx]) {
-            this.postCreation.setItemPendingMediaId(item.id, error.uploadedMediaIds![idx]);
+          const uploadedId = error.uploadedMediaIds?.[idx];
+          if (uploadedId) {
+            this.postCreation.setItemPendingMediaId(item.id, uploadedId);
           }
         });
       }
@@ -271,17 +330,28 @@ export class ComposerPage implements ViewWillLeave {
     }
   }
 
+  /** No draft persists after leaving the composer (except during active publish). */
   ionViewWillLeave(): void {
+    if (this.isPublishing() || this.publishedSuccessfully) {
+      return;
+    }
+
     const items = this.postCreation.mediaItems();
     const pendingIds = items
       .map((i) => i.pendingMediaId)
       .filter((id): id is string => Boolean(id));
 
-    if (this.publishedSuccessfully || pendingIds.length === 0) {
-      return;
+    if (pendingIds.length > 0) {
+      void this.discardPendingMedias(pendingIds);
     }
+
+    this.clearComposerDraft();
+  }
+
+  private clearComposerDraft(): void {
+    this.form.reset({ caption: '' });
+    this.contentSignal.set(this.form.getRawValue());
     this.postCreation.reset();
-    void this.discardPendingMedias(pendingIds);
   }
 
   private async discardPendingMedias(mediaFileIds: string[]): Promise<void> {

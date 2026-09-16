@@ -29,22 +29,33 @@
         alt="Selected post media"
       />
 
-      <div class="media-grid__overlay">
-        <!-- Remove x button -->
-        <button
-          type="button"
-          class="media-grid__remove"
-          title="Eliminar imagen"
-          aria-label="Eliminar imagen"
-          (click)="onRemoveClick(item, $event)"
-        >
-          <ion-icon name="close"></ion-icon>
-        </button>
-
-        <!-- Tap to edit badge indicator -->
-        <div class="media-grid__edit-badge">
-          <ion-icon name="create-outline"></ion-icon>
+      @if (uploadActive) {
+        <div class="media-grid__ring">
+          <app-upload-ring
+            [progress]="progressFor(item.id)"
+            [status]="ringStatusFor(item.id)"
+          ></app-upload-ring>
         </div>
+      }
+
+      <div class="media-grid__overlay">
+        @if (!uploadActive) {
+          <!-- Remove x button -->
+          <button
+            type="button"
+            class="media-grid__remove"
+            title="Eliminar imagen"
+            aria-label="Eliminar imagen"
+            (click)="onRemoveClick(item, $event)"
+          >
+            <ion-icon name="close"></ion-icon>
+          </button>
+
+          <!-- Tap to edit badge indicator -->
+          <div class="media-grid__edit-badge">
+            <ion-icon name="create-outline"></ion-icon>
+          </div>
+        }
       </div>
     </div>
   }

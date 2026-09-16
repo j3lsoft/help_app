@@ -7,6 +7,21 @@ import {
   PostEditState,
   SelectedPostImage,
 } from '../models/post-creation.model';
+import {
+  buildEffectiveFilterCssForItem,
+  buildEffectiveTransformCssForItem,
+} from '../utils/post-effective-filter.util';
+
+function revokeWebObjectUrl(image: SelectedPostImage): void {
+  if (image.origin !== 'web' || !image.src.startsWith('blob:')) {
+    return;
+  }
+  try {
+    URL.revokeObjectURL(image.src);
+  } catch {
+    // Best-effort cleanup
+  }
+}
 
 function generateId(): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -47,37 +62,6 @@ function clampSharpen(value: number): number {
   return Math.max(0, Math.min(100, Math.round(value)));
 }
 
-function toBrightnessFilter(value: number): string {
-  if (value === 0) return '';
-  return `brightness(${1 + value / 100})`;
-}
-
-function toContrastFilter(value: number): string {
-  if (value === 0) return '';
-  return `contrast(${1 + value / 100})`;
-}
-
-function toBlurFilter(value: number): string {
-  if (value === 0) return '';
-  return `blur(${value}px)`;
-}
-
-function toSaturationFilter(value: number): string {
-  if (value === 0) return '';
-  return `saturate(${1 + value / 100})`;
-}
-
-function toWarmthFilter(value: number): string {
-  if (value === 0) return '';
-  if (value > 0) {
-    const sepiaVal = (value / 100) * 0.35;
-    const hueVal = -value * 0.15;
-    return `sepia(${sepiaVal.toFixed(2)}) hue-rotate(${hueVal.toFixed(1)}deg)`;
-  }
-  const hueVal = Math.abs(value) * 0.2;
-  return `hue-rotate(${hueVal.toFixed(1)}deg)`;
-}
-
 @Injectable({
   providedIn: 'root',
 })
@@ -102,7 +86,6 @@ export class PostCreationService {
 
   // Backward compatibility & convenience signals delegating to active item
   readonly selectedImageSrc = computed(() => this.activeItem()?.image.src ?? '');
-  readonly hasSelectedImage = computed(() => this.hasMedia());
   readonly selectedFilter = computed(() => this.activeItem()?.filter ?? '');
   readonly selectedEdits = computed(
     () => this.activeItem()?.edits ?? { ...POST_EDIT_STATE_NEUTRAL }
@@ -112,25 +95,13 @@ export class PostCreationService {
   readonly effectiveFilter = computed(() => {
     const item = this.activeItem();
     if (!item) return '';
-    const base = item.filter.trim();
-    const { brightness, contrast, blur, saturation, warmth } = item.edits;
-    const parts = [
-      base,
-      toBrightnessFilter(brightness),
-      toContrastFilter(contrast),
-      toSaturationFilter(saturation),
-      toWarmthFilter(warmth),
-      toBlurFilter(blur),
-    ].filter(Boolean);
-    return parts.join(' ');
+    return buildEffectiveFilterCssForItem(item);
   });
 
   readonly effectiveTransform = computed(() => {
     const item = this.activeItem();
     if (!item) return '';
-    const { rotate } = item.edits;
-    if (rotate === 0) return '';
-    return `rotate(${rotate * 90}deg)`;
+    return buildEffectiveTransformCssForItem(item);
   });
 
   addImage(image: SelectedPostImage): string | null {
@@ -178,6 +149,8 @@ export class PostCreationService {
     const index = currentItems.findIndex((item) => item.id === id);
     if (index === -1) return;
 
+    revokeWebObjectUrl(currentItems[index].image);
+
     const remaining = currentItems.filter((item) => item.id !== id);
     this._items.set(remaining);
 
@@ -223,11 +196,6 @@ export class PostCreationService {
   }
 
   /** Single-image backward compatible API */
-  selectImage(image: SelectedPostImage): void {
-    this.reset();
-    this.addImage(image);
-  }
-
   setFilter(filterCss: string): void {
     const active = this.activeItem();
     if (!active) return;
@@ -373,6 +341,9 @@ export class PostCreationService {
   }
 
   reset(): void {
+    for (const item of this._items()) {
+      revokeWebObjectUrl(item.image);
+    }
     this._items.set([]);
     this._activeItemId.set(null);
   }

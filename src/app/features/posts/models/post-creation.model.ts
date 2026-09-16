@@ -3,12 +3,6 @@ export interface PostFilterOption {
   filter: string;
 }
 
-export interface PostEditOption {
-  id: string;
-  editOptionIcon: string;
-  optionName: string;
-}
-
 export type PostImageSource = 'gallery' | 'camera' | 'web';
 
 export interface SelectedPostImage {

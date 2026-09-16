@@ -1,7 +1,12 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
+import {
+  ActivatedRoute,
+  ParamMap,
+  Router,
+  convertToParamMap,
+} from '@angular/router';
 import { AlertController, NavController } from '@ionic/angular/standalone';
-import { of, throwError } from 'rxjs';
+import { BehaviorSubject, of, throwError } from 'rxjs';
 import { AppError } from '@core/models/app-error.model';
 import { LoggerService } from '@core/services/logger.service';
 import { NotificationService } from '@core/services/notification.service';
@@ -47,6 +52,7 @@ describe('PostDetailPage', () => {
   let postsApiSpy: jasmine.SpyObj<PostsApiService>;
   let postErrorFacadeSpy: jasmine.SpyObj<PostErrorFacade>;
   let feedService: FeedService;
+  let routeParamMap$: BehaviorSubject<ParamMap>;
 
   async function settle(): Promise<void> {
     await fixture.whenStable();
@@ -55,7 +61,8 @@ describe('PostDetailPage', () => {
   }
 
   beforeEach(waitForAsync(() => {
-    routerSpy = jasmine.createSpyObj('Router', ['navigate']);
+    routeParamMap$ = new BehaviorSubject(convertToParamMap({ id: 'post-1' }));
+    routerSpy = jasmine.createSpyObj('Router', ['navigate', 'navigateByUrl']);
     navControllerSpy = jasmine.createSpyObj('NavController', ['back']);
     alertControllerSpy = jasmine.createSpyObj('AlertController', ['create']);
     notificationSpy = jasmine.createSpyObj('NotificationService', [
@@ -94,6 +101,7 @@ describe('PostDetailPage', () => {
         {
           provide: ActivatedRoute,
           useValue: {
+            paramMap: routeParamMap$,
             snapshot: { paramMap: convertToParamMap({ id: 'post-1' }) },
           },
         },
@@ -240,7 +248,7 @@ describe('PostDetailPage', () => {
 
     expect(component.isNotFound()).toBeTrue();
     expect(component.errorMessage()).toBe('Post not found.');
-    expect(postErrorFacadeSpy.handle).toHaveBeenCalled();
+    expect(postErrorFacadeSpy.handle).not.toHaveBeenCalled();
   });
 
   it('should show retryable error when loading fails', async () => {
@@ -253,7 +261,7 @@ describe('PostDetailPage', () => {
     await settle();
 
     expect(component.isNotFound()).toBeFalse();
-    expect(postErrorFacadeSpy.handle).toHaveBeenCalled();
+    expect(postErrorFacadeSpy.handle).not.toHaveBeenCalled();
     expect((fixture.nativeElement as HTMLElement).textContent).toContain(
       'Retry'
     );
@@ -310,6 +318,7 @@ describe('PostDetailPage', () => {
 
     expect(postsApiSpy.editPost).toHaveBeenCalledWith('post-1', {
       content: 'edited content',
+      mediaIds: ['media-1', 'media-2'],
     });
     expect(
       feedService.posts().find((p) => p.id === 'post-1')?.aboutPost
@@ -377,7 +386,10 @@ describe('PostDetailPage', () => {
     expect(postsApiSpy.deletePost).toHaveBeenCalledWith('post-1');
     expect(feedService.posts().some((p) => p.id === 'post-1')).toBeFalse();
     expect(notificationSpy.showSuccess).toHaveBeenCalledWith('Post deleted');
-    expect(navControllerSpy.back).toHaveBeenCalled();
+    expect(
+      navControllerSpy.back.calls.any() ||
+        routerSpy.navigateByUrl.calls.any()
+    ).toBeTrue();
   });
 
   it('should surface forbidden deletes via the facade and stay', async () => {
@@ -440,7 +452,116 @@ describe('PostDetailPage', () => {
       'post-delete'
     );
     expect(feedService.posts().some((p) => p.id === 'post-1')).toBeFalse();
-    expect(navControllerSpy.back).toHaveBeenCalled();
+    expect(
+      navControllerSpy.back.calls.any() ||
+        routerSpy.navigateByUrl.calls.any()
+    ).toBeTrue();
+  });
+});
+
+describe('PostDetailPage navigation', () => {
+  it('should clear a previous load error when navigating to another post', async () => {
+    const routeParamMap$ = new BehaviorSubject(
+      convertToParamMap({ id: 'post-1' })
+    );
+    const postsApiSpy = jasmine.createSpyObj('PostsApiService', [
+      'getPostById',
+    ]);
+    postsApiSpy.getPostById.and.callFake((id: string) =>
+      id === 'post-1'
+        ? throwError(() => ({ status: 500, handled: false } as AppError))
+        : of({ ...POST_DTO, id })
+    );
+
+    const authSpy = jasmine.createSpyObj<AuthService>('AuthService', [], [
+      'currentUser',
+    ]);
+    Object.defineProperty(authSpy, 'currentUser', {
+      value: () => ({
+        id: 'user-1',
+        email: 'a@b.com',
+        emailVerified: true,
+        username: 'tester',
+        displayName: 'Tester',
+        avatarUrl: null,
+      }),
+    });
+
+    await TestBed.configureTestingModule({
+      imports: [PostDetailPage],
+      providers: [
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            paramMap: routeParamMap$,
+            snapshot: { paramMap: convertToParamMap({ id: 'post-1' }) },
+          },
+        },
+        {
+          provide: Router,
+          useValue: jasmine.createSpyObj('Router', [
+            'navigate',
+            'navigateByUrl',
+          ]),
+        },
+        {
+          provide: NavController,
+          useValue: jasmine.createSpyObj('NavController', ['back']),
+        },
+        {
+          provide: AlertController,
+          useValue: jasmine.createSpyObj('AlertController', ['create']),
+        },
+        {
+          provide: NotificationService,
+          useValue: jasmine.createSpyObj('NotificationService', [
+            'showSuccess',
+            'showInfo',
+          ]),
+        },
+        { provide: PostsApiService, useValue: postsApiSpy },
+        { provide: AuthService, useValue: authSpy },
+        {
+          provide: PostErrorFacade,
+          useValue: jasmine.createSpyObj('PostErrorFacade', [
+            'handle',
+            'getMessage',
+          ]),
+        },
+        {
+          provide: LoggerService,
+          useValue: jasmine.createSpyObj('LoggerService', [
+            'error',
+            'debug',
+            'info',
+            'warn',
+          ]),
+        },
+      ],
+    }).compileComponents();
+
+    const fixture = TestBed.createComponent(PostDetailPage);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve));
+    fixture.detectChanges();
+
+    expect(component.postError()).not.toBeNull();
+    expect(component.post()).toBeNull();
+
+    routeParamMap$.next(convertToParamMap({ id: 'post-2' }));
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve));
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve));
+    fixture.detectChanges();
+
+    expect(component.postError()).toBeNull();
+    expect(component.post()?.id).toBe('post-2');
+    expect(postsApiSpy.getPostById).toHaveBeenCalledWith('post-2');
   });
 });
 
