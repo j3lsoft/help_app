@@ -28,42 +28,61 @@ describe('ExpandableTextComponent', () => {
 
     const host = fixture.nativeElement as HTMLElement;
     expect(host.textContent).toContain('Hello world');
-    expect(host.querySelector('.expandable-text__toggle')).toBeNull();
+    expect(host.querySelector('.expandable-text__more')).toBeNull();
   });
 
-  it('should collapse long text with "Show more" marker', () => {
+  it('should preserve author line breaks', () => {
+    fixture.componentRef.setInput('text', 'first line\nsecond line');
+    fixture.detectChanges();
+
+    const content = (fixture.nativeElement as HTMLElement).querySelector(
+      '.expandable-text__content'
+    ) as HTMLElement;
+    expect(getComputedStyle(content).whiteSpace).toBe('pre-wrap');
+  });
+
+  it('should truncate long text with "Show more" marker', () => {
     fixture.componentRef.setInput('text', LONG_TEXT);
     fixture.detectChanges();
 
     const host = fixture.nativeElement as HTMLElement;
-    const toggle = host.querySelector('.expandable-text__toggle');
-    expect(toggle?.textContent).toContain('Show more');
+    const more = host.querySelector('.expandable-text__more');
+    expect(more?.textContent).toContain('Show more');
     expect(host.querySelector('.expandable-text__marker')).not.toBeNull();
     expect(host.textContent?.length ?? 0).toBeLessThan(LONG_TEXT.length);
   });
 
-  it('should expand and collapse on toggle', () => {
+  it('should expand on click and remove the toggle (one-way)', () => {
     fixture.componentRef.setInput('text', LONG_TEXT);
     fixture.detectChanges();
 
     const host = fixture.nativeElement as HTMLElement;
-    (host.querySelector('.expandable-text__toggle') as HTMLElement).click();
+    (host.querySelector('.expandable-text__more') as HTMLElement).click();
     fixture.detectChanges();
 
-    expect(host.textContent).toContain('Show less');
+    expect(fixture.componentInstance.expanded()).toBeTrue();
+    expect(host.querySelector('.expandable-text__more')).toBeNull();
+    expect(host.querySelector('.expandable-text__marker')).toBeNull();
     expect(host.textContent).toContain(LONG_TEXT.slice(-20).trim().slice(0, 10));
+  });
 
-    (host.querySelector('.expandable-text__toggle') as HTMLElement).click();
+  it('should move focus to the text when expanded', () => {
+    fixture.componentRef.setInput('text', LONG_TEXT);
     fixture.detectChanges();
 
-    expect(host.textContent).toContain('Show more');
+    const host = fixture.nativeElement as HTMLElement;
+    (host.querySelector('.expandable-text__more') as HTMLElement).click();
+    fixture.detectChanges();
+
+    const content = host.querySelector('.expandable-text__content') as HTMLElement;
+    expect(document.activeElement).toBe(content);
   });
 
   it('should reset to collapsed when the input changes', () => {
     fixture.componentRef.setInput('text', LONG_TEXT);
     fixture.detectChanges();
     (fixture.nativeElement as HTMLElement)
-      .querySelector<HTMLElement>('.expandable-text__toggle')
+      .querySelector<HTMLElement>('.expandable-text__more')
       ?.click();
     fixture.detectChanges();
     expect(fixture.componentInstance.expanded()).toBeTrue();

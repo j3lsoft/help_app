@@ -1,17 +1,11 @@
-<span
-  class="expandable-text"
-  [class.expandable-text--collapsed]="isCollapsedView()"
->
-  <span class="expandable-text__content">{{ displayText() }}</span>@if (isCollapsedView()) {
+<span class="expandable-text">
+  <span #content class="expandable-text__content" tabindex="-1">{{ displayText() }}</span>@if (isCollapsedView()) {
     <span class="expandable-text__marker" aria-hidden="true">…</span>
-  }@if (isTruncated()) {
+  }@if (isCollapsedView()) {
     <button
       type="button"
-      class="expandable-text__toggle"
-      [class.expandable-text__toggle--less]="expanded()"
-      (click)="toggle()"
-      [attr.aria-expanded]="expanded()"
-      [attr.aria-label]="expanded() ? 'Show less text' : 'Show full text'"
-    >{{ expanded() ? 'less' : 'more' }}</button>
+      class="expandable-text__more"
+      (click)="$event.stopPropagation(); expand()"
+    >Show more</button>
   }
 </span>

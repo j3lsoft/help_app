@@ -74,6 +74,18 @@ export class PostCardComponent {
     return (name.charAt(0) || '•').toUpperCase();
   });
 
+  openPost(): void {
+    this.postClick.emit(this.post().id);
+  }
+
+  onCardKeydown(event: KeyboardEvent): void {
+    if (event.key !== 'Enter' && event.key !== ' ') {
+      return;
+    }
+    event.preventDefault();
+    this.openPost();
+  }
+
   constructor() {
     addIcons({
       heart,

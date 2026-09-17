@@ -1,6 +1,6 @@
-// Subtle inline truncation marker. "…more" / "less" sits quietly at the
-// end of the text like a footnote — same font weight as body, muted color,
-// no decorative rule or underline.
+// Inline truncation marker. "Show more" sits at the end of the text in the app
+// blue — same font weight as body, no decorative rule. Expansion is one-way,
+// so there is no "Show less" style.
 
 .expandable-text {
   display: inline;
@@ -10,13 +10,21 @@
 
   &__content {
     display: inline;
+    /* Author line breaks are content: preserve them like the detail page. */
+    white-space: pre-wrap;
+
+    &:focus-visible {
+      outline: 2px solid var(--primaryColor);
+      outline-offset: 2px;
+      border-radius: 2px;
+    }
   }
 
   &__marker {
     color: var(--grayColor);
   }
 
-  &__toggle {
+  &__more {
     display: inline;
     margin: 0;
     margin-left: 2px;
@@ -26,7 +34,7 @@
     cursor: pointer;
     font: inherit;
     font-size: inherit;
-    color: var(--grayColor);
+    color: var(--primaryColor);
     white-space: nowrap;
     -webkit-tap-highlight-color: transparent;
 
@@ -36,20 +44,10 @@
       border-radius: 2px;
     }
   }
-
-  @media (hover: hover) {
-    &__toggle:hover {
-      color: var(--blackColor);
-    }
-  }
-
-  &__toggle--less {
-    margin-left: 6px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .expandable-text__toggle {
+  .expandable-text__more {
     transition: none;
   }
 }

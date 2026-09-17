@@ -26,6 +26,8 @@ const CAROUSEL: Post = {
 
 const TEXT_ONLY: Post = { ...SINGLE, id: 'p3', postImage: '', postImages: [] };
 
+const TRUNCATED: Post = { ...SINGLE, id: 'p4', aboutPost: 'word '.repeat(80) };
+
 describe('PostCardComponent', () => {
   let component: PostCardComponent;
   let fixture: ComponentFixture<PostCardComponent>;
@@ -84,6 +86,87 @@ describe('PostCardComponent', () => {
     media.click();
 
     expect(emitted).toBe('p1');
+  });
+
+  it('should emit the post id when tapping anywhere on the card', () => {
+    fixture.componentRef.setInput('post', SINGLE);
+    fixture.detectChanges();
+
+    let emitted: string | undefined;
+    component.postClick.subscribe((id) => (emitted = id));
+
+    const card = (fixture.nativeElement as HTMLElement).querySelector(
+      '.post-card'
+    ) as HTMLElement;
+    card.click();
+
+    expect(emitted).toBe('p1');
+  });
+
+  it('should emit the post id on keyboard activation', () => {
+    fixture.componentRef.setInput('post', SINGLE);
+    fixture.detectChanges();
+
+    let emitted: string | undefined;
+    component.postClick.subscribe((id) => (emitted = id));
+
+    const card = (fixture.nativeElement as HTMLElement).querySelector(
+      '.post-card'
+    ) as HTMLElement;
+    card.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+
+    expect(emitted).toBe('p1');
+  });
+
+  it('should not open the post when tapping the author', () => {
+    fixture.componentRef.setInput('post', SINGLE);
+    fixture.detectChanges();
+
+    let postEmitted = false;
+    let followedUser: string | undefined;
+    component.postClick.subscribe(() => (postEmitted = true));
+    component.userClick.subscribe((name) => (followedUser = name));
+
+    (fixture.nativeElement as HTMLElement)
+      .querySelector('.post-card__author')
+      ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+    expect(followedUser).toBe('Alicia');
+    expect(postEmitted).toBeFalse();
+  });
+
+  it('should not open the post when tapping an action', () => {
+    fixture.componentRef.setInput('post', SINGLE);
+    fixture.detectChanges();
+
+    let postEmitted = false;
+    let liked = false;
+    component.postClick.subscribe(() => (postEmitted = true));
+    component.likeClick.subscribe(() => (liked = true));
+
+    const like = (fixture.nativeElement as HTMLElement).querySelectorAll(
+      '.post-card__action'
+    )[0] as HTMLElement;
+    like.click();
+
+    expect(liked).toBeTrue();
+    expect(postEmitted).toBeFalse();
+  });
+
+  it('should not open the post when expanding the truncated text', () => {
+    fixture.componentRef.setInput('post', TRUNCATED);
+    fixture.detectChanges();
+
+    let postEmitted = false;
+    component.postClick.subscribe(() => (postEmitted = true));
+
+    const more = (fixture.nativeElement as HTMLElement).querySelector(
+      '.expandable-text__more'
+    ) as HTMLElement;
+    expect(more).not.toBeNull();
+    more.click();
+
+    expect(postEmitted).toBeFalse();
   });
 
   it('should render the username and date inline after the author name', () => {

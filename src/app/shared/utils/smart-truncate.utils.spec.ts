@@ -46,6 +46,20 @@ describe('smartTruncate', () => {
   it('should handle null as empty', () => {
     expect(smartTruncate(null)).toEqual({ preview: '', isTruncated: false });
   });
+
+  it('should not flag truncation when only trailing punctuation would be hidden', () => {
+    const text = `${'x'.repeat(280)}${'.'.repeat(25)}`;
+    const result = smartTruncate(text, 280);
+    expect(result.isTruncated).toBeFalse();
+    expect(result.preview).toBe(text);
+  });
+
+  it('should fall back to a hard cut when the natural cut hides only a trailing period', () => {
+    const text = `${'x'.repeat(304)}.`;
+    const result = smartTruncate(text, 280);
+    expect(result.isTruncated).toBeTrue();
+    expect(result.preview).toBe('x'.repeat(280));
+  });
 });
 
 describe('findSmartCutPoint', () => {

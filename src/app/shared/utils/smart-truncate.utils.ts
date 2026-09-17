@@ -17,6 +17,11 @@ export const FEED_TEXT_LIMIT = 280;
 const SEARCH_RADIUS = 60;
 const OVERFLOW_TOLERANCE = 24;
 
+/** True when the fragment carries anything beyond whitespace and punctuation. */
+function hasMeaningfulContent(fragment: string): boolean {
+  return /[^\s.,;:…]/u.test(fragment);
+}
+
 function isSentenceEnd(char: string): boolean {
   return char === '.' || char === '!' || char === '?' || char === '…';
 }
@@ -93,8 +98,17 @@ export function smartTruncate(
   }
 
   const cut = findSmartCutPoint(text, limit);
-  const end = cut > limit * 0.5 ? cut : limit;
+  const naturalEnd = cut > limit * 0.5 ? cut : limit;
+  // A natural cut that hides nothing meaningful (e.g. a single trailing period)
+  // is no cut at all: fall back to the hard limit so expanding reveals text.
+  const end = hasMeaningfulContent(text.slice(naturalEnd)) ? naturalEnd : limit;
+
   const preview = text.slice(0, end).replace(/[\s.,;:…]+$/u, '');
+
+  // Never advertise "more" when expanding would only surface punctuation.
+  if (!hasMeaningfulContent(text.slice(end))) {
+    return { preview: text, isTruncated: false };
+  }
 
   return { preview, isTruncated: true };
 }
