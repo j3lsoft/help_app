@@ -264,6 +264,14 @@
   }
 }
 
+/* Touch: the browser's native image drag fights the long-press gesture. */
+@media (pointer: coarse) {
+  .media-grid__cell,
+  .media-grid__image {
+    -webkit-user-drag: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .media-grid__cell,
   .media-grid__remove,

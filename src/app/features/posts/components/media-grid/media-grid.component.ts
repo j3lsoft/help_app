@@ -28,7 +28,7 @@ import {
 /** How long a touch must be held before it grabs the tile (ms). */
 const LONG_PRESS_DELAY = 320;
 /** Pointer travel (px) allowed during the press before it becomes a scroll. */
-const MOVE_TOLERANCE = 8;
+const MOVE_TOLERANCE = 12;
 /** Duration (ms) the lifted ghost takes to snap into its destination slot. */
 const SETTLE_DURATION = 200;
 
@@ -92,6 +92,18 @@ export class MediaGridComponent {
 
   get canReorder(): boolean {
     return this.items.length > 1;
+  }
+
+  /**
+   * Native HTML5 drag is only wired for fine pointers (desktop). On touch the
+   * browser's long-press drag hijacks the gesture and fires `pointercancel`,
+   * so touch keeps `draggable` off and relies on the pointer implementation.
+   */
+  get canUseNativeDrag(): boolean {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return true;
+    }
+    return !window.matchMedia('(pointer: coarse)').matches;
   }
 
   private readonly host = inject(ElementRef);
@@ -159,7 +171,7 @@ export class MediaGridComponent {
   }
 
   onDragStart(index: number, event: DragEvent): void {
-    if (this.uploadActive) {
+    if (this.uploadActive || !this.canUseNativeDrag) {
       event.preventDefault();
       return;
     }
@@ -263,7 +275,18 @@ export class MediaGridComponent {
   onPointerUp(event: PointerEvent): void {
     if (event.pointerType === 'mouse') return;
     this.clearLongPress();
+    this.finishPointerDrag();
+  }
 
+  onPointerCancel(event: PointerEvent): void {
+    if (event.pointerType === 'mouse') return;
+    this.clearLongPress();
+    // A cancellation mid-drag (e.g. a system interruption) still honours the
+    // reorder the user had already committed to, rather than silently losing it.
+    this.finishPointerDrag();
+  }
+
+  private finishPointerDrag(): void {
     const sourceIndex = this.draggedIndex();
     const targetIndex = this.dragOverIndex();
     this.releasePointer();
@@ -277,14 +300,6 @@ export class MediaGridComponent {
     this.suppressClick = true;
     this.settlePreview(targetIndex ?? sourceIndex);
     this.commitReorder(sourceIndex, targetIndex ?? sourceIndex);
-  }
-
-  onPointerCancel(event: PointerEvent): void {
-    if (event.pointerType === 'mouse') return;
-    this.clearLongPress();
-    this.releasePointer();
-    this.resetPointer();
-    this.dragPreview.set(null);
   }
 
   private beginPointerDrag(point: { x: number; y: number }): void {

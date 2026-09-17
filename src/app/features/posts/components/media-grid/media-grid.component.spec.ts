@@ -41,6 +41,16 @@ function cellElement(index: number): HTMLElement {
   return cell;
 }
 
+function mockPointer(pointer: 'coarse' | 'fine'): void {
+  spyOn(window, 'matchMedia').and.callFake(
+    (query: string) =>
+      ({
+        matches: pointer === 'coarse' && query === '(pointer: coarse)',
+        media: query,
+      }) as MediaQueryList
+  );
+}
+
 describe('MediaGridComponent', () => {
   let component: MediaGridComponent;
   let fixture: ComponentFixture<MediaGridComponent>;
@@ -108,7 +118,8 @@ describe('MediaGridComponent', () => {
     ).toBe(0);
   });
 
-  it('should render draggable cells carrying their index', () => {
+  it('should render draggable cells carrying their index for fine pointers', () => {
+    mockPointer('fine');
     render(makeItems(3));
 
     const cells = fixture.nativeElement.querySelectorAll('.media-grid__cell');
@@ -116,6 +127,24 @@ describe('MediaGridComponent', () => {
     expect(cells[0].getAttribute('data-index')).toBe('0');
     expect(cells[2].getAttribute('data-index')).toBe('2');
     expect(cells[0].getAttribute('draggable')).toBe('true');
+  });
+
+  it('should disable native drag on coarse pointers and ignore dragstart', () => {
+    mockPointer('coarse');
+    render(makeItems(3));
+
+    const cells = fixture.nativeElement.querySelectorAll('.media-grid__cell');
+    expect(cells[0].getAttribute('draggable')).toBeNull();
+
+    const preventDefault = jasmine.createSpy('preventDefault');
+    component.onDragStart(0, {
+      target: document.createElement('div'),
+      preventDefault,
+      dataTransfer: { effectAllowed: '', setData: () => undefined },
+    } as unknown as DragEvent);
+
+    expect(preventDefault).toHaveBeenCalled();
+    expect(component.draggedIndex()).toBeNull();
   });
 
   it('should compute the image filter from the edits', () => {
@@ -241,6 +270,17 @@ describe('MediaGridComponent', () => {
     expect(component.draggedIndex()).toBeNull();
   }));
 
+  it('should tolerate small finger jitter during the hold', fakeAsync(() => {
+    render(makeItems(3));
+
+    startTouchHold(0);
+    component.onPointerMove(pointerEvent({ clientX: 10, clientY: 0 }));
+    tick(320);
+
+    expect(component.dragPreview()).not.toBeNull();
+    expect(component.draggedIndex()).toBe(0);
+  }));
+
   it('should not hit-test before the tile is grabbed', fakeAsync(() => {
     render(makeItems(3));
     const elementFromPoint = spyOn(document, 'elementFromPoint');
@@ -304,16 +344,39 @@ describe('MediaGridComponent', () => {
     tick(250);
   }));
 
-  it('should drop the lifted preview on pointer cancel', fakeAsync(() => {
-    render(makeItems(3));
+  it('should commit the reorder when a drag is cancelled mid-flight', fakeAsync(() => {
+    const items = makeItems(3);
+    render(items);
+    const reorderSpy = jasmine.createSpy('reorder');
+    component.reorder.subscribe(reorderSpy);
+    spyOn(document, 'elementFromPoint').and.returnValue(cellElement(2));
 
     startTouchHold(0);
     tick(320);
-    expect(component.dragPreview()).not.toBeNull();
+    component.onPointerMove(pointerEvent({ clientX: 40, clientY: 0 }));
+    expect(component.dragOverIndex()).toBe(2);
 
+    component.onPointerCancel(pointerEvent({}));
+
+    expect(reorderSpy).toHaveBeenCalledWith([
+      items[1].id,
+      items[2].id,
+      items[0].id,
+    ]);
+    expect(component.draggedIndex()).toBeNull();
+    tick(250);
+  }));
+
+  it('should drop the lifted preview without reordering when cancelled before grab', fakeAsync(() => {
+    render(makeItems(3));
+    const reorderSpy = jasmine.createSpy('reorder');
+    component.reorder.subscribe(reorderSpy);
+
+    startTouchHold(0);
     component.onPointerCancel(pointerEvent({}));
 
     expect(component.dragPreview()).toBeNull();
     expect(component.draggedIndex()).toBeNull();
+    expect(reorderSpy).not.toHaveBeenCalled();
   }));
 });

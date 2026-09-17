@@ -1,4 +1,9 @@
-import { Camera, MediaTypeSelection } from '@capacitor/camera';
+import {
+  Camera,
+  ChooseFromGalleryOptions,
+  MediaResults,
+  MediaTypeSelection,
+} from '@capacitor/camera';
 import { Capacitor } from '@capacitor/core';
 import { Injectable, inject } from '@angular/core';
 import { SelectedPostImage } from '../models/post-creation.model';
@@ -45,8 +50,9 @@ export class DeviceGalleryService {
         data: { maxCount },
       });
 
-      const result = await Camera.chooseFromGallery({
+      const result = await this.openNativeGallery({
         mediaType: MediaTypeSelection.Photo,
+        allowMultipleSelection: maxCount > 1,
         limit: maxCount,
       });
 
@@ -78,6 +84,11 @@ export class DeviceGalleryService {
       });
       return [];
     }
+  }
+
+  /** Thin seam over the native picker so the call can be substituted in tests. */
+  protected openNativeGallery(options: ChooseFromGalleryOptions): Promise<MediaResults> {
+    return Camera.chooseFromGallery(options);
   }
 
   private pickWithWebInput(maxCount: number): Promise<SelectedPostImage[]> {

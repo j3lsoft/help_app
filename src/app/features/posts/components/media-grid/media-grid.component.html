@@ -9,7 +9,7 @@
       [class.media-grid__cell--dragging]="draggedIndex() === i"
       [class.media-grid__cell--drag-over]="dragOverIndex() === i"
       [attr.data-index]="i"
-      draggable="true"
+      [attr.draggable]="canUseNativeDrag ? 'true' : null"
       (dragstart)="onDragStart(i, $event)"
       (dragover)="onDragOver(i, $event)"
       (dragleave)="onDragLeave(i)"
