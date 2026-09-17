@@ -17,15 +17,15 @@
   <div class="profile-header__bio-content">
     <h2 class="profile-header__name">{{ name() }}</h2>
     @if (followsYou()) {
-    <span class="profile-header__follows-badge" aria-label="Follows you">Te sigue</span>
+    <span class="profile-header__follows-badge" aria-label="Follows you">Follows you</span>
     }
     @if (description() || website()) {
     <div class="profile-header__bio-block">
       @if (description()) {
-      <p class="profile-header__description" [class.profile-header__description--clamped]="!bioExpanded()" style="white-space: pre-wrap;">{{ description() }}</p>
-      @if (description().length > 100) {
-      <button type="button" class="profile-header__bio-toggle" (click)="bioExpanded.set(!bioExpanded())" [attr.aria-expanded]="bioExpanded()">
-        {{ bioExpanded() ? 'ver menos' : 'ver más' }}
+      <p #bio class="profile-header__description" [class.profile-header__description--clamped]="!bioExpanded()" tabindex="-1" style="white-space: pre-wrap;">{{ description() }}</p>
+      @if (!bioExpanded() && description().length > 100) {
+      <button type="button" class="profile-header__bio-toggle" (click)="expandBio()">
+        Show more
       </button>
       }
       }
