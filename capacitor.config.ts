@@ -5,7 +5,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'com.help.SocialMedia',
   appName: 'Help',
-  webDir: 'www/browser',
+  webDir: 'www',
   plugins: {
     SystemBars: {
       insetsHandling: 'disable',
