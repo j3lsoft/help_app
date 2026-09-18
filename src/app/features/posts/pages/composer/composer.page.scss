@@ -35,6 +35,17 @@
     height: 42px;
     border-radius: 50%;
     object-fit: cover;
+
+    &--fallback {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--secondaryColor);
+      color: var(--whiteColor);
+      font-size: 16px;
+      font-weight: 700;
+      user-select: none;
+    }
   }
 
   &__names {

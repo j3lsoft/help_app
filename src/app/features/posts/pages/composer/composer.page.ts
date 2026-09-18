@@ -82,6 +82,12 @@ export class ComposerPage implements ViewWillLeave {
 
   readonly captionMaxLength = CAPTION_MAX_LENGTH;
   readonly currentUser = this.auth.currentUser;
+  readonly viewerAvatar = computed(() => this.auth.currentUser()?.avatarUrl ?? '');
+  readonly viewerInitial = computed(() => {
+    const user = this.auth.currentUser();
+    const name = (user?.displayName || user?.username || '').trim();
+    return (name.charAt(0) || '•').toUpperCase();
+  });
 
   readonly isEditorOpen = signal(false);
   readonly isSelecting = signal(false);

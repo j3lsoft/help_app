@@ -23,11 +23,20 @@
   <div class="composer-panel">
     <form [formGroup]="form" (ngSubmit)="publish()">
       <div class="composer-identity">
-        <img
-          [src]="currentUser()?.avatarUrl || 'assets/images/users/user43.png'"
-          class="composer-identity__avatar"
-          alt=""
-        />
+        @if (viewerAvatar()) {
+          <img
+            [src]="viewerAvatar()"
+            class="composer-identity__avatar"
+            alt=""
+          />
+        } @else {
+          <span
+            class="composer-identity__avatar composer-identity__avatar--fallback"
+            aria-hidden="true"
+          >
+            {{ viewerInitial() }}
+          </span>
+        }
         <div class="composer-identity__names">
           <ion-text class="blackColor16SemiBold">
             {{ currentUser()?.displayName }}

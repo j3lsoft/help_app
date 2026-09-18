@@ -17,8 +17,6 @@ import { TimeAgoPipe } from '@shared/pipes/time-ago.pipe';
 import { createCommentSeed } from '../../data/post-comments.mock';
 import { PostComment } from '../../models/post-comment.model';
 
-const FALLBACK_AVATAR = 'assets/images/users/user43.png';
-
 /**
  * Inline comments for a Post. Comments currently live only in memory (the
  * backend has no comment endpoints yet): the list is seeded from a mock and
@@ -50,7 +48,7 @@ export class PostCommentsComponent {
     return (name.charAt(0) || '•').toUpperCase();
   });
   readonly viewerAvatar = computed(
-    () => this.auth.currentUser()?.avatarUrl || FALLBACK_AVATAR
+    () => this.auth.currentUser()?.avatarUrl || ''
   );
 
   private readonly commentInput =

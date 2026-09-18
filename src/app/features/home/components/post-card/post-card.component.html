@@ -13,11 +13,13 @@
     >
       <span class="post-card__avatar-wrap" aria-hidden="true">
         <span class="post-card__avatar-fallback">{{ authorInitial() }}</span>
-        <ion-img
-          [src]="post().userProfilePic"
-          class="post-card__avatar"
-          alt=""
-        ></ion-img>
+        @if (post().userProfilePic) {
+          <ion-img
+            [src]="post().userProfilePic"
+            class="post-card__avatar"
+            alt=""
+          ></ion-img>
+        }
       </span>
       <div class="post-card__author-meta">
         <ion-text class="blackColor14SemiBold post-card__author-name">

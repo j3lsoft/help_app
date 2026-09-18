@@ -2,7 +2,9 @@
   <div class="comments__composer">
     <span class="comments__avatar-wrap" aria-hidden="true">
       <span class="comments__avatar-fallback">{{ viewerInitial() }}</span>
-      <ion-img [src]="viewerAvatar()" class="comments__avatar" alt=""></ion-img>
+      @if (viewerAvatar()) {
+        <ion-img [src]="viewerAvatar()" class="comments__avatar" alt=""></ion-img>
+      }
     </span>
     <ion-textarea
       #commentInput
@@ -40,11 +42,13 @@
             <span class="comments__avatar-fallback">{{
               comment.authorName.charAt(0)
             }}</span>
-            <ion-img
-              [src]="comment.authorAvatar"
-              class="comments__avatar"
-              alt=""
-            ></ion-img>
+            @if (comment.authorAvatar) {
+              <ion-img
+                [src]="comment.authorAvatar"
+                class="comments__avatar"
+                alt=""
+              ></ion-img>
+            }
           </span>
           <div class="comments__content">
             <div class="comments__meta">

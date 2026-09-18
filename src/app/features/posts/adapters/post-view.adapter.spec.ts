@@ -102,14 +102,15 @@ describe('post-view.adapter', () => {
     expect(postImageUrls(dto, ['blob:local'])).toEqual(['blob:local']);
   });
 
-  it('falls back to username and default avatar without author data', () => {
+  it('falls back to username and an empty avatar without author data', () => {
     const noAvatar = { ...AUTHOR, avatarUrl: null, displayName: null };
     const post = toPostView(POST_DTO, { author: noAvatar, fallbackImageUrls: 'blob:x' });
     expect(post.userName).toBe('tester');
-    expect(post.userProfilePic).toContain('assets/images/users/');
+    expect(post.userProfilePic).toBe('');
 
     const postNoAuthor = toPostView(POST_DTO, { author: null, fallbackImageUrls: 'blob:x' });
     expect(postNoAuthor.userName).toBe('You');
+    expect(postNoAuthor.userProfilePic).toBe('');
   });
 
   it('maps null content to empty caption', () => {

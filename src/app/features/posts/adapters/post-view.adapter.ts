@@ -1,8 +1,6 @@
 import { PostResponseDto } from '../models/post.dto';
 import { Post, PostAuthor } from '../models/post-view.model';
 
-const DEFAULT_USER_AVATAR = 'assets/images/users/user43.png';
-
 /** Author context and optional local fallbacks for one projection. */
 export interface PostViewOptions {
   author: PostAuthor | null;
@@ -70,7 +68,7 @@ export function toPostView(dto: PostResponseDto, options: PostViewOptions): Post
 
   return {
     id: dto.id,
-    userProfilePic: author?.avatarUrl || DEFAULT_USER_AVATAR,
+    userProfilePic: author?.avatarUrl || '',
     userName: author?.displayName || author?.username || 'You',
     username: author?.username ?? '',
     aboutPost: dto.content ?? '',

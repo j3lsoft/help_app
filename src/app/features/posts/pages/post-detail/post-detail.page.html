@@ -89,11 +89,13 @@
         <div class="detail__author">
           <span class="detail__avatar-wrap" aria-hidden="true">
             <span class="detail__avatar-fallback">{{ authorInitial() }}</span>
-            <ion-img
-              [src]="authorAvatar()"
-              class="detail__avatar"
-              alt=""
-            ></ion-img>
+            @if (authorAvatar()) {
+              <ion-img
+                [src]="authorAvatar()"
+                class="detail__avatar"
+                alt=""
+              ></ion-img>
+            }
           </span>
           <div class="detail__author-meta">
             <ion-text class="blackColor14SemiBold detail__author-name">{{

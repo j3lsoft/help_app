@@ -60,8 +60,6 @@ import { createEngagementSeed } from '../../data/post-engagement.mock';
 import { PostErrorFacade } from '../../errors/post-error.facade';
 import { PostsApiService } from '../../services/posts-api.service';
 
-const FALLBACK_AVATAR = 'assets/images/users/user43.png';
-
 @Component({
   selector: 'app-post-detail',
   templateUrl: './post-detail.page.html',
@@ -266,9 +264,9 @@ export class PostDetailPage {
     const post = this.post();
     const author = this.auth.currentUser();
     if (post && author && post.authorId === author.id) {
-      return author.avatarUrl || FALLBACK_AVATAR;
+      return author.avatarUrl || '';
     }
-    return FALLBACK_AVATAR;
+    return '';
   });
 
   readonly isOwner = computed(() => {
