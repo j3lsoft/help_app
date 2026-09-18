@@ -5,10 +5,10 @@ import {
   computed,
   effect,
   inject,
-  linkedSignal,
   signal,
+  untracked,
 } from '@angular/core';
-import { rxResource, toObservable } from '@angular/core/rxjs-interop';
+import { rxResource } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LoggerService } from '@core/services/logger.service';
 import { toAppError } from '@core/utils/app-error.utils';
@@ -38,11 +38,11 @@ import {
 import { FeedService } from '@features/home/services/feed.service';
 import { addIcons } from 'ionicons';
 import { chevronBack } from 'ionicons/icons';
-import { catchError, finalize, map, of, switchMap } from 'rxjs';
+import { catchError, map, of, switchMap } from 'rxjs';
 import { ProfileErrorFacade } from '../../errors/profile-error.facade';
 import { SocialErrorFacade } from '../../errors/social-error.facade';
 import { ProfileService } from '../../services/profile.service';
-import { FollowService } from '../../services/follow.service';
+import { RelationshipService } from '../../services/relationship.service';
 import { PostsApiService } from '@features/posts/services/posts-api.service';
 import { toFeedPost } from '@features/posts/utils/post-view.adapter';
 import { ProfileTab } from '../../models/profile-tab.model';
@@ -85,7 +85,7 @@ export class UserProfilePage implements OnDestroy {
   private readonly profileService = inject(ProfileService);
   private readonly profileErrorFacade = inject(ProfileErrorFacade);
   private readonly socialErrorFacade = inject(SocialErrorFacade);
-  private readonly followService = inject(FollowService);
+  private readonly relationships = inject(RelationshipService);
   private readonly postsApi = inject(PostsApiService);
   private readonly feed = inject(FeedService);
 
@@ -111,46 +111,34 @@ export class UserProfilePage implements OnDestroy {
     () => this.userProfile.value()?.id ?? null,
   );
 
-  private readonly profileId$ = toObservable(this.profileId);
-
-  private readonly profileIsFollowing = computed(
-    () => this.userProfile.value()?.relationship?.isFollowing ?? false,
-  );
+  private readonly relationshipRef = computed(() => {
+    const userId = this.profileId();
+    return userId ? this.relationships.relationship(userId) : null;
+  });
 
   readonly followsYou = computed(
-    () => this.userProfile.value()?.relationship?.followsYou ?? false
+    () => this.relationshipRef()?.().followsYou ?? false,
   );
 
-  readonly isFollowing = linkedSignal({
-    source: this.profileIsFollowing,
-    computation: (following) => following,
-  });
+  readonly isFollowing = computed(
+    () => this.relationshipRef()?.().isFollowing ?? false,
+  );
 
-  readonly followCounts = rxResource({
-    stream: () =>
-      this.profileId$.pipe(
-        switchMap((userId) => {
-          if (!userId) {
-            return of(null);
-          }
-          return this.followService.getSocialState(userId).pipe(
-            catchError((error: unknown) => {
-              this.socialErrorFacade.handle(toAppError(error), 'follow-counts');
-              return of(null);
-            }),
-          );
-        }),
-      ),
-  });
+  readonly isTogglingFollow = computed(
+    () => this.relationshipRef()?.().isToggling ?? false,
+  );
 
-  private readonly _followerDelta = signal(0);
+  private readonly countsRef = computed(() => {
+    const userId = this.profileId();
+    return userId ? this.relationships.counts(userId) : null;
+  });
 
   readonly followerCount = computed(
-    () => (this.followCounts.value()?.followerCount ?? 0) + this._followerDelta(),
+    () => this.countsRef()?.().followerCount ?? 0,
   );
 
   readonly followingCount = computed(
-    () => this.followCounts.value()?.followeeCount ?? 0,
+    () => this.countsRef()?.().followingCount ?? 0,
   );
 
   private readonly postsLoader = createProfilePostsLoader({
@@ -176,9 +164,6 @@ export class UserProfilePage implements OnDestroy {
   readonly mediaItems = computed(() => toProfileMediaItems(this.profilePosts()));
   readonly mediaUrls = computed(() => resolveProfileMediaUrls(this.profilePosts()));
 
-  private readonly _isTogglingFollow = signal(false);
-  readonly isTogglingFollow = this._isTogglingFollow.asReadonly();
-
   fullWebsiteUrl = computed(() =>
     normalizeWebsiteUrl(this.userProfile.value()?.website),
   );
@@ -188,6 +173,25 @@ export class UserProfilePage implements OnDestroy {
 
   constructor() {
     addIcons({ chevronBack });
+
+    effect(() => {
+      const profile = this.userProfile.value();
+      if (!profile) {
+        return;
+      }
+      // The store's own signals are written here; keep them out of the effect's
+      // dependency graph so priming cannot retrigger this effect.
+      untracked(() => {
+        this.relationships.prime(profile.id, {
+          isFollowing: profile.relationship?.isFollowing ?? false,
+          followsYou: profile.relationship?.followsYou ?? false,
+        });
+        this.relationships
+          .load(profile.id)
+          .pipe(catchSocialError(this.socialErrorFacade, 'follow-counts'))
+          .subscribe();
+      });
+    });
 
     effect(() => {
       const userId = this.profileId();
@@ -232,7 +236,6 @@ export class UserProfilePage implements OnDestroy {
 
   handleRefresh(event: CustomEvent) {
     this.userProfile.reload();
-    this.followCounts.reload();
     const userId = this.profileId();
     if (userId) {
       this.postsLoader.loadFirst(userId);
@@ -277,25 +280,16 @@ export class UserProfilePage implements OnDestroy {
 
   toggleFollow() {
     const profile = this.userProfile.value();
-    if (!profile || this._isTogglingFollow()) return;
+    if (!profile || this.isTogglingFollow()) return;
 
-    const prev = this.isFollowing();
-    this._isTogglingFollow.set(true);
-    this.isFollowing.set(!prev);
-    this._followerDelta.update((d) => d + (prev ? -1 : 1));
-
-    this.followService
-      .toggleFollow(profile.id, prev)
+    const wasFollowing = this.isFollowing();
+    this.relationships
+      .toggle(profile.id)
       .pipe(
         catchSocialError(
           this.socialErrorFacade,
-          followActionContext(prev),
-          () => {
-            this.isFollowing.set(prev);
-            this._followerDelta.update((d) => d + (prev ? 1 : -1));
-          },
+          followActionContext(wasFollowing),
         ),
-        finalize(() => this._isTogglingFollow.set(false)),
       )
       .subscribe();
   }

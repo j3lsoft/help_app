@@ -5,7 +5,8 @@ import { signal } from '@angular/core';
 import { of } from 'rxjs';
 import { PostsApiService } from '@features/posts/services/posts-api.service';
 import { ProfileService } from '@features/profile/services/profile.service';
-import { FollowService } from '@features/profile/services/follow.service';
+import { FollowApiService } from '@features/profile/services/follow-api.service';
+import { RelationshipService } from '@features/profile/services/relationship.service';
 import { AuthService } from '@features/auth/services/auth.service';
 import { LoggerService } from '@core/services/logger.service';
 import { ProfileErrorFacade } from '../../errors/profile-error.facade';
@@ -31,10 +32,14 @@ describe('ProfilePage', () => {
     (profileSpy as unknown as { currentProfile: ReturnType<typeof signal> }).currentProfile = signal(null);
     profileSpy.getMyProfile.and.returnValue(of({ id: 'u1', username: 'test', displayName: 'Test', avatarUrl: null, bio: null, website: null, email: 'a@b.com', emailVerified: true, birthDate: null }));
 
-    const followSpy = jasmine.createSpyObj('FollowService', ['loadSocialState']);
-    (followSpy as unknown as { followerCount: ReturnType<typeof signal> }).followerCount = signal(0);
-    (followSpy as unknown as { followingCount: ReturnType<typeof signal> }).followingCount = signal(0);
-    followSpy.loadSocialState.and.returnValue(of(void 0));
+    const followApiSpy = jasmine.createSpyObj('FollowApiService', [
+      'getSocialState',
+      'follow',
+      'unfollow',
+    ]);
+    followApiSpy.getSocialState.and.returnValue(
+      of({ followerCount: 0, followeeCount: 0, isFollowing: false }),
+    );
 
     TestBed.configureTestingModule({
       imports: [ProfilePage],
@@ -44,7 +49,8 @@ describe('ProfilePage', () => {
         { provide: PostsApiService, useValue: postsApiSpy },
         { provide: AuthService, useValue: authSpy },
         { provide: ProfileService, useValue: profileSpy },
-        { provide: FollowService, useValue: followSpy },
+        { provide: FollowApiService, useValue: followApiSpy },
+        RelationshipService,
         { provide: ProfileErrorFacade, useValue: jasmine.createSpyObj('ProfileErrorFacade', ['handle']) },
         { provide: SocialErrorFacade, useValue: jasmine.createSpyObj('SocialErrorFacade', ['handle']) },
         { provide: LoggerService, useValue: jasmine.createSpyObj('LoggerService', ['error', 'debug', 'info', 'warn']) },

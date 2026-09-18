@@ -1,14 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
 import { NavController } from '@ionic/angular';
+import { signal } from '@angular/core';
 import { of, throwError } from 'rxjs';
 import { AppError } from '@core/models/app-error.model';
 import { LoggerService } from '@core/services/logger.service';
+import { AuthService } from '@features/auth/services/auth.service';
 import { ProfileErrorFacade } from '../../errors/profile-error.facade';
 import { SocialErrorFacade } from '../../errors/social-error.facade';
 import { PublicProfileResponseDto } from '../../services/profile-api.service';
 import { ProfileService } from '../../services/profile.service';
-import { FollowService } from '../../services/follow.service';
+import { FollowApiService } from '../../services/follow-api.service';
+import { RelationshipService } from '../../services/relationship.service';
 import { PostsApiService } from '@features/posts/services/posts-api.service';
 import { UserProfilePage } from './user-profile.page';
 
@@ -28,7 +31,7 @@ describe('UserProfilePage', () => {
   let fixture: ComponentFixture<UserProfilePage>;
   let profileServiceSpy: jasmine.SpyObj<ProfileService>;
   let profileErrorFacadeSpy: jasmine.SpyObj<ProfileErrorFacade>;
-  let followServiceSpy: jasmine.SpyObj<FollowService>;
+  let followApiSpy: jasmine.SpyObj<FollowApiService>;
 
   beforeEach(async () => {
     profileServiceSpy = jasmine.createSpyObj('ProfileService', [
@@ -38,16 +41,16 @@ describe('UserProfilePage', () => {
       'handle',
       'getMessage',
     ]);
-    followServiceSpy = jasmine.createSpyObj('FollowService', [
+    followApiSpy = jasmine.createSpyObj('FollowApiService', [
       'getSocialState',
-      'toggleFollow',
+      'follow',
+      'unfollow',
     ]);
 
     profileServiceSpy.getPublicProfile.and.returnValue(of(mockProfile));
-    followServiceSpy.getSocialState.and.returnValue(
-      of({ followerCount: 10, followeeCount: 5 }),
+    followApiSpy.getSocialState.and.returnValue(
+      of({ followerCount: 10, followeeCount: 5, isFollowing: false }),
     );
-    followServiceSpy.toggleFollow.and.returnValue(of(void 0));
 
     const postsApiSpy = jasmine.createSpyObj('PostsApiService', ['getUserPosts']);
     postsApiSpy.getUserPosts.and.returnValue(
@@ -77,7 +80,21 @@ describe('UserProfilePage', () => {
           provide: SocialErrorFacade,
           useValue: jasmine.createSpyObj('SocialErrorFacade', ['handle']),
         },
-        { provide: FollowService, useValue: followServiceSpy },
+        {
+          provide: AuthService,
+          useValue: {
+            currentUser: signal({
+              id: 'viewer-1',
+              email: 'viewer@example.com',
+              emailVerified: true,
+              username: 'viewer',
+              displayName: 'Viewer',
+              avatarUrl: null,
+            }),
+          },
+        },
+        { provide: FollowApiService, useValue: followApiSpy },
+        RelationshipService,
         { provide: PostsApiService, useValue: postsApiSpy },
         {
           provide: LoggerService,
@@ -110,7 +127,7 @@ describe('UserProfilePage', () => {
     await new Promise((resolve) => setTimeout(resolve));
     fixture.detectChanges();
     await Promise.resolve();
-    expect(followServiceSpy.getSocialState).toHaveBeenCalledWith('1');
+    expect(followApiSpy.getSocialState).toHaveBeenCalledWith('1');
     expect(component.followerCount()).toBe(10);
     expect(component.followingCount()).toBe(5);
   });

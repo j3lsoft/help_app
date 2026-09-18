@@ -19,8 +19,8 @@ import { FeedService } from '@features/home/services/feed.service';
 import { ProfileHeaderComponent } from '@features/profile/components/profile-header/profile-header.component';
 import { ProfileMediaGridComponent } from '@features/profile/components/profile-media-grid/profile-media-grid.component';
 import { ProfileTabsComponent } from '@features/profile/components/profile-tabs/profile-tabs.component';
-import { FollowService } from '@features/profile/services/follow.service';
 import { ProfileService } from '@features/profile/services/profile.service';
+import { RelationshipService } from '@features/profile/services/relationship.service';
 import { toFeedPost } from '@features/posts/utils/post-view.adapter';
 import { PostsApiService } from '@features/posts/services/posts-api.service';
 import { ImageLightboxComponent } from '@shared/components/image-lightbox/image-lightbox.component';
@@ -79,7 +79,7 @@ export class ProfilePage implements ViewWillEnter, OnDestroy {
   private logger = inject(LoggerService);
   private authService = inject(AuthService);
   private profileService = inject(ProfileService);
-  private followService = inject(FollowService);
+  private relationships = inject(RelationshipService);
   private postsApi = inject(PostsApiService);
   private feed = inject(FeedService);
   private readonly profileErrorFacade = inject(ProfileErrorFacade);
@@ -131,11 +131,12 @@ export class ProfilePage implements ViewWillEnter, OnDestroy {
 
     if (!authUser) return null;
 
+    const counts = this.relationships.counts(authUser.id)();
     return toProfileHeaderViewModel({
       source: fullProfile ?? authUser,
       fullProfile,
-      followerCount: this.followService.followerCount(),
-      followingCount: this.followService.followingCount(),
+      followerCount: counts.followerCount,
+      followingCount: counts.followingCount,
       postsCount: this.postsCount(),
     });
   });
@@ -144,8 +145,8 @@ export class ProfilePage implements ViewWillEnter, OnDestroy {
     const userId = this.authService.currentUser()?.id;
     if (!userId) return;
 
-    this.followService
-      .loadSocialState(userId)
+    this.relationships
+      .load(userId)
       .pipe(catchSocialError(this.socialErrorFacade, 'follow-counts'))
       .subscribe();
 
@@ -166,8 +167,8 @@ export class ProfilePage implements ViewWillEnter, OnDestroy {
   handleRefresh(event: CustomEvent) {
     const userId = this.authService.currentUser()?.id;
     if (userId) {
-      this.followService
-        .loadSocialState(userId)
+      this.relationships
+        .load(userId)
         .pipe(catchSocialError(this.socialErrorFacade, 'follow-counts'))
         .subscribe();
       this.postsLoader.loadFirst(userId);

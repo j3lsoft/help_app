@@ -39,7 +39,7 @@
 
   <app-suggestion-list
     [suggestions]="suggestionsList()"
-    (toggleFollow)="handleFollowToggle($event)"
+    (toggleFollow)="handleFollowToggle($event.id)"
     (seeAllClick)="goTo('search-detail')"
     (userClick)="goToUserProfile($event)"
   ></app-suggestion-list>

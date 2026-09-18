@@ -7,6 +7,7 @@ import {
 import { Router } from '@angular/router';
 import { SocialErrorFacade } from '@features/profile/errors/social-error.facade';
 import { FollowService } from '@features/profile/services/follow.service';
+import { RelationshipService } from '@features/profile/services/relationship.service';
 import {
   catchSocialError,
   followActionContext,
@@ -46,6 +47,7 @@ import { FeedService } from '../../services/feed.service';
 export class HomePage implements ViewWillEnter {
   private router = inject(Router);
   private readonly followService = inject(FollowService);
+  private readonly relationships = inject(RelationshipService);
   private readonly socialErrorFacade = inject(SocialErrorFacade);
   private readonly feed = inject(FeedService);
 
@@ -89,13 +91,14 @@ export class HomePage implements ViewWillEnter {
     this.feed.toggleSave(postId);
   }
 
-  handleFollowToggle(suggestion: { id: string; isFollow: boolean }) {
-    this.followService
-      .toggleFollow(suggestion.id, suggestion.isFollow)
+  handleFollowToggle(userId: string) {
+    const isFollowing = this.relationships.relationship(userId)().isFollowing;
+    this.relationships
+      .toggle(userId)
       .pipe(
         catchSocialError(
           this.socialErrorFacade,
-          followActionContext(suggestion.isFollow),
+          followActionContext(isFollowing),
         ),
       )
       .subscribe();

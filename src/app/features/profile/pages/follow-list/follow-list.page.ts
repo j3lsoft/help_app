@@ -17,6 +17,7 @@ import { FollowUserDto } from '../../models/follow.dto';
 import { SocialErrorContext } from '../../errors/social-error.config';
 import { SocialErrorFacade } from '../../errors/social-error.facade';
 import { FollowService } from '../../services/follow.service';
+import { RelationshipService } from '../../services/relationship.service';
 import {
   catchSocialError,
   followActionContext,
@@ -48,6 +49,7 @@ export class FollowListPage implements ViewWillEnter {
   private readonly router = inject(Router);
   private readonly navCtrl = inject(NavController);
   private readonly followService = inject(FollowService);
+  private readonly relationships = inject(RelationshipService);
   private readonly socialErrorFacade = inject(SocialErrorFacade);
 
   private readonly userId = toSignal(
@@ -118,12 +120,13 @@ export class FollowListPage implements ViewWillEnter {
   }
 
   onToggleFollow(user: FollowUserDto) {
-    this.followService
-      .toggleFollow(user.id, user.isFollow)
+    const isFollowing = this.relationships.relationship(user.id)().isFollowing;
+    this.relationships
+      .toggle(user.id)
       .pipe(
         catchSocialError(
           this.socialErrorFacade,
-          followActionContext(user.isFollow)
+          followActionContext(isFollowing)
         )
       )
       .subscribe();

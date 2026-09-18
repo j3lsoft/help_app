@@ -1,26 +1,28 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { LoggerService } from '@core/services/logger.service';
 import { createPaginatedListState } from '@core/state/paginated-list.state';
-import { toAppError } from '@core/utils/app-error.utils';
 import { loadPaginatedPage } from '@core/utils/paginated-list-loader.utils';
-import { AuthService } from '@features/auth/services/auth.service';
-import { Observable, Subscription, catchError, map, throwError } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 import { SocialResponseAdapter } from '../adapters/social-response.adapter';
 import { MOCK_FOLLOW_REQUESTS } from '../data/profile.mock';
 import { FollowRequestItem, FollowUserDto } from '../models/follow.dto';
-import {
-  FollowRelationResponseDto,
-  SocialStateResponseDto,
-} from '../models/social.dto';
 import { FollowApiService } from './follow-api.service';
+import { RelationshipService } from './relationship.service';
 
+/**
+ * Paginated FollowUser lists (followers, followings, suggestions) plus the
+ * in-memory follow-request placeholders.
+ *
+ * Relationship state itself lives in `RelationshipService`: fetched pages are
+ * primed into it here, and `FollowUserDto.isFollow` is only the server value
+ * used for that priming, not the rendering authority.
+ */
 @Injectable({
   providedIn: 'root',
 })
 export class FollowService {
   private readonly followApi = inject(FollowApiService);
-  private readonly authService = inject(AuthService);
+  private readonly relationships = inject(RelationshipService);
   private readonly logger = inject(LoggerService);
 
   private readonly followersState = createPaginatedListState<FollowUserDto>();
@@ -45,14 +47,8 @@ export class FollowService {
 
   readonly followRequests = signal<FollowRequestItem[]>(MOCK_FOLLOW_REQUESTS);
 
-  readonly followerCount = signal(0);
-  readonly followingCount = signal(0);
-
   private _currentFollowersUserId: string | null = null;
   private _currentFollowingsUserId: string | null = null;
-  private _socialStateUserId: string | null = null;
-
-  private socialStateSub?: Subscription;
 
   loadFollowers(userId: string, reset = false): Observable<void> {
     return loadPaginatedPage({
@@ -67,7 +63,9 @@ export class FollowService {
       state: this.followersState,
       fetch: (cursor) => this.followApi.getFollowers(userId, cursor),
       mapItems: (items) =>
-        SocialResponseAdapter.followerListToFollowUserList(items),
+        this.primeRelationships(
+          SocialResponseAdapter.followerListToFollowUserList(items),
+        ),
       logContext: 'followers',
       logger: this.logger,
     });
@@ -90,7 +88,9 @@ export class FollowService {
       state: this.followingsState,
       fetch: (cursor) => this.followApi.getFollowing(userId, cursor),
       mapItems: (items) =>
-        SocialResponseAdapter.followerListToFollowUserList(items),
+        this.primeRelationships(
+          SocialResponseAdapter.followerListToFollowUserList(items),
+        ),
       logContext: 'followings',
       logger: this.logger,
     });
@@ -109,98 +109,12 @@ export class FollowService {
       reset,
       state: this.suggestionsState,
       fetch: (cursor) => this.followApi.getSuggestions(cursor),
-      mapItems: (items) =>
-        SocialResponseAdapter.suggestionListToFollowUserList(items),
+      // Suggestions carry no server relationship (the adapter synthesises
+      // `isFollow: false`), so they must not overwrite store state.
+      mapItems: (items) => SocialResponseAdapter.suggestionListToFollowUserList(items),
       logContext: 'suggestions',
       logger: this.logger,
     });
-  }
-
-  follow(followeeId: string): Observable<FollowRelationResponseDto> {
-    return this.followApi.follow(followeeId).pipe(
-      tap(() => {
-        this.logger.info('Followed user', {
-          context: 'FollowService',
-          data: { followeeId },
-        });
-      }),
-      catchError((error: unknown) => {
-        const appError = toAppError(error);
-        this.logger.error('Failed to follow user', {
-          context: 'FollowService',
-          data: { followeeId, error: appError },
-        });
-        return throwError(() => appError);
-      }),
-    );
-  }
-
-  unfollow(followeeId: string): Observable<void> {
-    return this.followApi.unfollow(followeeId).pipe(
-      tap(() => {
-        this.logger.info('Unfollowed user', {
-          context: 'FollowService',
-          data: { followeeId },
-        });
-      }),
-      catchError((error: unknown) => {
-        const appError = toAppError(error);
-        this.logger.error('Failed to unfollow user', {
-          context: 'FollowService',
-          data: { followeeId, error: appError },
-        });
-        return throwError(() => appError);
-      }),
-    );
-  }
-
-  toggleFollow(userId: string, currentlyFollowing: boolean): Observable<void> {
-    if (currentlyFollowing) {
-      this.updateFollowStateInLists(userId, false);
-      this.adjustOwnFollowingCount(-1);
-
-      return this.unfollow(userId).pipe(
-        map(() => void 0),
-        catchError((error) => {
-          this.updateFollowStateInLists(userId, true);
-          this.adjustOwnFollowingCount(1);
-          return throwError(() => error);
-        }),
-      );
-    }
-
-    this.updateFollowStateInLists(userId, true);
-    this.adjustOwnFollowingCount(1);
-
-    return this.follow(userId).pipe(
-      map(() => void 0),
-      catchError((error) => {
-        this.updateFollowStateInLists(userId, false);
-        this.adjustOwnFollowingCount(-1);
-        return throwError(() => error);
-      }),
-    );
-  }
-
-  private adjustOwnFollowingCount(delta: number): void {
-    const authUserId = this.authService.currentUser()?.id;
-    if (!authUserId || this._socialStateUserId !== authUserId) {
-      return;
-    }
-
-    this.followingCount.update((count) => Math.max(0, count + delta));
-  }
-
-  private updateFollowStateInLists(id: string, isFollow: boolean): void {
-    this.followersState.items.update((items) =>
-      items.map((item) => (item.id === id ? { ...item, isFollow } : item)),
-    );
-    this.followingsState.items.update((items) =>
-      items.map((item) => (item.id === id ? { ...item, isFollow } : item)),
-    );
-    this.suggestionsState.items.update((items) =>
-      items.map((item) => (item.id === id ? { ...item, isFollow } : item)),
-    );
   }
 
   toggleFollowOnRequest(id: string): void {
@@ -225,41 +139,14 @@ export class FollowService {
     );
   }
 
-  getSocialState(userId: string): Observable<SocialStateResponseDto> {
-    return this.followApi.getSocialState(userId).pipe(
-      catchError((error: unknown) => {
-        const appError = toAppError(error);
-        this.logger.error('Failed to get social state', {
-          context: 'FollowService',
-          data: { userId, error: appError },
-        });
-        return throwError(() => appError);
-      }),
-    );
-  }
-
-  loadSocialState(userId: string): Observable<void> {
-    this.socialStateSub?.unsubscribe();
-    this._socialStateUserId = userId;
-
-    return new Observable<void>((observer) => {
-      this.socialStateSub = this.getSocialState(userId).subscribe({
-        next: (state) => {
-          if (this._socialStateUserId !== userId) return;
-          this.followerCount.set(state.followerCount);
-          this.followingCount.set(state.followeeCount);
-          observer.next();
-          observer.complete();
-        },
-        error: (error: unknown) => {
-          if (this._socialStateUserId === userId) {
-            this._socialStateUserId = null;
-          }
-          observer.error(error);
-        },
+  /** Enters a mapped page's relationship data into the store once. */
+  private primeRelationships(users: FollowUserDto[]): FollowUserDto[] {
+    for (const user of users) {
+      this.relationships.prime(user.id, {
+        isFollowing: user.isFollow,
+        followsYou: user.followsYou,
       });
-
-      return () => this.socialStateSub?.unsubscribe();
-    });
+    }
+    return users;
   }
 }

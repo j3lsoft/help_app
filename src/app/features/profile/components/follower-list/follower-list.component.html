@@ -20,7 +20,8 @@
       </div>
       <app-follow-button
         variant="list"
-        [isFollowing]="item.isFollow"
+        [isFollowing]="isFollowing(item.id)"
+        [disabled]="isToggling(item.id)"
         (followClick)="toggleFollow.emit(item)"
       />
     </div>
