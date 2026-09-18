@@ -1,4 +1,4 @@
-import { Post } from '../components/post-card/post-card.component';
+import { Post } from '@features/posts/models/post-view.model';
 import { UserStory } from '../components/story-list/story-list.component';
 
 /**

@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { MOCK_OLD_POSTS, MOCK_TODAY_POSTS } from '../data/home.mock';
-import { Post } from '../components/post-card/post-card.component';
+import { Post } from '@features/posts/models/post-view.model';
 
 /**
  * Local feed state as a single chronological list, newest first.

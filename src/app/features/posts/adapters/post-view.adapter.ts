@@ -1,17 +1,20 @@
-import { Post } from '@features/home/components/post-card/post-card.component';
 import { PostResponseDto } from '../models/post.dto';
+import { Post, PostAuthor } from '../models/post-view.model';
 
 const DEFAULT_USER_AVATAR = 'assets/images/users/user43.png';
 
-/**
- * Minimal author fields needed to render a feed Post. Satisfied by both the
- * authenticated `AuthUserDto` (own posts) and `PublicProfileResponseDto`
- * (another user's Profile Posts).
- */
-export interface PostAuthor {
-  displayName?: string | null;
-  username?: string | null;
-  avatarUrl?: string | null;
+/** Author context and optional local fallbacks for one projection. */
+export interface PostViewOptions {
+  author: PostAuthor | null;
+  /** Per-index local media (e.g. composer blob urls) when the API has none. */
+  fallbackImageUrls?: string | string[];
+}
+
+/** One media piece of one Post, in carousel position order. */
+export interface PostImageRef {
+  postId: string;
+  image: string;
+  index: number;
 }
 
 function normalizeFallbackUrls(fallback: string | string[] | undefined): string[] {
@@ -20,9 +23,9 @@ function normalizeFallbackUrls(fallback: string | string[] | undefined): string[
 }
 
 /** Ordered carousel URLs from API media, with optional per-index local fallbacks. */
-export function resolvePostImageUrls(
+export function postImageUrls(
   dto: PostResponseDto,
-  fallbackImageUrls?: string | string[]
+  fallbackImageUrls?: string | string[],
 ): string[] {
   const fallbacks = normalizeFallbackUrls(fallbackImageUrls);
   const sorted = [...dto.media].sort((a, b) => a.position - b.position);
@@ -43,16 +46,26 @@ export function resolvePostImageUrls(
 }
 
 /**
+ * Flattens every media piece of every Post into one ordered list, so callers
+ * that need both URLs and per-image entries walk the posts only once.
+ */
+export function collectPostImages(posts: PostResponseDto[]): PostImageRef[] {
+  return posts.reduce<PostImageRef[]>((refs, post) => {
+    postImageUrls(post).forEach((image, index) => {
+      refs.push({ postId: post.id, image, index });
+    });
+    return refs;
+  }, []);
+}
+
+/**
  * Maps a server Post + session author data to the feed view-model.
  * The API does not embed author info in PostResponseDto, so it comes
  * from the authenticated session (v1: users only see their own new posts).
  */
-export function toFeedPost(
-  dto: PostResponseDto,
-  author: PostAuthor | null,
-  fallbackImageUrls?: string | string[]
-): Post {
-  const postImages = resolvePostImageUrls(dto, fallbackImageUrls);
+export function toPostView(dto: PostResponseDto, options: PostViewOptions): Post {
+  const { author } = options;
+  const postImages = postImageUrls(dto, options.fallbackImageUrls);
   const postImage = postImages[0] ?? '';
 
   return {

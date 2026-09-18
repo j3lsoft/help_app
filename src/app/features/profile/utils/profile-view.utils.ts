@@ -1,5 +1,5 @@
+import { collectPostImages } from '@features/posts/adapters/post-view.adapter';
 import { PostResponseDto } from '@features/posts/models/post.dto';
-import { resolvePostImageUrls } from '@features/posts/utils/post-view.adapter';
 import { ProfileMediaItem } from '../models/profile-media-item.model';
 import {
   normalizeWebsiteUrl,
@@ -18,30 +18,25 @@ export interface ProfileHeaderViewModel {
   followingCount: string;
 }
 
-/**
- * Flattens every media item of every post into a single ordered list for the
- * profile Media tab. Media keeps post order (newest first) and each post's
- * own position order, and each item carries a unique key for `@for` tracking.
- */
-export function toProfileMediaItems(
-  posts: PostResponseDto[],
-): ProfileMediaItem[] {
-  return posts.reduce<ProfileMediaItem[]>((items, post) => {
-    const media = resolvePostImageUrls(post).map((image, index) => ({
-      key: `${post.id}#${index}`,
-      image,
-      postId: post.id,
-    }));
-    return [...items, ...media];
-  }, []);
+/** Ordered media of every post, projected for the profile Media tab. */
+export interface ProfileMedia {
+  /** Grid entries with a unique key per post+position for `@for` tracking. */
+  items: ProfileMediaItem[];
+  /** Same order as `items`, for the fullscreen lightbox. */
+  urls: string[];
 }
 
-/** Ordered media URLs across all posts, for the fullscreen lightbox. */
-export function resolveProfileMediaUrls(posts: PostResponseDto[]): string[] {
-  return posts.reduce<string[]>(
-    (urls, post) => [...urls, ...resolvePostImageUrls(post)],
-    [],
-  );
+/**
+ * Flattens every media item of every post in a single walk. Media keeps post
+ * order (newest first) and each post's own position order.
+ */
+export function toProfileMedia(posts: PostResponseDto[]): ProfileMedia {
+  const items: ProfileMediaItem[] = collectPostImages(posts).map((ref) => ({
+    key: `${ref.postId}#${ref.index}`,
+    image: ref.image,
+    postId: ref.postId,
+  }));
+  return { items, urls: items.map((item) => item.image) };
 }
 
 interface ProfileSourceFields {

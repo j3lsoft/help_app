@@ -21,27 +21,7 @@ import { PostMediaCarouselComponent } from '@shared/components/post-media-carous
 import { ExpandableTextComponent } from '@shared/components/expandable-text/expandable-text.component';
 import { ShortNumberPipe } from '@shared/pipes/short-number.pipe';
 import { TimeAgoPipe } from '@shared/pipes/time-ago.pipe';
-
-export interface Post {
-  id: string;
-  userProfilePic: string;
-  userName: string;
-  /** Author handle without the leading `@`. */
-  username: string;
-  aboutPost: string;
-  postLikes: string;
-  postComments: string;
-  postShares: string;
-  postSaves?: string;
-  postSaved?: boolean;
-  /** First image, or '' for text-only Posts. Deprecated: prefer postImages. */
-  postImage: string;
-  /** Ordered carousel images. Empty for text-only Posts. */
-  postImages: string[];
-  postLike: boolean;
-  /** ISO publish date, rendered as relative time in the masthead. */
-  createdAt?: string;
-}
+import { Post } from '@features/posts/models/post-view.model';
 
 @Component({
   selector: 'app-post-card',

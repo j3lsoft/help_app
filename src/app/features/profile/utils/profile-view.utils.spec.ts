@@ -1,8 +1,5 @@
 import { PostResponseDto } from '@features/posts/models/post.dto';
-import {
-  resolveProfileMediaUrls,
-  toProfileMediaItems,
-} from './profile-view.utils';
+import { toProfileMedia } from './profile-view.utils';
 
 function makePost(
   id: string,
@@ -36,7 +33,7 @@ describe('profile-view.utils media helpers', () => {
   ];
 
   it('should flatten all media, keeping post and position order', () => {
-    expect(resolveProfileMediaUrls(POSTS)).toEqual([
+    expect(toProfileMedia(POSTS).urls).toEqual([
       'p1-a.jpg',
       'p1-b.jpg',
       'p2-a.jpg',
@@ -44,7 +41,7 @@ describe('profile-view.utils media helpers', () => {
   });
 
   it('should build media items with unique keys and originating post id', () => {
-    const items = toProfileMediaItems(POSTS);
+    const { items } = toProfileMedia(POSTS);
 
     expect(items).toEqual([
       { key: 'p1#0', image: 'p1-a.jpg', postId: 'p1' },
@@ -55,7 +52,6 @@ describe('profile-view.utils media helpers', () => {
   });
 
   it('should skip posts without media', () => {
-    expect(toProfileMediaItems([POSTS[2]])).toEqual([]);
-    expect(resolveProfileMediaUrls([POSTS[2]])).toEqual([]);
+    expect(toProfileMedia([POSTS[2]])).toEqual({ items: [], urls: [] });
   });
 });

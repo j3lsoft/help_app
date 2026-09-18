@@ -42,7 +42,7 @@ import {
   PostPublishService,
   PublishStage,
 } from '../../services/post-publish.service';
-import { toFeedPost } from '../../utils/post-view.adapter';
+import { toPostView } from '../../adapters/post-view.adapter';
 import { PhotoEditorComponent } from '../../components/photo-editor/photo-editor.component';
 import { MediaGridComponent } from '../../components/media-grid/media-grid.component';
 export const CAPTION_MAX_LENGTH = 2200;
@@ -292,11 +292,10 @@ export class ComposerPage implements ViewWillLeave {
 
       // Optimistic insert into feed
       this.feed.prependPost(
-        toFeedPost(
-          result.post,
-          this.auth.currentUser(),
-          items.map((item) => item.image.src)
-        )
+        toPostView(result.post, {
+          author: this.auth.currentUser(),
+          fallbackImageUrls: items.map((item) => item.image.src),
+        })
       );
 
       this.postCreation.reset();

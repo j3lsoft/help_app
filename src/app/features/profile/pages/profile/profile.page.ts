@@ -11,17 +11,15 @@ import { Router } from '@angular/router';
 import { LoggerService } from '@core/services/logger.service';
 import { toAppError } from '@core/utils/app-error.utils';
 import { AuthService } from '@features/auth/services/auth.service';
-import {
-  Post,
-  PostCardComponent,
-} from '@features/home/components/post-card/post-card.component';
+import { PostCardComponent } from '@features/home/components/post-card/post-card.component';
+import { Post } from '@features/posts/models/post-view.model';
 import { FeedService } from '@features/home/services/feed.service';
 import { ProfileHeaderComponent } from '@features/profile/components/profile-header/profile-header.component';
 import { ProfileMediaGridComponent } from '@features/profile/components/profile-media-grid/profile-media-grid.component';
 import { ProfileTabsComponent } from '@features/profile/components/profile-tabs/profile-tabs.component';
 import { ProfileService } from '@features/profile/services/profile.service';
 import { RelationshipService } from '@features/profile/services/relationship.service';
-import { toFeedPost } from '@features/posts/utils/post-view.adapter';
+import { toPostView } from '@features/posts/adapters/post-view.adapter';
 import { PostsApiService } from '@features/posts/services/posts-api.service';
 import { ImageLightboxComponent } from '@shared/components/image-lightbox/image-lightbox.component';
 import {
@@ -44,9 +42,8 @@ import { SocialErrorFacade } from '../../errors/social-error.facade';
 import { ProfileTab } from '../../models/profile-tab.model';
 import { createProfilePostsLoader } from '../../utils/profile-posts.loader';
 import {
-  resolveProfileMediaUrls,
   toProfileHeaderViewModel,
-  toProfileMediaItems,
+  toProfileMedia,
 } from '../../utils/profile-view.utils';
 import { catchSocialError } from '../../utils/social-page-error.utils';
 
@@ -103,12 +100,13 @@ export class ProfilePage implements ViewWillEnter, OnDestroy {
 
   readonly postCards = computed<Post[]>(() =>
     this.profilePosts().map((dto) =>
-      toFeedPost(dto, this.authService.currentUser()),
+      toPostView(dto, { author: this.authService.currentUser() }),
     ),
   );
 
-  readonly mediaItems = computed(() => toProfileMediaItems(this.profilePosts()));
-  readonly mediaUrls = computed(() => resolveProfileMediaUrls(this.profilePosts()));
+  private readonly media = computed(() => toProfileMedia(this.profilePosts()));
+  readonly mediaItems = computed(() => this.media().items);
+  readonly mediaUrls = computed(() => this.media().urls);
 
   private readonly profileResource = rxResource({
     stream: () =>

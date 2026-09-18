@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { Post, PostCardComponent } from './post-card.component';
+import { Post } from '@features/posts/models/post-view.model';
+import { PostCardComponent } from './post-card.component';
 
 const SINGLE: Post = {
   id: 'p1',

@@ -31,10 +31,8 @@ import { ImageLightboxComponent } from '@shared/components/image-lightbox/image-
 import { ProfileHeaderComponent } from '@features/profile/components/profile-header/profile-header.component';
 import { ProfileMediaGridComponent } from '@features/profile/components/profile-media-grid/profile-media-grid.component';
 import { ProfileTabsComponent } from '@features/profile/components/profile-tabs/profile-tabs.component';
-import {
-  Post,
-  PostCardComponent,
-} from '@features/home/components/post-card/post-card.component';
+import { PostCardComponent } from '@features/home/components/post-card/post-card.component';
+import { Post } from '@features/posts/models/post-view.model';
 import { FeedService } from '@features/home/services/feed.service';
 import { addIcons } from 'ionicons';
 import { chevronBack } from 'ionicons/icons';
@@ -44,13 +42,10 @@ import { SocialErrorFacade } from '../../errors/social-error.facade';
 import { ProfileService } from '../../services/profile.service';
 import { RelationshipService } from '../../services/relationship.service';
 import { PostsApiService } from '@features/posts/services/posts-api.service';
-import { toFeedPost } from '@features/posts/utils/post-view.adapter';
+import { toPostView } from '@features/posts/adapters/post-view.adapter';
 import { ProfileTab } from '../../models/profile-tab.model';
 import { createProfilePostsLoader } from '../../utils/profile-posts.loader';
-import {
-  resolveProfileMediaUrls,
-  toProfileMediaItems,
-} from '../../utils/profile-view.utils';
+import { toProfileMedia } from '../../utils/profile-view.utils';
 import {
   normalizeWebsiteUrl,
   stripWebsiteProtocol,
@@ -158,11 +153,14 @@ export class UserProfilePage implements OnDestroy {
   readonly viewerIndex = signal(0);
 
   readonly postCards = computed<Post[]>(() =>
-    this.profilePosts().map((dto) => toFeedPost(dto, this.userProfile.value() ?? null)),
+    this.profilePosts().map((dto) =>
+      toPostView(dto, { author: this.userProfile.value() ?? null }),
+    ),
   );
 
-  readonly mediaItems = computed(() => toProfileMediaItems(this.profilePosts()));
-  readonly mediaUrls = computed(() => resolveProfileMediaUrls(this.profilePosts()));
+  private readonly media = computed(() => toProfileMedia(this.profilePosts()));
+  readonly mediaItems = computed(() => this.media().items);
+  readonly mediaUrls = computed(() => this.media().urls);
 
   fullWebsiteUrl = computed(() =>
     normalizeWebsiteUrl(this.userProfile.value()?.website),

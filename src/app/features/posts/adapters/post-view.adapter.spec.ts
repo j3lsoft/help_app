@@ -1,6 +1,10 @@
 import { AuthUserDto } from '@features/auth/models/auth.dto';
 import { PostResponseDto } from '../models/post.dto';
-import { resolvePostImageUrls, toFeedPost } from './post-view.adapter';
+import {
+  collectPostImages,
+  postImageUrls,
+  toPostView,
+} from './post-view.adapter';
 
 describe('post-view.adapter', () => {
   const POST_DTO: PostResponseDto = {
@@ -30,8 +34,11 @@ describe('post-view.adapter', () => {
     avatarUrl: 'https://cdn.example.com/avatar.png',
   };
 
-  it('should map dto + author to the feed view model using server media urls', () => {
-    const post = toFeedPost(POST_DTO, AUTHOR, ['blob:image-src']);
+  it('maps dto + author to the feed view model using server media urls', () => {
+    const post = toPostView(POST_DTO, {
+      author: AUTHOR,
+      fallbackImageUrls: ['blob:image-src'],
+    });
 
     expect(post).toEqual({
       id: 'post-1',
@@ -51,7 +58,7 @@ describe('post-view.adapter', () => {
     });
   });
 
-  it('should order carousel urls by media position', () => {
+  it('orders carousel urls by media position', () => {
     const dto: PostResponseDto = {
       ...POST_DTO,
       media: [
@@ -72,13 +79,13 @@ describe('post-view.adapter', () => {
       ],
     };
 
-    expect(resolvePostImageUrls(dto)).toEqual([
+    expect(postImageUrls(dto)).toEqual([
       'https://cdn.example.com/first.jpg',
       'https://cdn.example.com/second.jpg',
     ]);
   });
 
-  it('should fall back to local urls when publicUrl is missing', () => {
+  it('falls back to local urls when publicUrl is missing', () => {
     const dto: PostResponseDto = {
       ...POST_DTO,
       media: [
@@ -92,29 +99,66 @@ describe('post-view.adapter', () => {
       ],
     };
 
-    expect(resolvePostImageUrls(dto, ['blob:local'])).toEqual(['blob:local']);
+    expect(postImageUrls(dto, ['blob:local'])).toEqual(['blob:local']);
   });
 
-  it('should fall back to username and default avatar without author data', () => {
+  it('falls back to username and default avatar without author data', () => {
     const noAvatar = { ...AUTHOR, avatarUrl: null, displayName: null };
-    const post = toFeedPost(POST_DTO, noAvatar, 'blob:x');
+    const post = toPostView(POST_DTO, { author: noAvatar, fallbackImageUrls: 'blob:x' });
     expect(post.userName).toBe('tester');
     expect(post.userProfilePic).toContain('assets/images/users/');
 
-    const postNoAuthor = toFeedPost(POST_DTO, null, 'blob:x');
+    const postNoAuthor = toPostView(POST_DTO, { author: null, fallbackImageUrls: 'blob:x' });
     expect(postNoAuthor.userName).toBe('You');
   });
 
-  it('should map null content to empty caption', () => {
-    const post = toFeedPost({ ...POST_DTO, content: null }, AUTHOR, 'blob:x');
+  it('maps null content to empty caption', () => {
+    const post = toPostView(
+      { ...POST_DTO, content: null },
+      { author: AUTHOR, fallbackImageUrls: 'blob:x' },
+    );
     expect(post.aboutPost).toBe('');
   });
 
-  it('should map text-only posts with empty image url', () => {
+  it('maps text-only posts with empty image url', () => {
     const textOnly = { ...POST_DTO, media: [] };
-    const post = toFeedPost(textOnly, AUTHOR, '');
+    const post = toPostView(textOnly, { author: AUTHOR, fallbackImageUrls: '' });
     expect(post.postImage).toBe('');
     expect(post.postImages).toEqual([]);
     expect(post.aboutPost).toBe('hello world');
+  });
+
+  it('collects ordered media refs across posts', () => {
+    const second: PostResponseDto = {
+      ...POST_DTO,
+      id: 'post-2',
+      media: [
+        {
+          id: 'ref-2',
+          mediaFileId: 'media-2',
+          position: 1,
+          publicUrl: 'https://cdn.example.com/two-b.jpg',
+          mimeType: 'image/jpeg',
+        },
+        {
+          id: 'ref-3',
+          mediaFileId: 'media-3',
+          position: 0,
+          publicUrl: 'https://cdn.example.com/two-a.jpg',
+          mimeType: 'image/jpeg',
+        },
+      ],
+    };
+    const textOnly: PostResponseDto = { ...POST_DTO, id: 'post-3', media: [] };
+
+    expect(collectPostImages([POST_DTO, second, textOnly])).toEqual([
+      {
+        postId: 'post-1',
+        index: 0,
+        image: 'https://storage.example.com/uploads/post.jpg',
+      },
+      { postId: 'post-2', index: 0, image: 'https://cdn.example.com/two-a.jpg' },
+      { postId: 'post-2', index: 1, image: 'https://cdn.example.com/two-b.jpg' },
+    ]);
   });
 });
