@@ -48,10 +48,15 @@ export class ImageLightboxComponent {
   }
 
   onSlideChange(event: Event): void {
-    const swiper = (event.target as { swiper?: { activeIndex: number } })
-      .swiper;
-    if (swiper) {
-      this.activeIndex.set(swiper.activeIndex);
+    // Swiper Element re-dispatches `slideChange` while it is still building the
+    // new instance, so `event.target.swiper` can briefly point at the previous,
+    // already-destroyed instance whose `activeIndex` is `undefined`. Only trust
+    // a finite index, otherwise opening on a non-first image corrupts the
+    // counter (`undefined + 1` renders `NaN`).
+    const index = (event.target as { swiper?: { activeIndex?: number } }).swiper
+      ?.activeIndex;
+    if (typeof index === 'number' && Number.isFinite(index)) {
+      this.activeIndex.set(index);
     }
   }
 }

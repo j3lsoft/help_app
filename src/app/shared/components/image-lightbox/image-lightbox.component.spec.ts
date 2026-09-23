@@ -66,6 +66,20 @@ describe('ImageLightboxComponent', () => {
     expect(component.activeIndex()).toBe(1);
   });
 
+  it('should keep the requested start index when a destroyed swiper emits during init', () => {
+    fixture.componentRef.setInput('images', ['a.png', 'b.png', 'c.png']);
+    fixture.componentRef.setInput('startIndex', 1);
+    fixture.detectChanges();
+
+    // Swiper Element can re-dispatch `slideChange` while `event.target.swiper`
+    // still holds the previous, destroyed instance (activeIndex undefined).
+    component.onSlideChange({
+      target: { swiper: { destroyed: true, activeIndex: undefined } },
+    } as unknown as Event);
+
+    expect(component.activeIndex()).toBe(1);
+  });
+
   it('should request closing', () => {
     fixture.componentRef.setInput('images', ['a.png']);
     fixture.detectChanges();
