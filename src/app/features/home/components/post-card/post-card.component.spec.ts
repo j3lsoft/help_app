@@ -74,19 +74,71 @@ describe('PostCardComponent', () => {
     expect(host.querySelector('app-post-media-carousel')).toBeNull();
   });
 
-  it('should emit the post id when tapping the media', () => {
+  it('should open the Lightbox on the tapped image instead of navigating', () => {
+    fixture.componentRef.setInput('post', CAROUSEL);
+    fixture.detectChanges();
+
+    let postEmitted = false;
+    component.postClick.subscribe(() => (postEmitted = true));
+
+    const images = (fixture.nativeElement as HTMLElement).querySelectorAll(
+      '.carousel__image'
+    );
+    (images[1] as HTMLElement).click();
+    fixture.detectChanges();
+
+    expect(component.viewerOpen()).toBeTrue();
+    expect(component.viewerIndex()).toBe(1);
+    expect(postEmitted).toBeFalse();
+  });
+
+  it('should open the Lightbox from a single image too', () => {
     fixture.componentRef.setInput('post', SINGLE);
     fixture.detectChanges();
 
-    let emitted: string | undefined;
-    component.postClick.subscribe((id) => (emitted = id));
+    (fixture.nativeElement as HTMLElement)
+      .querySelector('.carousel__single-image')
+      ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    fixture.detectChanges();
 
-    const media = (fixture.nativeElement as HTMLElement).querySelector(
-      '.post-card__media'
-    ) as HTMLElement;
-    media.click();
+    expect(component.viewerOpen()).toBeTrue();
+    expect(component.viewerIndex()).toBe(0);
+  });
 
-    expect(emitted).toBe('p1');
+  it('should close the Lightbox', () => {
+    fixture.componentRef.setInput('post', SINGLE);
+    fixture.detectChanges();
+
+    component.openViewer(0);
+    fixture.detectChanges();
+    expect(component.viewerOpen()).toBeTrue();
+
+    component.closeViewer();
+    fixture.detectChanges();
+    expect(component.viewerOpen()).toBeFalse();
+  });
+
+  it('should mount the Lightbox outside the card so modal clicks cannot navigate', () => {
+    fixture.componentRef.setInput('post', SINGLE);
+    fixture.detectChanges();
+
+    component.openViewer(0);
+    fixture.detectChanges();
+
+    const lightbox = (fixture.nativeElement as HTMLElement).querySelector(
+      'app-image-lightbox'
+    );
+    expect(lightbox).not.toBeNull();
+    expect(lightbox?.closest('article')).toBeNull();
+  });
+
+  it('should not open the Lightbox for a text-only post', () => {
+    fixture.componentRef.setInput('post', TEXT_ONLY);
+    fixture.detectChanges();
+
+    component.openViewer(0);
+
+    expect(component.viewerOpen()).toBeFalse();
   });
 
   it('should emit the post id when tapping anywhere on the card', () => {

@@ -58,10 +58,13 @@
   }
 
   @if (post().postImages.length > 0) {
-    <figure class="post-card__media">
+    <!-- Tapping the media opens the Lightbox, so it must not reach the card's
+         openPost handler. -->
+    <figure class="post-card__media" (click)="$event.stopPropagation()">
       <app-post-media-carousel
         [images]="post().postImages"
         style="--post-carousel-height: 320px"
+        (imageTap)="openViewer($event)"
       ></app-post-media-carousel>
       @if (post().postImages.length > 1) {
         <figcaption class="post-card__media-count">
@@ -163,3 +166,13 @@
   </footer>
 
 </article>
+
+<!-- Sibling of the card, not a descendant: a click inside the modal must not
+     bubble into the card's openPost handler. -->
+@if (viewerOpen()) {
+  <app-image-lightbox
+    [images]="post().postImages"
+    [startIndex]="viewerIndex()"
+    (closed)="closeViewer()"
+  ></app-image-lightbox>
+}

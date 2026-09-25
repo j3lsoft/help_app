@@ -1,3 +1,10 @@
+// The card is a link: its host must be a real block. As an inline element with
+// a block child it became a block-in-inline, which makes the hit area depend on
+// the engine instead of on the card's own box.
+:host {
+  display: block;
+}
+
 .post-card {
   position: relative;
   display: flex;
@@ -115,6 +122,7 @@
     border: 1px solid var(--extraLightGrayColor);
     border-radius: 18px;
     overflow: hidden;
+    cursor: pointer;
     background: #f6f8fa;
     box-shadow: 0 10px 30px rgba(4, 19, 49, 0.1);
 

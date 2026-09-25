@@ -4,6 +4,7 @@ import {
   computed,
   input,
   output,
+  signal,
 } from '@angular/core';
 import { IonIcon, IonImg, IonText } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -17,6 +18,7 @@ import {
   imagesOutline,
   shareOutline,
 } from 'ionicons/icons';
+import { ImageLightboxComponent } from '@shared/components/image-lightbox/image-lightbox.component';
 import { PostMediaCarouselComponent } from '@shared/components/post-media-carousel/post-media-carousel.component';
 import { ExpandableTextComponent } from '@shared/components/expandable-text/expandable-text.component';
 import { ShortNumberPipe } from '@shared/pipes/short-number.pipe';
@@ -31,6 +33,7 @@ import { Post } from '@features/posts/models/post-view.model';
     IonText,
     IonIcon,
     ExpandableTextComponent,
+    ImageLightboxComponent,
     PostMediaCarouselComponent,
     ShortNumberPipe,
     TimeAgoPipe,
@@ -46,8 +49,16 @@ export class PostCardComponent {
   commentClick = output<void>();
   saveClick = output<void>();
   shareClick = output<void>();
-  /** Tapping the media opens the post detail. */
+  /** Tapping anywhere but the media opens the post detail. */
   postClick = output<string>();
+
+  /**
+   * Lightbox state. The card owns it: the Post's own media is part of how the
+   * card presents that Post, so the pages do not have to wire a fourth copy of
+   * the viewer. See `docs/adr/0005`.
+   */
+  readonly viewerOpen = signal(false);
+  readonly viewerIndex = signal(0);
 
   readonly authorInitial = computed(() => {
     const name = (this.post().userName ?? '').trim();
@@ -56,6 +67,18 @@ export class PostCardComponent {
 
   openPost(): void {
     this.postClick.emit(this.post().id);
+  }
+
+  openViewer(index: number): void {
+    if (this.post().postImages.length === 0) {
+      return;
+    }
+    this.viewerIndex.set(index);
+    this.viewerOpen.set(true);
+  }
+
+  closeViewer(): void {
+    this.viewerOpen.set(false);
   }
 
   onCardKeydown(event: KeyboardEvent): void {
