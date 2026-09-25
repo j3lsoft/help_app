@@ -157,6 +157,13 @@ describe('PostDetailPage', () => {
     expect(host.querySelectorAll('.carousel__image').length).toBe(2);
   });
 
+  it('should render the post content as body text', () => {
+    const host = fixture.nativeElement as HTMLElement;
+    const body = host.querySelector('.detail__body');
+    expect(body).not.toBeNull();
+    expect(body?.textContent).toContain('hello carousel');
+  });
+
   it('should toggle like locally and adjust its count', () => {
     expect(component.liked()).toBeFalse();
     const before = component.likeCount();
