@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  ViewChild,
   computed,
   inject,
   signal,
@@ -14,6 +15,7 @@ import {
   IonIcon,
   IonMenu,
   IonPopover,
+  IonRouterOutlet,
   IonTabBar,
   IonTabButton,
   IonTabs,
@@ -22,6 +24,7 @@ import {
   MenuController,
   Platform,
   PopoverController,
+  ViewWillEnter,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -53,12 +56,22 @@ import { filter } from 'rxjs';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TabsPage {
+export class TabsPage implements ViewWillEnter {
+  @ViewChild(IonTabs) private tabs?: IonTabs;
+
   public readonly platform = inject(Platform);
   private readonly router = inject(Router);
   private readonly popOverCtrl = inject(PopoverController);
   private readonly menuCtrl = inject(MenuController);
   private readonly authService = inject(AuthService);
+
+  /**
+   * Ionic only re-fires the enter lifecycle on the tabs container when coming
+   * back from a root-level route (e.g. `post-detail`); the child page of the
+   * active tab never left its own outlet, so it stays stale. On the first
+   * entry the child already got its normal event, so only propagate after that.
+   */
+  private hasEntered = false;
 
   private readonly navigationEnd = toSignal(
     this.router.events.pipe(
@@ -87,6 +100,29 @@ export class TabsPage {
       closeCircleOutline,
       add,
     });
+  }
+
+  ionViewWillEnter(): void {
+    if (this.hasEntered) {
+      this.propagateEnterToActiveTab();
+    }
+    this.hasEntered = true;
+  }
+
+  /**
+   * Re-dispatches the enter lifecycle on the active tab's last route view.
+   * `bindLifecycleEvents` in `@ionic/angular` listens for these DOM events and
+   * calls the page's own hook, so no page needs to know about this.
+   */
+  private propagateEnterToActiveTab(): void {
+    const outlet = this.tabs?.outlet as IonRouterOutlet | undefined;
+    const stackId = outlet?.getActiveStackId();
+    const element = outlet?.getLastRouteView(stackId)?.element;
+    if (!element) {
+      return;
+    }
+    element.dispatchEvent(new CustomEvent('ionViewWillEnter'));
+    element.dispatchEvent(new CustomEvent('ionViewDidEnter'));
   }
 
   goTo(screen: string): void {

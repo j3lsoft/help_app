@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
 import { NavController } from '@ionic/angular';
 import { signal } from '@angular/core';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 import { AppError } from '@core/models/app-error.model';
 import { LoggerService } from '@core/services/logger.service';
 import { AuthService } from '@features/auth/services/auth.service';
@@ -13,6 +13,7 @@ import { ProfileService } from '../../services/profile.service';
 import { FollowApiService } from '../../services/follow-api.service';
 import { RelationshipService } from '../../services/relationship.service';
 import { PostsApiService } from '@features/posts/services/posts-api.service';
+import { PaginatedPostsResponseDto } from '@features/posts/models/post.dto';
 import { UserProfilePage } from './user-profile.page';
 
 const mockProfile: PublicProfileResponseDto = {
@@ -32,6 +33,7 @@ describe('UserProfilePage', () => {
   let profileServiceSpy: jasmine.SpyObj<ProfileService>;
   let profileErrorFacadeSpy: jasmine.SpyObj<ProfileErrorFacade>;
   let followApiSpy: jasmine.SpyObj<FollowApiService>;
+  let postsApiSpy: jasmine.SpyObj<PostsApiService>;
 
   beforeEach(async () => {
     profileServiceSpy = jasmine.createSpyObj('ProfileService', [
@@ -52,7 +54,7 @@ describe('UserProfilePage', () => {
       of({ followerCount: 10, followeeCount: 5, isFollowing: false }),
     );
 
-    const postsApiSpy = jasmine.createSpyObj('PostsApiService', ['getUserPosts']);
+    postsApiSpy = jasmine.createSpyObj('PostsApiService', ['getUserPosts']);
     postsApiSpy.getUserPosts.and.returnValue(
       of({ items: [], nextCursor: null, total: 0 }),
     );
@@ -141,5 +143,43 @@ describe('UserProfilePage', () => {
     fixture.detectChanges();
 
     expect(profileErrorFacadeSpy.handle).toHaveBeenCalled();
+  });
+
+  it('should refresh posts on re-entering once the profile id is resolved', async () => {
+    const post = {
+      id: 'p1',
+      authorId: '1',
+      content: 'hi',
+      media: [],
+      status: 'published' as const,
+      createdAt: '2026-08-25T00:00:00Z',
+      updatedAt: '2026-08-25T00:00:00Z',
+    };
+    postsApiSpy.getUserPosts.and.returnValue(
+      of({ items: [post], nextCursor: null, total: 1 }),
+    );
+
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve));
+    fixture.detectChanges();
+    await Promise.resolve();
+
+    expect(component.profilePosts().length).toBe(1);
+
+    const refresh$ = new Subject<PaginatedPostsResponseDto>();
+    postsApiSpy.getUserPosts.and.returnValue(refresh$);
+    component.ionViewWillEnter();
+
+    expect(component.profilePosts().length).toBe(1);
+    expect(component.isLoadingPosts()).toBeFalse();
+
+    refresh$.next({
+      items: [{ ...post, content: 'edited' }],
+      nextCursor: null,
+      total: 1,
+    });
+    refresh$.complete();
+
+    expect(component.profilePosts()[0].content).toBe('edited');
   });
 });

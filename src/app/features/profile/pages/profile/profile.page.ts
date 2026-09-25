@@ -148,7 +148,7 @@ export class ProfilePage implements ViewWillEnter, OnDestroy {
       .pipe(catchSocialError(this.socialErrorFacade, 'follow-counts'))
       .subscribe();
 
-    this.postsLoader.loadFirst(userId);
+    this.postsLoader.refresh(userId);
   }
 
   loadMorePosts(event: CustomEvent) {
@@ -169,7 +169,7 @@ export class ProfilePage implements ViewWillEnter, OnDestroy {
         .load(userId)
         .pipe(catchSocialError(this.socialErrorFacade, 'follow-counts'))
         .subscribe();
-      this.postsLoader.loadFirst(userId);
+      this.postsLoader.refresh(userId);
     }
     this.profileResource.reload();
     setTimeout(

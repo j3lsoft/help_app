@@ -13,6 +13,11 @@ export interface ScopeKeyHolder {
 
 export interface LoadPaginatedPageConfig<TDto, TItem> {
   reset: boolean;
+  /**
+   * With `reset`, keep the current items visible until the first page arrives
+   * (stale-while-revalidate) instead of clearing them and showing a loader.
+   */
+  soft?: boolean;
   scopeKey?: string;
   currentScopeKey?: ScopeKeyHolder;
   state: PaginatedListState<TItem>;
@@ -34,6 +39,7 @@ export function loadPaginatedPage<TDto, TItem>(
 ): Observable<void> {
   const {
     reset,
+    soft = false,
     scopeKey,
     currentScopeKey,
     state,
@@ -49,13 +55,13 @@ export function loadPaginatedPage<TDto, TItem>(
       return of(void 0);
     }
 
-    if (reset) {
+    if (reset && !soft) {
       currentScopeKey.set(scopeKey);
       resetPaginatedListState(state);
-    } else if (currentScopeKey.get() !== scopeKey) {
+    } else if (!reset && currentScopeKey.get() !== scopeKey) {
       return of(void 0);
     }
-  } else if (reset) {
+  } else if (reset && !soft) {
     resetPaginatedListState(state);
   }
 
@@ -63,7 +69,9 @@ export function loadPaginatedPage<TDto, TItem>(
     return of(void 0);
   }
 
-  state.loading.set(true);
+  if (!soft) {
+    state.loading.set(true);
+  }
   state.error.set(null);
 
   const cursor = reset ? undefined : (state.cursor() ?? undefined);
@@ -71,7 +79,11 @@ export function loadPaginatedPage<TDto, TItem>(
   return fetch(cursor).pipe(
     tap((response) => {
       const mapped = mapItems(response.items);
-      state.items.update((prev) => [...prev, ...mapped]);
+      if (reset) {
+        state.items.set(mapped);
+      } else {
+        state.items.update((prev) => [...prev, ...mapped]);
+      }
       state.cursor.set(response.nextCursor);
       state.hasMore.set(response.nextCursor !== null);
       if (onTotal && typeof response.total === 'number') {
@@ -88,6 +100,10 @@ export function loadPaginatedPage<TDto, TItem>(
       state.error.set(appError);
       return throwError(() => appError);
     }),
-    finalize(() => state.loading.set(false))
+    finalize(() => {
+      if (!soft) {
+        state.loading.set(false);
+      }
+    })
   );
 }

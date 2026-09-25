@@ -24,6 +24,7 @@ import {
   IonRefresherContent,
   IonText,
   NavController,
+  ViewWillEnter,
 } from '@ionic/angular/standalone';
 import { BackHeaderComponent } from '@shared/components/back-header/back-header.component';
 import { FollowButtonComponent } from '@shared/components/follow-button/follow-button.component';
@@ -72,7 +73,7 @@ import {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class UserProfilePage implements OnDestroy {
+export class UserProfilePage implements ViewWillEnter, OnDestroy {
   private readonly navCtrl = inject(NavController);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -232,11 +233,20 @@ export class UserProfilePage implements OnDestroy {
     }
   }
 
+  ionViewWillEnter(): void {
+    // Re-entering after viewing a Post detail: refresh in place. The `effect`
+    // above handles the first load once `profileId` resolves.
+    const userId = this.profileId();
+    if (userId) {
+      this.postsLoader.refresh(userId);
+    }
+  }
+
   handleRefresh(event: CustomEvent) {
     this.userProfile.reload();
     const userId = this.profileId();
     if (userId) {
-      this.postsLoader.loadFirst(userId);
+      this.postsLoader.refresh(userId);
     }
     setTimeout(
       () => (event.target as unknown as { complete: () => void }).complete(),

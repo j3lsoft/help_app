@@ -2,8 +2,9 @@ import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { provideIonicAngular } from '@ionic/angular/standalone';
 import { signal } from '@angular/core';
-import { of } from 'rxjs';
+import { Subject, of } from 'rxjs';
 import { PostsApiService } from '@features/posts/services/posts-api.service';
+import { PaginatedPostsResponseDto } from '@features/posts/models/post.dto';
 import { ProfileService } from '@features/profile/services/profile.service';
 import { FollowApiService } from '@features/profile/services/follow-api.service';
 import { RelationshipService } from '@features/profile/services/relationship.service';
@@ -116,5 +117,40 @@ describe('ProfilePage', () => {
     expect(component.mediaItems().length).toBe(1);
     expect(component.mediaUrls()).toEqual(['https://cdn.example.com/p1.jpg']);
     expect(component.postsCount()).toBe('5');
+  });
+
+  it('should refresh posts on re-entering without clearing the current list', () => {
+    const post = {
+      id: 'p1',
+      authorId: 'u1',
+      content: 'hi',
+      media: [],
+      status: 'published' as const,
+      createdAt: '2026-08-25T00:00:00Z',
+      updatedAt: '2026-08-25T00:00:00Z',
+    };
+    postsApiSpy.getUserPosts.and.returnValue(
+      of({ items: [post], nextCursor: null, total: 1 }),
+    );
+
+    component.ionViewWillEnter();
+    expect(component.profilePosts().length).toBe(1);
+
+    const refresh$ = new Subject<PaginatedPostsResponseDto>();
+    postsApiSpy.getUserPosts.and.returnValue(refresh$);
+    component.ionViewWillEnter();
+
+    expect(component.profilePosts().length).toBe(1);
+    expect(component.isLoadingPosts()).toBeFalse();
+
+    refresh$.next({
+      items: [{ ...post, content: 'edited' }],
+      nextCursor: null,
+      total: 1,
+    });
+    refresh$.complete();
+
+    expect(component.profilePosts()[0].content).toBe('edited');
+    expect(component.isLoadingPosts()).toBeFalse();
   });
 });

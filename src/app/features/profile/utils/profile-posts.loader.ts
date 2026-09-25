@@ -27,6 +27,12 @@ export interface ProfilePostsLoader {
   readonly postsCount: Signal<string>;
   readonly notFound: Signal<boolean>;
   loadFirst(userId: string): void;
+  /**
+   * Refreshes the first page in place (stale-while-revalidate): keeps the
+   * current items visible until the response replaces them, without a loader.
+   * Falls back to `loadFirst` on the initial load.
+   */
+  refresh(userId: string): void;
   loadMore(userId: string, onSettled?: () => void): void;
   destroy(): void;
 }
@@ -60,14 +66,15 @@ export function createProfilePostsLoader({
     return total !== undefined ? String(total) : String(posts().length);
   });
 
-  function loadPage(userId: string, reset: boolean) {
-    if (reset) {
+  function loadPage(userId: string, reset: boolean, soft = false) {
+    if (reset && !soft) {
       // Avoid stale total when switching users or reloading: total is
       // only re-set when the backend returns a number (includeTotal=true).
       totalPosts.set(undefined);
     }
     return loadPaginatedPage({
       reset,
+      soft,
       scopeKey: userId,
       currentScopeKey: {
         get: () => scopeUserId,
@@ -89,6 +96,22 @@ export function createProfilePostsLoader({
     scopeUserId = userId;
     sub?.unsubscribe();
     sub = loadPage(userId, true).subscribe({
+      error: (error: unknown) => handleError(error, userId),
+    });
+  }
+
+  function refresh(userId: string): void {
+    if (state.loading()) {
+      return;
+    }
+    // First load (or a user switch) has nothing to keep visible: full load.
+    if (scopeUserId !== userId || posts().length === 0) {
+      loadFirst(userId);
+      return;
+    }
+    retriedFor = null;
+    sub?.unsubscribe();
+    sub = loadPage(userId, true, true).subscribe({
       error: (error: unknown) => handleError(error, userId),
     });
   }
@@ -121,5 +144,15 @@ export function createProfilePostsLoader({
     sub?.unsubscribe();
   }
 
-  return { posts, isLoading, hasMore, postsCount, notFound, loadFirst, loadMore, destroy };
+  return {
+    posts,
+    isLoading,
+    hasMore,
+    postsCount,
+    notFound,
+    loadFirst,
+    refresh,
+    loadMore,
+    destroy,
+  };
 }

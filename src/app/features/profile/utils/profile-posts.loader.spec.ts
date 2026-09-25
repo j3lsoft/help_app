@@ -1,4 +1,4 @@
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 import { AppError } from '@core/models/app-error.model';
 import { LoggerService } from '@core/services/logger.service';
 import { PaginatedPostsResponseDto } from '@features/posts/models/post.dto';
@@ -173,5 +173,64 @@ describe('createProfilePostsLoader', () => {
 
     loader.loadFirst('u2');
     expect(loader.postsCount()).toBe('0');
+  });
+
+  it('should delegate to a full load with the loading state on refresh when empty', () => {
+    const subject = new Subject<PaginatedPostsResponseDto>();
+    fetchSpy.and.returnValue(subject);
+    const loader = createProfilePostsLoader({
+      fetchPage: fetchSpy,
+      logger: loggerSpy,
+    });
+
+    loader.refresh('u1');
+
+    expect(loader.isLoading()).toBeTrue();
+    subject.next(PAGE_1);
+    subject.complete();
+    expect(loader.posts().length).toBe(1);
+    expect(loader.isLoading()).toBeFalse();
+  });
+
+  it('should keep current items while refreshing and replace them on success', () => {
+    fetchSpy.and.returnValue(of(PAGE_1));
+    const loader = createProfilePostsLoader({
+      fetchPage: fetchSpy,
+      logger: loggerSpy,
+    });
+    loader.loadFirst('u1');
+
+    const refresh$ = new Subject<PaginatedPostsResponseDto>();
+    fetchSpy.and.returnValue(refresh$);
+    loader.refresh('u1');
+
+    expect(loader.posts().length).toBe(1);
+    expect(loader.posts()[0].content).toBe('hi');
+    expect(loader.isLoading()).toBeFalse();
+
+    refresh$.next({
+      items: [{ ...PAGE_1.items[0], content: 'edited' }],
+      nextCursor: null,
+      total: 5,
+    });
+    refresh$.complete();
+
+    expect(loader.posts().length).toBe(1);
+    expect(loader.posts()[0].content).toBe('edited');
+    expect(loader.isLoading()).toBeFalse();
+  });
+
+  it('should ignore refresh while a load is in flight', () => {
+    const subject = new Subject<PaginatedPostsResponseDto>();
+    fetchSpy.and.returnValue(subject);
+    const loader = createProfilePostsLoader({
+      fetchPage: fetchSpy,
+      logger: loggerSpy,
+    });
+
+    loader.loadFirst('u1');
+    loader.refresh('u1');
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
   });
 });
