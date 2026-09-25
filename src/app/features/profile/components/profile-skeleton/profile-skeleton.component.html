@@ -1,0 +1,92 @@
+@if (region() === 'header') {
+<div
+  class="profile-skeleton profile-skeleton--header"
+  [class.profile-skeleton--actions-single]="actions() === 'single'"
+  role="status"
+  aria-busy="true"
+  aria-label="Loading profile"
+>
+  <div class="profile-skeleton__header" aria-hidden="true">
+    <div class="profile-skeleton__stats">
+      @for (i of [1, 2, 3]; track i) {
+      <div class="profile-skeleton__stat">
+        <span class="profile-skeleton__block profile-skeleton__stat-value"></span>
+        <span class="profile-skeleton__block profile-skeleton__stat-label"></span>
+      </div>
+      }
+    </div>
+
+    <div class="profile-skeleton__bio">
+      <div class="profile-skeleton__bio-text">
+        <span class="profile-skeleton__block profile-skeleton__name"></span>
+        <span class="profile-skeleton__block profile-skeleton__line"></span>
+        <span
+          class="profile-skeleton__block profile-skeleton__line profile-skeleton__line--short"
+        ></span>
+      </div>
+      <span class="profile-skeleton__block profile-skeleton__avatar"></span>
+    </div>
+
+    @if (actions() === 'single') {
+    <span
+      class="profile-skeleton__block profile-skeleton__action-single"
+    ></span>
+    } @else {
+    <div class="profile-skeleton__actions">
+      <span class="profile-skeleton__block profile-skeleton__action"></span>
+      <span class="profile-skeleton__block profile-skeleton__action"></span>
+    </div>
+    }
+  </div>
+</div>
+} @else if (tab() === 'media') {
+<div
+  class="profile-skeleton profile-skeleton--media"
+  role="status"
+  aria-busy="true"
+  aria-label="Loading media"
+>
+  <div class="profile-skeleton__grid" aria-hidden="true">
+    @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+    <span class="profile-skeleton__block profile-skeleton__grid-item"></span>
+    }
+  </div>
+</div>
+} @else {
+<div
+  class="profile-skeleton profile-skeleton--posts"
+  role="status"
+  aria-busy="true"
+  aria-label="Loading posts"
+>
+  <div class="profile-skeleton__posts" aria-hidden="true">
+    @for (i of [1, 2]; track i) {
+    <article class="profile-skeleton__post">
+      <div class="profile-skeleton__masthead">
+        <span class="profile-skeleton__block profile-skeleton__avatar-sm"></span>
+        <div class="profile-skeleton__masthead-text">
+          <span
+            class="profile-skeleton__block profile-skeleton__line profile-skeleton__line--name"
+          ></span>
+          <span
+            class="profile-skeleton__block profile-skeleton__line profile-skeleton__line--tiny"
+          ></span>
+        </div>
+      </div>
+      <span class="profile-skeleton__block profile-skeleton__line"></span>
+      <span
+        class="profile-skeleton__block profile-skeleton__line profile-skeleton__line--mid"
+      ></span>
+      @if (i === 1) {
+      <span class="profile-skeleton__block profile-skeleton__media"></span>
+      }
+      <div class="profile-skeleton__pills">
+        @for (j of [1, 2, 3, 4]; track j) {
+        <span class="profile-skeleton__block profile-skeleton__pill"></span>
+        }
+      </div>
+    </article>
+    }
+  </div>
+</div>
+}

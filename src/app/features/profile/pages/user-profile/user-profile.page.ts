@@ -10,13 +10,15 @@ import {
 } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
+import { AppError } from '@core/models/app-error.model';
 import { LoggerService } from '@core/services/logger.service';
-import { toAppError } from '@core/utils/app-error.utils';
+import { isAppError, toAppError } from '@core/utils/app-error.utils';
 import {
   catchSocialError,
   followActionContext,
 } from '../../utils/social-page-error.utils';
 import {
+  IonButton,
   IonContent,
   IonInfiniteScroll,
   IonInfiniteScrollContent,
@@ -31,6 +33,7 @@ import { FollowButtonComponent } from '@shared/components/follow-button/follow-b
 import { ImageLightboxComponent } from '@shared/components/image-lightbox/image-lightbox.component';
 import { ProfileHeaderComponent } from '@features/profile/components/profile-header/profile-header.component';
 import { ProfileMediaGridComponent } from '@features/profile/components/profile-media-grid/profile-media-grid.component';
+import { ProfileSkeletonComponent } from '@features/profile/components/profile-skeleton/profile-skeleton.component';
 import { ProfileTabsComponent } from '@features/profile/components/profile-tabs/profile-tabs.component';
 import { PostCardComponent } from '@features/home/components/post-card/post-card.component';
 import { Post } from '@features/posts/models/post-view.model';
@@ -57,6 +60,7 @@ import {
   templateUrl: './user-profile.page.html',
   styleUrls: ['./user-profile.page.scss'],
   imports: [
+    IonButton,
     IonContent,
     IonText,
     IonRefresher,
@@ -65,6 +69,7 @@ import {
     IonInfiniteScrollContent,
     BackHeaderComponent,
     ProfileHeaderComponent,
+    ProfileSkeletonComponent,
     ProfileTabsComponent,
     ProfileMediaGridComponent,
     PostCardComponent,
@@ -85,27 +90,58 @@ export class UserProfilePage implements ViewWillEnter, OnDestroy {
   private readonly postsApi = inject(PostsApiService);
   private readonly feed = inject(FeedService);
 
-  readonly userProfile = rxResource({
+  private readonly profileLoadError = signal<AppError | null>(null);
+
+  private readonly userProfileResource = rxResource({
     stream: () =>
       this.route.paramMap.pipe(
         map((params) => params.get('username') || ''),
         switchMap((username: string) => {
+          this.profileLoadError.set(null);
           if (!username) {
             return of(null);
           }
           return this.profileService.getPublicProfile(username).pipe(
             catchError((error: unknown) => {
-              this.profileErrorFacade.handle(toAppError(error), 'profile');
-              return of(null);
+              const appError = toAppError(error);
+              this.profileLoadError.set(appError);
+              // Rendered inline (see `profileErrorMessage`): no second toast.
+              throw appError;
             }),
           );
         }),
       ),
   });
 
-  private readonly profileId = computed(
-    () => this.userProfile.value()?.id ?? null,
+  readonly isLoadingProfile = computed(() =>
+    this.userProfileResource.isLoading(),
   );
+
+  readonly profile = computed(
+    () =>
+      (this.profileLoadError()
+        ? null
+        : this.userProfileResource.value()) ?? null,
+  );
+
+  readonly profileError = computed(() => this.profileLoadError());
+
+  readonly isProfileNotFound = computed(() => {
+    const error = this.profileError();
+    return isAppError(error) && error.status === 404;
+  });
+
+  readonly profileErrorMessage = computed(() => {
+    if (this.isProfileNotFound()) {
+      return 'User not found.';
+    }
+    const error = this.profileError();
+    return error
+      ? this.profileErrorFacade.getMessage(error, 'profile')
+      : 'Failed to load profile. Please try again.';
+  });
+
+  private readonly profileId = computed(() => this.profile()?.id ?? null);
 
   private readonly relationshipRef = computed(() => {
     const userId = this.profileId();
@@ -155,7 +191,7 @@ export class UserProfilePage implements ViewWillEnter, OnDestroy {
 
   readonly postCards = computed<Post[]>(() =>
     this.profilePosts().map((dto) =>
-      toPostView(dto, { author: this.userProfile.value() ?? null }),
+      toPostView(dto, { author: this.profile() ?? null }),
     ),
   );
 
@@ -164,7 +200,7 @@ export class UserProfilePage implements ViewWillEnter, OnDestroy {
   readonly mediaUrls = computed(() => this.media().urls);
 
   fullWebsiteUrl = computed(() =>
-    normalizeWebsiteUrl(this.userProfile.value()?.website),
+    normalizeWebsiteUrl(this.profile()?.website),
   );
 
   stripWebsite = (url: string | null | undefined): string =>
@@ -174,7 +210,7 @@ export class UserProfilePage implements ViewWillEnter, OnDestroy {
     addIcons({ chevronBack });
 
     effect(() => {
-      const profile = this.userProfile.value();
+      const profile = this.profile();
       if (!profile) {
         return;
       }
@@ -220,14 +256,14 @@ export class UserProfilePage implements ViewWillEnter, OnDestroy {
   }
 
   goToFollowers() {
-    const profile = this.userProfile.value();
+    const profile = this.profile();
     if (profile) {
       this.router.navigateByUrl(`followers/${profile.id}`);
     }
   }
 
   goToFollowings() {
-    const profile = this.userProfile.value();
+    const profile = this.profile();
     if (profile) {
       this.router.navigateByUrl(`followings/${profile.id}`);
     }
@@ -243,7 +279,7 @@ export class UserProfilePage implements ViewWillEnter, OnDestroy {
   }
 
   handleRefresh(event: CustomEvent) {
-    this.userProfile.reload();
+    this.userProfileResource.reload();
     const userId = this.profileId();
     if (userId) {
       this.postsLoader.refresh(userId);
@@ -252,6 +288,14 @@ export class UserProfilePage implements ViewWillEnter, OnDestroy {
       () => (event.target as unknown as { complete: () => void }).complete(),
       600,
     );
+  }
+
+  retryProfile() {
+    this.userProfileResource.reload();
+    const userId = this.profileId();
+    if (userId) {
+      this.postsLoader.loadFirst(userId);
+    }
   }
 
   ngOnDestroy() {
@@ -287,7 +331,7 @@ export class UserProfilePage implements ViewWillEnter, OnDestroy {
   }
 
   toggleFollow() {
-    const profile = this.userProfile.value();
+    const profile = this.profile();
     if (!profile || this.isTogglingFollow()) return;
 
     const wasFollowing = this.isFollowing();

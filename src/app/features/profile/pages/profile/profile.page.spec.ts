@@ -52,7 +52,7 @@ describe('ProfilePage', () => {
         { provide: ProfileService, useValue: profileSpy },
         { provide: FollowApiService, useValue: followApiSpy },
         RelationshipService,
-        { provide: ProfileErrorFacade, useValue: jasmine.createSpyObj('ProfileErrorFacade', ['handle']) },
+        { provide: ProfileErrorFacade, useValue: jasmine.createSpyObj('ProfileErrorFacade', ['handle', 'getMessage']) },
         { provide: SocialErrorFacade, useValue: jasmine.createSpyObj('SocialErrorFacade', ['handle']) },
         { provide: LoggerService, useValue: jasmine.createSpyObj('LoggerService', ['error', 'debug', 'info', 'warn']) },
       ],

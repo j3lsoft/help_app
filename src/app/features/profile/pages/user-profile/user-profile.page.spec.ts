@@ -121,7 +121,43 @@ describe('UserProfilePage', () => {
 
   it('should load profile by username', () => {
     expect(profileServiceSpy.getPublicProfile).toHaveBeenCalledWith('jane');
-    expect(component.userProfile.value()).toEqual(mockProfile);
+    expect(component.profile()).toEqual(mockProfile);
+  });
+
+  it('should show the header skeleton while loading and swap it for the header', async () => {
+    const pending$ = new Subject<PublicProfileResponseDto>();
+    profileServiceSpy.getPublicProfile.and.returnValue(pending$);
+
+    fixture = TestBed.createComponent(UserProfilePage);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('app-profile-skeleton')).toBeTruthy();
+    expect(el.querySelector('app-profile-header')).toBeFalsy();
+
+    pending$.next(mockProfile);
+    pending$.complete();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(el.querySelector('app-profile-skeleton')).toBeFalsy();
+    expect(el.querySelector('app-profile-header')).toBeTruthy();
+  });
+
+  it('should render an error state instead of a stuck skeleton when loading fails', async () => {
+    const error: AppError = { status: 500, handled: false };
+    profileServiceSpy.getPublicProfile.and.returnValue(throwError(() => error));
+
+    fixture = TestBed.createComponent(UserProfilePage);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('app-profile-skeleton')).toBeFalsy();
+    expect(el.querySelector('.user-profile__error-container')).toBeTruthy();
   });
 
   it('should load social state for the profile user id', async () => {
@@ -134,15 +170,30 @@ describe('UserProfilePage', () => {
     expect(component.followingCount()).toBe(5);
   });
 
-  it('should call facade when profile fetch fails', async () => {
+  it('should surface profile fetch failures instead of swallowing them', async () => {
     const error: AppError = { status: 500, handled: false };
     profileServiceSpy.getPublicProfile.and.returnValue(throwError(() => error));
 
     fixture = TestBed.createComponent(UserProfilePage);
     component = fixture.componentInstance;
     fixture.detectChanges();
+    await fixture.whenStable();
 
-    expect(profileErrorFacadeSpy.handle).toHaveBeenCalled();
+    expect(component.profile()).toBeNull();
+    expect(component.profileError()).toEqual(error);
+    expect(component.isProfileNotFound()).toBeFalse();
+  });
+
+  it('should treat a 404 as not found without a retry path', async () => {
+    const error: AppError = { status: 404, handled: false };
+    profileServiceSpy.getPublicProfile.and.returnValue(throwError(() => error));
+
+    fixture = TestBed.createComponent(UserProfilePage);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(component.isProfileNotFound()).toBeTrue();
   });
 
   it('should refresh posts on re-entering once the profile id is resolved', async () => {

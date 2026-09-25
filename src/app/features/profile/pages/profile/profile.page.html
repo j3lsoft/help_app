@@ -1,5 +1,4 @@
-@if (userProfile(); as profile) {
-<app-top-bar [title]="profile.username">
+<app-top-bar [title]="userProfile()?.username || 'Profile'">
   <ion-buttons slot="end" class="profile-page__menu-buttons">
     <ion-menu-button
       mode="ios"
@@ -14,6 +13,9 @@
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
+  @if (isLoadingProfile() && !userProfile()) {
+  <app-profile-skeleton region="header" actions="single"></app-profile-skeleton>
+  } @else if (userProfile(); as profile) {
   <app-profile-header
     [name]="profile.name"
     [description]="profile.description"
@@ -35,27 +37,26 @@
     Edit Profile
   </button>
 
+  <app-profile-tabs
+    [selectedTab]="activeTab()"
+    (tabChange)="onTabChange($event)"
+  ></app-profile-tabs>
+
   @if (postsNotFound()) {
   <div class="profile-page__empty" aria-label="User not found">
     <ion-text class="profile-page__empty-text">User not found</ion-text>
   </div>
   } @else if (isLoadingPosts() && profilePosts().length === 0) {
-  <div class="profile-page__skeleton" aria-label="Loading posts">
-    @for (i of [1,2,3,4,5,6]; track i) {
-    <div class="profile-page__skeleton-item"></div>
-    }
-  </div>
+  <app-profile-skeleton
+    region="content"
+    [tab]="activeTab()"
+  ></app-profile-skeleton>
   } @else if (profilePosts().length === 0) {
   <div class="profile-page__empty" aria-label="Empty posts">
     <ion-text class="profile-page__empty-text">You have not published anything yet</ion-text>
     <ion-button fill="outline" (click)="goTo('tabs/create-post')">Create your first post</ion-button>
   </div>
   } @else {
-  <app-profile-tabs
-    [selectedTab]="activeTab()"
-    (tabChange)="onTabChange($event)"
-  ></app-profile-tabs>
-
   @if (activeTab() === 'posts') {
   @for (card of postCards(); track card.id) {
   <div class="profile-page__post-wrapper">
@@ -85,6 +86,12 @@
   </ion-infinite-scroll>
   }
   }
+  } @else {
+  <div class="profile-page__error">
+    <ion-text class="profile-page__error-text">{{ profileErrorMessage() }}</ion-text>
+    <ion-button fill="outline" (click)="retryProfile()">Retry</ion-button>
+  </div>
+  }
 
   @if (viewerOpen()) {
   <app-image-lightbox
@@ -94,30 +101,3 @@
   ></app-image-lightbox>
   }
 </ion-content>
-} @else if (isLoadingProfile()) {
-<app-top-bar title="Profile"></app-top-bar>
-<ion-content class="ion-padding">
-  <div class="profile-page__skeleton" aria-label="Loading profile">
-    @for (i of [1,2,3,4,5,6]; track i) {
-    <div class="profile-page__skeleton-item"></div>
-    }
-  </div>
-</ion-content>
-} @else if (showProfileError()) {
-<app-top-bar title="Profile"></app-top-bar>
-<ion-content class="ion-padding">
-  <div class="profile-page__error">
-    <ion-text class="profile-page__error-text">Failed to load profile</ion-text>
-    <ion-button fill="outline" (click)="retryProfile()">Reintentar</ion-button>
-  </div>
-</ion-content>
-} @else {
-<app-top-bar title="Profile"></app-top-bar>
-<ion-content class="ion-padding">
-  <div class="profile-page__skeleton" aria-label="Loading profile">
-    @for (i of [1,2,3,4,5,6]; track i) {
-    <div class="profile-page__skeleton-item"></div>
-    }
-  </div>
-</ion-content>
-}

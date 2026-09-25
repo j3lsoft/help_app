@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
+import { AppError } from '@core/models/app-error.model';
 import { LoggerService } from '@core/services/logger.service';
 import { toAppError } from '@core/utils/app-error.utils';
 import { AuthService } from '@features/auth/services/auth.service';
@@ -16,6 +17,7 @@ import { Post } from '@features/posts/models/post-view.model';
 import { FeedService } from '@features/home/services/feed.service';
 import { ProfileHeaderComponent } from '@features/profile/components/profile-header/profile-header.component';
 import { ProfileMediaGridComponent } from '@features/profile/components/profile-media-grid/profile-media-grid.component';
+import { ProfileSkeletonComponent } from '@features/profile/components/profile-skeleton/profile-skeleton.component';
 import { ProfileTabsComponent } from '@features/profile/components/profile-tabs/profile-tabs.component';
 import { ProfileService } from '@features/profile/services/profile.service';
 import { RelationshipService } from '@features/profile/services/relationship.service';
@@ -63,6 +65,7 @@ import { catchSocialError } from '../../utils/social-page-error.utils';
     IonInfiniteScroll,
     IonInfiniteScrollContent,
     ProfileHeaderComponent,
+    ProfileSkeletonComponent,
     ProfileTabsComponent,
     ProfileMediaGridComponent,
     PostCardComponent,
@@ -108,30 +111,43 @@ export class ProfilePage implements ViewWillEnter, OnDestroy {
   readonly mediaItems = computed(() => this.media().items);
   readonly mediaUrls = computed(() => this.media().urls);
 
+  private readonly profileLoadError = signal<AppError | null>(null);
+
   private readonly profileResource = rxResource({
-    stream: () =>
-      this.profileService.getMyProfile().pipe(
+    stream: () => {
+      this.profileLoadError.set(null);
+      return this.profileService.getMyProfile().pipe(
         catchError((error: unknown) => {
           const appError = toAppError(error);
+          this.profileLoadError.set(appError);
           this.profileErrorFacade.handle(appError, 'profile');
           throw appError;
         }),
-      ),
+      );
+    },
   });
 
   isLoadingProfile = computed(() => this.profileResource.isLoading());
 
-  showProfileError = computed(() => !!this.profileResource.error());
+  profileErrorMessage = computed(() => {
+    const error = this.profileLoadError();
+    return error
+      ? this.profileErrorFacade.getMessage(error, 'profile')
+      : 'Failed to load profile. Please try again.';
+  });
 
   userProfile = computed(() => {
     const authUser = this.authService.currentUser();
     const fullProfile = this.profileService.currentProfile();
+    // `currentProfile` is the source of truth (see CONTEXT.md); `AuthUser` is
+    // only an optimistic fallback so the header renders while `/me` loads.
+    const source = fullProfile ?? authUser;
 
-    if (!authUser) return null;
+    if (!source) return null;
 
-    const counts = this.relationships.counts(authUser.id)();
+    const counts = this.relationships.counts(source.id)();
     return toProfileHeaderViewModel({
-      source: fullProfile ?? authUser,
+      source,
       fullProfile,
       followerCount: counts.followerCount,
       followingCount: counts.followingCount,
