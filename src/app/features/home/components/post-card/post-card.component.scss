@@ -116,6 +116,12 @@
     // La tipografía vive en app-expandable-text; el host solo ocupa la fila.
   }
 
+  // Reserved tap area for textless Posts: without it, an image-only card has no
+  // reachable spot that opens the detail (the media opens the Lightbox).
+  &__open-target {
+    min-height: 44px;
+  }
+
   &__media {
     position: relative;
     margin: 4px 0 2px;

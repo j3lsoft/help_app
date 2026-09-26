@@ -301,7 +301,8 @@ export class ComposerPage implements ViewWillLeave {
         toPostView(result.post, {
           author: this.auth.currentUser(),
           fallbackImageUrls: items.map((item) => item.image.src),
-        })
+        }),
+        result.post.authorId
       );
 
       this.postCreation.reset();

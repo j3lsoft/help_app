@@ -6,7 +6,7 @@ import {
   convertToParamMap,
 } from '@angular/router';
 import { AlertController, NavController } from '@ionic/angular/standalone';
-import { BehaviorSubject, of, throwError } from 'rxjs';
+import { BehaviorSubject, Subject, of, throwError } from 'rxjs';
 import { AppError } from '@core/models/app-error.model';
 import { LoggerService } from '@core/services/logger.service';
 import { NotificationService } from '@core/services/notification.service';
@@ -463,6 +463,59 @@ describe('PostDetailPage', () => {
       navControllerSpy.back.calls.any() ||
         routerSpy.navigateByUrl.calls.any()
     ).toBeTrue();
+  });
+
+  it('should remove the post optimistically before the request resolves', async () => {
+    const pending$ = new Subject<void>();
+    postsApiSpy.deletePost.and.returnValue(pending$);
+    feedService.prependPost({
+      id: 'post-1',
+      userProfilePic: '',
+      userName: 'Tester',
+      username: '',
+      aboutPost: 'hello carousel',
+      postLikes: '0',
+      postComments: '0',
+      postShares: '0',
+      postImage: '',
+      postImages: [],
+      postLike: false,
+    });
+
+    const pendingDelete = component.deletePost();
+
+    expect(feedService.posts().some((p) => p.id === 'post-1')).toBeFalse();
+    expect(feedService.overrides().removedIds.has('post-1')).toBeTrue();
+
+    pending$.next();
+    pending$.complete();
+    await pendingDelete;
+  });
+
+  it('should roll back the optimistic removal when the delete fails', async () => {
+    postsApiSpy.deletePost.and.returnValue(
+      throwError(() => ({ status: 500, handled: false }))
+    );
+    const original = {
+      id: 'post-1',
+      userProfilePic: '',
+      userName: 'Tester',
+      username: '',
+      aboutPost: 'hello carousel',
+      postLikes: '0',
+      postComments: '0',
+      postShares: '0',
+      postImage: '',
+      postImages: [],
+      postLike: false,
+    };
+    feedService.prependPost(original);
+
+    await component.deletePost();
+
+    expect(feedService.overrides().removedIds.has('post-1')).toBeFalse();
+    expect(feedService.posts().some((p) => p.id === 'post-1')).toBeTrue();
+    expect(navControllerSpy.back).not.toHaveBeenCalled();
   });
 });
 

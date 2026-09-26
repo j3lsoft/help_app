@@ -470,9 +470,10 @@ export class PostDetailPage {
       return;
     }
     this.deleting.set(true);
+    // Optimistic: drop it from every list immediately, before the round trip.
+    this.feed.removePost(post.id);
     try {
       await firstValueFrom(this.postsApi.deletePost(post.id));
-      this.feed.removePost(post.id);
       await this.notification.showSuccess('Post deleted');
       this.goBack();
     } catch (error) {
@@ -483,8 +484,11 @@ export class PostDetailPage {
       });
       this.postErrorFacade.handle(appError, 'post-delete');
       if (isAppError(appError) && appError.status === 404) {
-        this.feed.removePost(post.id);
+        // Already gone server-side: the optimistic removal was correct.
         this.goBack();
+      } else {
+        // Roll the optimistic removal back so the Post reappears.
+        this.feed.restorePost(post.id);
       }
     } finally {
       this.deleting.set(false);

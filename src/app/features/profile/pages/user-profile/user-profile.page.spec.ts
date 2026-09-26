@@ -6,6 +6,7 @@ import { Subject, of, throwError } from 'rxjs';
 import { AppError } from '@core/models/app-error.model';
 import { LoggerService } from '@core/services/logger.service';
 import { AuthService } from '@features/auth/services/auth.service';
+import { FeedService } from '@features/home/services/feed.service';
 import { ProfileErrorFacade } from '../../errors/profile-error.facade';
 import { SocialErrorFacade } from '../../errors/social-error.facade';
 import { PublicProfileResponseDto } from '../../services/profile-api.service';
@@ -232,5 +233,30 @@ describe('UserProfilePage', () => {
     refresh$.complete();
 
     expect(component.profilePosts()[0].content).toBe('edited');
+  });
+
+  it('should drop a post tombstoned elsewhere in the app', async () => {
+    const post = {
+      id: 'p1',
+      authorId: '1',
+      content: 'hi',
+      media: [],
+      status: 'published' as const,
+      createdAt: '2026-08-25T00:00:00Z',
+      updatedAt: '2026-08-25T00:00:00Z',
+    };
+    postsApiSpy.getUserPosts.and.returnValue(
+      of({ items: [post], nextCursor: null, total: 1 }),
+    );
+
+    component.ionViewWillEnter();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(component.postCards().length).toBe(1);
+
+    TestBed.inject(FeedService).removePost('p1');
+
+    expect(component.postCards().length).toBe(0);
   });
 });

@@ -46,7 +46,7 @@ import { SocialErrorFacade } from '../../errors/social-error.facade';
 import { ProfileService } from '../../services/profile.service';
 import { RelationshipService } from '../../services/relationship.service';
 import { PostsApiService } from '@features/posts/services/posts-api.service';
-import { toPostView } from '@features/posts/adapters/post-view.adapter';
+import { projectProfilePosts } from '@features/profile/utils/profile-post-projection';
 import { ProfileTab } from '../../models/profile-tab.model';
 import { createProfilePostsLoader } from '../../utils/profile-posts.loader';
 import { toProfileMedia } from '../../utils/profile-view.utils';
@@ -190,12 +190,21 @@ export class UserProfilePage implements ViewWillEnter, OnDestroy {
   readonly viewerIndex = signal(0);
 
   readonly postCards = computed<Post[]>(() =>
-    this.profilePosts().map((dto) =>
-      toPostView(dto, { author: this.profile() ?? null }),
-    ),
+    projectProfilePosts({
+      dtos: this.profilePosts(),
+      author: this.profile() ?? null,
+      authorId: this.profileId(),
+      createdPosts: this.feed.createdPosts(),
+      overrides: this.feed.overrides(),
+    }),
   );
 
-  private readonly media = computed(() => toProfileMedia(this.profilePosts()));
+  private readonly media = computed(() => {
+    const removed = this.feed.overrides().removedIds;
+    return toProfileMedia(
+      this.profilePosts().filter((dto) => !removed.has(dto.id)),
+    );
+  });
   readonly mediaItems = computed(() => this.media().items);
   readonly mediaUrls = computed(() => this.media().urls);
 

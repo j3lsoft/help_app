@@ -9,6 +9,8 @@ import { ProfileService } from '@features/profile/services/profile.service';
 import { FollowApiService } from '@features/profile/services/follow-api.service';
 import { RelationshipService } from '@features/profile/services/relationship.service';
 import { AuthService } from '@features/auth/services/auth.service';
+import { FeedService } from '@features/home/services/feed.service';
+import { Post } from '@features/posts/models/post-view.model';
 import { LoggerService } from '@core/services/logger.service';
 import { ProfileErrorFacade } from '../../errors/profile-error.facade';
 import { SocialErrorFacade } from '../../errors/social-error.facade';
@@ -152,5 +154,61 @@ describe('ProfilePage', () => {
 
     expect(component.profilePosts()[0].content).toBe('edited');
     expect(component.isLoadingPosts()).toBeFalse();
+  });
+
+  const SERVER_POST = {
+    id: 'p1',
+    authorId: 'u1',
+    content: 'hi',
+    media: [
+      {
+        id: 'm1',
+        mediaFileId: 'file-1',
+        position: 0,
+        publicUrl: 'https://cdn.example.com/p1.jpg',
+        mimeType: 'image/jpeg',
+      },
+    ],
+    status: 'published' as const,
+    createdAt: '2026-08-25T00:00:00Z',
+    updatedAt: '2026-08-25T00:00:00Z',
+  };
+
+  it('should drop a post tombstoned elsewhere in the app, in the grid and the Media tab', () => {
+    postsApiSpy.getUserPosts.and.returnValue(
+      of({ items: [SERVER_POST], nextCursor: null, total: 1 }),
+    );
+
+    component.ionViewWillEnter();
+    expect(component.postCards().length).toBe(1);
+    expect(component.mediaItems().length).toBe(1);
+
+    TestBed.inject(FeedService).removePost('p1');
+
+    expect(component.postCards().length).toBe(0);
+    expect(component.mediaItems().length).toBe(0);
+  });
+
+  it('should prepend a session-created post before the server pages', () => {
+    const fresh: Post = {
+      id: 'new',
+      userProfilePic: '',
+      userName: 'Test',
+      username: 'test',
+      aboutPost: 'fresh',
+      postLikes: '0',
+      postComments: '0',
+      postShares: '0',
+      postSaves: '0',
+      postSaved: false,
+      postImage: '',
+      postImages: [],
+      postLike: false,
+    };
+
+    TestBed.inject(FeedService).prependPost(fresh, 'u1');
+    fixture.detectChanges();
+
+    expect(component.postCards()[0].id).toBe('new');
   });
 });

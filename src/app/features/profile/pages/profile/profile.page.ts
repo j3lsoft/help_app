@@ -21,7 +21,7 @@ import { ProfileSkeletonComponent } from '@features/profile/components/profile-s
 import { ProfileTabsComponent } from '@features/profile/components/profile-tabs/profile-tabs.component';
 import { ProfileService } from '@features/profile/services/profile.service';
 import { RelationshipService } from '@features/profile/services/relationship.service';
-import { toPostView } from '@features/posts/adapters/post-view.adapter';
+import { projectProfilePosts } from '@features/profile/utils/profile-post-projection';
 import { PostsApiService } from '@features/posts/services/posts-api.service';
 import { ImageLightboxComponent } from '@shared/components/image-lightbox/image-lightbox.component';
 import {
@@ -101,13 +101,23 @@ export class ProfilePage implements ViewWillEnter, OnDestroy {
   readonly viewerOpen = signal(false);
   readonly viewerIndex = signal(0);
 
-  readonly postCards = computed<Post[]>(() =>
-    this.profilePosts().map((dto) =>
-      toPostView(dto, { author: this.authService.currentUser() }),
-    ),
-  );
+  readonly postCards = computed<Post[]>(() => {
+    const author = this.authService.currentUser();
+    return projectProfilePosts({
+      dtos: this.profilePosts(),
+      author,
+      authorId: author?.id ?? null,
+      createdPosts: this.feed.createdPosts(),
+      overrides: this.feed.overrides(),
+    });
+  });
 
-  private readonly media = computed(() => toProfileMedia(this.profilePosts()));
+  private readonly media = computed(() => {
+    const removed = this.feed.overrides().removedIds;
+    return toProfileMedia(
+      this.profilePosts().filter((dto) => !removed.has(dto.id)),
+    );
+  });
   readonly mediaItems = computed(() => this.media().items);
   readonly mediaUrls = computed(() => this.media().urls);
 

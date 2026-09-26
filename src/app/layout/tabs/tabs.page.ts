@@ -9,6 +9,7 @@ import {
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router } from '@angular/router';
 import { AuthService } from '@features/auth/services/auth.service';
+import { FeedService } from '@features/home/services/feed.service';
 import {
   IonContent,
   IonHeader,
@@ -64,6 +65,7 @@ export class TabsPage implements ViewWillEnter {
   private readonly popOverCtrl = inject(PopoverController);
   private readonly menuCtrl = inject(MenuController);
   private readonly authService = inject(AuthService);
+  private readonly feed = inject(FeedService);
 
   /**
    * Ionic only re-fires the enter lifecycle on the tabs container when coming
@@ -137,6 +139,8 @@ export class TabsPage implements ViewWillEnter {
     this.showDialog.set(false);
     await this.popOverCtrl.dismiss();
     await this.menuCtrl.close();
+    // Drop tombstones/overrides so the next session starts clean (ADR 0007).
+    this.feed.reset();
     await this.authService.logout();
   }
 }

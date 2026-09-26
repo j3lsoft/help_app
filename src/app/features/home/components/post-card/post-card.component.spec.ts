@@ -29,6 +29,14 @@ const TEXT_ONLY: Post = { ...SINGLE, id: 'p3', postImage: '', postImages: [] };
 
 const TRUNCATED: Post = { ...SINGLE, id: 'p4', aboutPost: 'word '.repeat(80) };
 
+const TEXTLESS: Post = {
+  ...SINGLE,
+  id: 'p5',
+  aboutPost: '',
+  postImage: '',
+  postImages: [],
+};
+
 describe('PostCardComponent', () => {
   let component: PostCardComponent;
   let fixture: ComponentFixture<PostCardComponent>;
@@ -263,5 +271,35 @@ describe('PostCardComponent', () => {
     save.click();
 
     expect(emitted).toBeTrue();
+  });
+
+  it('should reserve a tappable target when the post has no text', () => {
+    fixture.componentRef.setInput('post', TEXTLESS);
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.post-card__open-target')).not.toBeNull();
+  });
+
+  it('should open the post when tapping the textless target', () => {
+    fixture.componentRef.setInput('post', TEXTLESS);
+    fixture.detectChanges();
+
+    let emitted: string | undefined;
+    component.postClick.subscribe((id) => (emitted = id));
+
+    (fixture.nativeElement as HTMLElement)
+      .querySelector('.post-card__open-target')
+      ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+    expect(emitted).toBe('p5');
+  });
+
+  it('should not reserve the target when the post has text', () => {
+    fixture.componentRef.setInput('post', SINGLE);
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.post-card__open-target')).toBeNull();
   });
 });

@@ -55,6 +55,10 @@
 
   @if (post().aboutPost) {
     <app-expandable-text [text]="post().aboutPost" class="post-card__body" />
+  } @else {
+    <!-- Textless Posts (image-only or empty) still need a tappable target that
+         reaches the detail: the media opens the Lightbox instead (ADR 0005). -->
+    <div class="post-card__open-target" aria-hidden="true"></div>
   }
 
   @if (post().postImages.length > 0) {

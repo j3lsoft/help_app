@@ -5,6 +5,7 @@ import { LoggerService } from '@core/services/logger.service';
 import { NotificationService } from '@core/services/notification.service';
 import { UploadApiService } from '@core/services/media/upload/services/upload-api.service';
 import { AuthService } from '@features/auth/services/auth.service';
+import { FeedService } from '@features/home/services/feed.service';
 import { of } from 'rxjs';
 import { PostCreationService } from '../../services/post-creation.service';
 import { DeviceGalleryService } from '../../services/device-gallery.service';
@@ -240,6 +241,9 @@ describe('ComposerPage', () => {
       replaceUrl: true,
     });
     expect(postCreationService.hasMedia()).toBeFalse();
+    expect(TestBed.inject(FeedService).createdPosts()[0]?.authorId).toBe(
+      'user-1',
+    );
   });
 
   it('should publish text-only posts without an image when content is present', async () => {
