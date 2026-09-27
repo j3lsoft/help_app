@@ -117,9 +117,10 @@
   }
 
   // Reserved tap area for textless Posts: without it, an image-only card has no
-  // reachable spot that opens the detail (the media opens the Lightbox).
+  // reachable spot that opens the detail (the media opens the Lightbox). Kept
+  // small so it reads as spacing, not as an empty block.
   &__open-target {
-    min-height: 44px;
+    min-height: 12px;
   }
 
   &__media {
