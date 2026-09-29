@@ -19,6 +19,7 @@ import { catchError, EMPTY, finalize, tap } from 'rxjs';
 import { AppError } from 'src/app/core/models/app-error.model';
 import { NotificationService } from 'src/app/core/services/notification.service';
 import { AppStorageService } from 'src/app/core/services/storage/app-storage.service';
+import { SecureStorageService } from 'src/app/core/services/storage/secure-storage.service';
 import { STORAGE_KEYS } from 'src/app/core/services/storage/storage-keys';
 import { isInvalid } from 'src/app/shared/utils/form.utils';
 import {
@@ -54,6 +55,7 @@ export class ResetPasswordPage {
   private readonly authApi = inject(AuthApiService);
   private readonly authService = inject(AuthService);
   private readonly storage = inject(AppStorageService);
+  private readonly secureStorage = inject(SecureStorageService);
   private readonly notification = inject(NotificationService);
   private readonly authErrorFacade = inject(AuthErrorFacade);
 
@@ -95,7 +97,7 @@ export class ResetPasswordPage {
     this.email.set(emailFromRoute || emailFromStorage);
 
     const tokenFromStorage =
-      (await this.storage.getString(STORAGE_KEYS.pendingChangePasswordToken)) ??
+      (await this.secureStorage.get(STORAGE_KEYS.pendingChangePasswordToken)) ??
       null;
     this.changePasswordToken.set(tokenFromStorage);
   }
@@ -141,7 +143,9 @@ export class ResetPasswordPage {
       .pipe(
         tap(async () => {
           await this.storage.remove(STORAGE_KEYS.pendingPasswordResetEmail);
-          await this.storage.remove(STORAGE_KEYS.pendingChangePasswordToken);
+          await this.secureStorage.remove(
+            STORAGE_KEYS.pendingChangePasswordToken
+          );
           await this.authService.logout();
 
           await this.notification.showSuccess('Password updated successfully.');

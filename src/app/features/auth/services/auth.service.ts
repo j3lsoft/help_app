@@ -66,6 +66,10 @@ export class AuthService implements AuthState {
     }
 
     await this.secureStorage.remove(STORAGE_KEYS.accessToken);
+    await this.secureStorage.remove(STORAGE_KEYS.pendingChangePasswordToken);
+    // Purge any legacy plaintext copy written by earlier versions so it cannot
+    // outlive the session.
+    await this.storage.remove(STORAGE_KEYS.pendingChangePasswordToken);
     await this.storage.remove(STORAGE_KEYS.userData);
     this._currentUser.set(null);
     await this.router.navigateByUrl('/auth/sign-in', { replaceUrl: true });

@@ -7,6 +7,7 @@ import {
 import { ActivatedRoute, Router } from '@angular/router';
 import { AppError } from '@core/models/app-error.model';
 import { AppStorageService } from '@core/services/storage/app-storage.service';
+import { SecureStorageService } from '@core/services/storage/secure-storage.service';
 import { STORAGE_KEYS } from '@core/services/storage/storage-keys';
 import {
   IonContent,
@@ -43,6 +44,7 @@ export class VerifyResetOtpPage {
   private readonly route = inject(ActivatedRoute);
   private readonly authApi = inject(AuthApiService);
   private readonly storage = inject(AppStorageService);
+  private readonly secureStorage = inject(SecureStorageService);
   private readonly authErrorFacade = inject(AuthErrorFacade);
 
   showLoadingDialog = signal(false);
@@ -138,10 +140,12 @@ export class VerifyResetOtpPage {
       )
       .subscribe({
         next: async (response) => {
-          await this.storage.setString(
+          await this.secureStorage.set(
             STORAGE_KEYS.pendingChangePasswordToken,
             response.changePasswordToken
           );
+          // Drop any legacy plaintext copy written by earlier versions.
+          await this.storage.remove(STORAGE_KEYS.pendingChangePasswordToken);
 
           // Allow the Ionic popover to finish its dismiss animation before tearing down the page
           setTimeout(() => {

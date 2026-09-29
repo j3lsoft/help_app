@@ -5,6 +5,8 @@ import { of, throwError } from 'rxjs';
 import { AppError } from 'src/app/core/models/app-error.model';
 import { NotificationService } from 'src/app/core/services/notification.service';
 import { AppStorageService } from 'src/app/core/services/storage/app-storage.service';
+import { SecureStorageService } from 'src/app/core/services/storage/secure-storage.service';
+import { STORAGE_KEYS } from 'src/app/core/services/storage/storage-keys';
 import { AuthErrorFacade } from '../../errors/auth-error.facade';
 import { AuthApiService } from '../../services/auth-api.service';
 import { AuthService } from '../../services/auth.service';
@@ -16,6 +18,7 @@ describe('ResetPasswordPage', () => {
   let authApiMock: jasmine.SpyObj<AuthApiService>;
   let authServiceMock: jasmine.SpyObj<AuthService>;
   let storageMock: jasmine.SpyObj<AppStorageService>;
+  let secureStorageMock: jasmine.SpyObj<SecureStorageService>;
   let routerMock: jasmine.SpyObj<Router>;
   let authErrorFacadeMock: jasmine.SpyObj<AuthErrorFacade>;
 
@@ -28,6 +31,11 @@ describe('ResetPasswordPage', () => {
       'getString',
       'remove',
       'setString',
+    ]);
+    secureStorageMock = jasmine.createSpyObj('SecureStorageService', [
+      'get',
+      'set',
+      'remove',
     ]);
     routerMock = jasmine.createSpyObj('Router', ['navigateByUrl']);
 
@@ -45,14 +53,19 @@ describe('ResetPasswordPage', () => {
     };
 
     storageMock.getString.and.callFake((key: string) => {
-      if (key === 'PENDING_PASSWORD_RESET_EMAIL') {
+      if (key === STORAGE_KEYS.pendingPasswordResetEmail) {
         return Promise.resolve('test@test.com');
       }
-      if (key === 'PENDING_CHANGE_PASSWORD_TOKEN') {
+      return Promise.resolve(null);
+    });
+
+    secureStorageMock.get.and.callFake((key: string) => {
+      if (key === STORAGE_KEYS.pendingChangePasswordToken) {
         return Promise.resolve('change-token');
       }
       return Promise.resolve(null);
     });
+    secureStorageMock.remove.and.returnValue(Promise.resolve());
 
     await TestBed.configureTestingModule({
       imports: [ResetPasswordPage],
@@ -60,6 +73,7 @@ describe('ResetPasswordPage', () => {
         { provide: AuthApiService, useValue: authApiMock },
         { provide: AuthService, useValue: authServiceMock },
         { provide: AppStorageService, useValue: storageMock },
+        { provide: SecureStorageService, useValue: secureStorageMock },
         { provide: Router, useValue: routerMock },
         { provide: ActivatedRoute, useValue: routeMock },
         {
@@ -130,6 +144,9 @@ describe('ResetPasswordPage', () => {
     await new Promise((r) => setTimeout(r, 0));
     await new Promise((r) => setTimeout(r, 0));
 
+    expect(secureStorageMock.remove).toHaveBeenCalledWith(
+      STORAGE_KEYS.pendingChangePasswordToken
+    );
     expect(routerMock.navigateByUrl).toHaveBeenCalledWith('/auth/sign-in', {
       replaceUrl: true,
     });
