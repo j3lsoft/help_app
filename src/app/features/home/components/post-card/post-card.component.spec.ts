@@ -37,6 +37,12 @@ const TEXTLESS: Post = {
   postImages: [],
 };
 
+const TEXTLESS_IMAGE: Post = {
+  ...SINGLE,
+  id: 'p6',
+  aboutPost: '',
+};
+
 describe('PostCardComponent', () => {
   let component: PostCardComponent;
   let fixture: ComponentFixture<PostCardComponent>;
@@ -82,11 +88,13 @@ describe('PostCardComponent', () => {
     expect(host.querySelector('app-post-media-carousel')).toBeNull();
   });
 
-  it('should open the Lightbox on the tapped image instead of navigating', () => {
+  it('should emit the tapped image index, not open the Lightbox, on an image tap', () => {
     fixture.componentRef.setInput('post', CAROUSEL);
     fixture.detectChanges();
 
+    let activation: { postId: string; imageIndex: number } | undefined;
     let postEmitted = false;
+    component.mediaClick.subscribe((value) => (activation = value));
     component.postClick.subscribe(() => (postEmitted = true));
 
     const images = (fixture.nativeElement as HTMLElement).querySelectorAll(
@@ -95,22 +103,26 @@ describe('PostCardComponent', () => {
     (images[1] as HTMLElement).click();
     fixture.detectChanges();
 
-    expect(component.viewerOpen()).toBeTrue();
-    expect(component.viewerIndex()).toBe(1);
+    expect(activation).toEqual({ postId: 'p2', imageIndex: 1 });
     expect(postEmitted).toBeFalse();
+    expect(component.viewerOpen()).toBeFalse();
   });
 
-  it('should open the Lightbox from a single image too', () => {
+  it('should open the Lightbox from the media expand button', () => {
     fixture.componentRef.setInput('post', SINGLE);
     fixture.detectChanges();
 
+    let postEmitted = false;
+    component.postClick.subscribe(() => (postEmitted = true));
+
     (fixture.nativeElement as HTMLElement)
-      .querySelector('.carousel__single-image')
+      .querySelector('.post-card__media-expand')
       ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     fixture.detectChanges();
 
     expect(component.viewerOpen()).toBeTrue();
     expect(component.viewerIndex()).toBe(0);
+    expect(postEmitted).toBeFalse();
   });
 
   it('should close the Lightbox', () => {
@@ -297,6 +309,14 @@ describe('PostCardComponent', () => {
 
   it('should not reserve the target when the post has text', () => {
     fixture.componentRef.setInput('post', SINGLE);
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.post-card__open-target')).toBeNull();
+  });
+
+  it('should not reserve the blank target when a textless post has media', () => {
+    fixture.componentRef.setInput('post', TEXTLESS_IMAGE);
     fixture.detectChanges();
 
     const host = fixture.nativeElement as HTMLElement;

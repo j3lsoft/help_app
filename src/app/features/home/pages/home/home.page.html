@@ -33,6 +33,7 @@
       (commentClick)="goToComments(item.id)"
       (saveClick)="handlePostSave(item.id)"
       (postClick)="goToPostDetail($event)"
+      (mediaClick)="goToPostDetail($event.postId, $event.imageIndex)"
     ></app-post-card>
   </div>
   }

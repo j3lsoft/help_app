@@ -5,6 +5,7 @@ import {
   input,
   output,
   signal,
+  viewChild,
 } from '@angular/core';
 import { IonIcon, IonImg, IonText } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -13,6 +14,7 @@ import {
   bookmarkOutline,
   chatboxEllipsesOutline,
   ellipsisVertical,
+  expandOutline,
   heart,
   heartOutline,
   imagesOutline,
@@ -24,6 +26,12 @@ import { ExpandableTextComponent } from '@shared/components/expandable-text/expa
 import { ShortNumberPipe } from '@shared/pipes/short-number.pipe';
 import { TimeAgoPipe } from '@shared/pipes/time-ago.pipe';
 import { Post } from '@features/posts/models/post-view.model';
+
+/** Opens a Post from one of its images, carrying the tapped image index. */
+export interface PostMediaActivation {
+  postId: string;
+  imageIndex: number;
+}
 
 @Component({
   selector: 'app-post-card',
@@ -51,14 +59,20 @@ export class PostCardComponent {
   shareClick = output<void>();
   /** Tapping anywhere but the media opens the post detail. */
   postClick = output<string>();
+  /** Tapping one image opens the post detail pinned to that image. */
+  mediaClick = output<PostMediaActivation>();
 
   /**
    * Lightbox state. The card owns it: the Post's own media is part of how the
    * card presents that Post, so the pages do not have to wire a fourth copy of
-   * the viewer. See `docs/adr/0005`.
+   * the viewer. Opened from the media's expand button, not from a media tap.
+   * See `docs/adr/0008` (supersedes `docs/adr/0005`).
    */
   readonly viewerOpen = signal(false);
   readonly viewerIndex = signal(0);
+
+  /** Current media to open the viewer on; `undefined` for text-only Posts. */
+  private readonly carousel = viewChild(PostMediaCarouselComponent);
 
   readonly authorInitial = computed(() => {
     const name = (this.post().userName ?? '').trim();
@@ -69,12 +83,21 @@ export class PostCardComponent {
     this.postClick.emit(this.post().id);
   }
 
+  activateMedia(imageIndex: number): void {
+    this.mediaClick.emit({ postId: this.post().id, imageIndex });
+  }
+
   openViewer(index: number): void {
     if (this.post().postImages.length === 0) {
       return;
     }
     this.viewerIndex.set(index);
     this.viewerOpen.set(true);
+  }
+
+  /** Opens the viewer on the image the carousel is currently showing. */
+  openViewerFromCarousel(): void {
+    this.openViewer(this.carousel()?.activeIndex() ?? 0);
   }
 
   closeViewer(): void {
@@ -98,6 +121,7 @@ export class PostCardComponent {
       bookmarkOutline,
       shareOutline,
       ellipsisVertical,
+      expandOutline,
       imagesOutline,
     });
   }

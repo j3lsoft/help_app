@@ -93,7 +93,7 @@ _Avoid_: thumbnail, cover, preview image
 ### Post media viewing
 
 **Lightbox**:
-Fullscreen overlay that presents the images of one Post, opening at the tapped image and swiping only within that Post.
+Fullscreen overlay that presents the images of one Post, opening at the image the card was showing and swiping only within that Post. It is opened from the media's explicit expand button, not from a media tap (see `docs/adr/0008`).
 _Avoid_: image viewer, gallery, modal
 
 **Media Grid**:

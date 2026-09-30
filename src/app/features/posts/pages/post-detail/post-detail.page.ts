@@ -14,7 +14,7 @@ import {
   takeUntilDestroyed,
   toSignal,
 } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, ParamMap, Router } from '@angular/router';
+import { ActivatedRoute, ParamMap, Router, convertToParamMap } from '@angular/router';
 import {
   AlertController,
   IonButton,
@@ -146,6 +146,19 @@ export class PostDetailPage {
   );
 
   readonly postId = computed(() => this.routePostId() || this.initialPostId);
+
+  /**
+   * Image the detail carousel should start on, from the `?image=N` query the
+   * list sets when the user taps a specific image (see ADR 0008).
+   */
+  readonly initialImageIndex = toSignal(
+    (
+      (this.route.queryParamMap as Observable<ParamMap> | undefined) ??
+      of(this.route.snapshot.queryParamMap ?? convertToParamMap({}))
+    ).pipe(map((params: ParamMap) => parseImageIndex(params.get('image')))),
+    { initialValue: 0 }
+  );
+
   readonly liked = signal(false);
   readonly saved = signal(false);
   readonly likeCount = signal(0);
@@ -222,7 +235,6 @@ export class PostDetailPage {
       .sort((a, b) => a.position - b.position)
       .map((m) => m.publicUrl)
   );
-
   readonly authorName = computed((): string => {
     const post = this.post();
     const author = this.auth.currentUser();
@@ -494,4 +506,10 @@ export class PostDetailPage {
       this.deleting.set(false);
     }
   }
+}
+
+/** Parses the `?image=` query value into a non-negative carousel index. */
+export function parseImageIndex(raw: string | null): number {
+  const parsed = raw ? Number.parseInt(raw, 10) : 0;
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
 }

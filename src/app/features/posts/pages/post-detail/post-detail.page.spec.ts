@@ -15,7 +15,7 @@ import { FeedService } from '@features/home/services/feed.service';
 import { PostErrorFacade } from '../../errors/post-error.facade';
 import { PostResponseDto } from '../../models/post.dto';
 import { PostsApiService } from '../../services/posts-api.service';
-import { PostDetailPage } from './post-detail.page';
+import { PostDetailPage, parseImageIndex } from './post-detail.page';
 
 const POST_DTO: PostResponseDto = {
   id: 'post-1',
@@ -707,5 +707,18 @@ describe('PostDetailPage as visitor', () => {
         '.detail__options-icon'
       )
     ).toBeNull();
+  });
+});
+
+describe('parseImageIndex', () => {
+  it('defaults to the first image for missing or invalid values', () => {
+    expect(parseImageIndex(null)).toBe(0);
+    expect(parseImageIndex('0')).toBe(0);
+    expect(parseImageIndex('abc')).toBe(0);
+    expect(parseImageIndex('-3')).toBe(0);
+  });
+
+  it('parses a positive image index', () => {
+    expect(parseImageIndex('2')).toBe(2);
   });
 });

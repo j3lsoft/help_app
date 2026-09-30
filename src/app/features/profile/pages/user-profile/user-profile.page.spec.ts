@@ -120,6 +120,14 @@ describe('UserProfilePage', () => {
     expect(component).toBeTruthy();
   });
 
+  it('should navigate to the detail pinned to the tapped image', () => {
+    const router = TestBed.inject(Router);
+
+    component.goToPostDetail('1', 2);
+
+    expect(router.navigateByUrl).toHaveBeenCalledWith('post-detail/1?image=2');
+  });
+
   it('should load profile by username', () => {
     expect(profileServiceSpy.getPublicProfile).toHaveBeenCalledWith('jane');
     expect(component.profile()).toEqual(mockProfile);

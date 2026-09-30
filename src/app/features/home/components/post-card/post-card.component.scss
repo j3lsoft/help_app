@@ -116,11 +116,10 @@
     // La tipografía vive en app-expandable-text; el host solo ocupa la fila.
   }
 
-  // Reserved tap area for textless Posts: without it, an image-only card has no
-  // reachable spot that opens the detail (the media opens the Lightbox). Kept
-  // small so it reads as spacing, not as an empty block.
+  // Fallback tap area for a Post with neither text nor media. Textless Posts
+  // with images use the media itself instead (see ADR 0008).
   &__open-target {
-    min-height: 12px;
+    min-height: 44px;
   }
 
   &__media {
@@ -160,6 +159,33 @@
 
     ion-icon {
       font-size: 14px;
+    }
+  }
+
+  // Explicit viewer trigger: the media tap now opens the Post, so the
+  // fullscreen viewer gets its own control (see ADR 0008).
+  &__media-expand {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: rgba(4, 19, 49, 0.42);
+    color: var(--whiteColor);
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(4, 19, 49, 0.18);
+    backdrop-filter: blur(8px) saturate(140%);
+    -webkit-backdrop-filter: blur(8px) saturate(140%);
+
+    ion-icon {
+      font-size: 20px;
     }
   }
 

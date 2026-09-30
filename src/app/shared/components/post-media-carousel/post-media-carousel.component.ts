@@ -1,4 +1,5 @@
 import {
+  AfterViewChecked,
   ChangeDetectionStrategy,
   Component,
   ElementRef,
@@ -14,6 +15,7 @@ import { IonImg } from '@ionic/angular/standalone';
  * Single image renders plainly; multiple render a scroll-snap track with dots.
  * Renders nothing when empty (text-only Posts).
  * Emits `imageTap` with the image index only on a deliberate tap, never on a swipe.
+ * `initialIndex` pins which image is shown first (e.g. the one tapped in a list).
  */
 @Component({
   selector: 'app-post-media-carousel',
@@ -22,8 +24,9 @@ import { IonImg } from '@ionic/angular/standalone';
   imports: [IonImg],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PostMediaCarouselComponent {
+export class PostMediaCarouselComponent implements AfterViewChecked {
   readonly images = input.required<string[]>();
+  readonly initialIndex = input(0);
   readonly activeIndex = signal(0);
   readonly imageTap = output<number>();
 
@@ -31,6 +34,38 @@ export class PostMediaCarouselComponent {
 
   private pointerStartX: number | null = null;
   private dragged = false;
+
+  private lastImages: readonly string[] | null = null;
+  private appliedIndex: number | null = null;
+  private scrolledFor: number | null = null;
+
+  ngAfterViewChecked(): void {
+    const images = this.images();
+    const index = this.initialIndex();
+    const imagesChanged = images !== this.lastImages;
+    this.lastImages = images;
+
+    if (images.length <= 1) {
+      return;
+    }
+    const el = this.track()?.nativeElement;
+    if (!el) {
+      return;
+    }
+    // Re-pin on a new image set (route reuse / Post change) or a new index.
+    if (imagesChanged || this.appliedIndex !== index) {
+      this.appliedIndex = index;
+      this.scrolledFor = null;
+      this.goToSlide(index);
+    }
+    // Scroll is only measurable after layout; retry until it is, then stop so a
+    // user swipe is not fought on later change-detection passes.
+    if (this.scrolledFor !== index && el.clientWidth > 0) {
+      this.scrolledFor = index;
+      const clamped = Math.max(0, Math.min(index, images.length - 1));
+      el.scrollLeft = clamped * el.clientWidth;
+    }
+  }
 
   goToSlide(index: number): void {
     const count = this.images().length;

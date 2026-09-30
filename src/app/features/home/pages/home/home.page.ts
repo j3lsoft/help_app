@@ -22,6 +22,7 @@ import { TopBarComponent } from '@shared/components/top-bar/top-bar.component';
 import { addIcons } from 'ionicons';
 import { search } from 'ionicons/icons';
 import { PostCardComponent } from '../../components/post-card/post-card.component';
+import { buildPostDetailUrl } from '@features/posts/utils/post-detail-url.util';
 import {
   StoryListComponent,
   UserStory,
@@ -75,8 +76,8 @@ export class HomePage implements ViewWillEnter {
     this.router.navigateByUrl(`user-profile/${username}`);
   }
 
-  goToPostDetail(postId: string) {
-    this.router.navigateByUrl(`post-detail/${postId}`);
+  goToPostDetail(postId: string, imageIndex?: number) {
+    this.router.navigateByUrl(buildPostDetailUrl(postId, imageIndex));
   }
 
   goToComments(postId: string) {

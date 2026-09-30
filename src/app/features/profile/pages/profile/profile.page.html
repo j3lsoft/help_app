@@ -66,6 +66,7 @@
       (commentClick)="goToPostDetail(card.id)"
       (saveClick)="handlePostSave(card.id)"
       (postClick)="goToPostDetail($event)"
+      (mediaClick)="goToPostDetail($event.postId, $event.imageIndex)"
     ></app-post-card>
   </div>
   }

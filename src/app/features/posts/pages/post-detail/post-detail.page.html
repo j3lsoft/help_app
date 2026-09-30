@@ -207,6 +207,7 @@
         <figure class="detail__media">
           <app-post-media-carousel
             [images]="images()"
+            [initialIndex]="initialImageIndex()"
             (imageTap)="openViewer($event)"
             style="--post-carousel-height: 320px"
           ></app-post-media-carousel>

@@ -55,21 +55,30 @@
 
   @if (post().aboutPost) {
     <app-expandable-text [text]="post().aboutPost" class="post-card__body" />
-  } @else {
-    <!-- Textless Posts (image-only or empty) still need a tappable target that
-         reaches the detail: the media opens the Lightbox instead (ADR 0005). -->
+  } @else if (post().postImages.length === 0) {
+    <!-- A Post with neither text nor media still needs a reachable spot; a
+         textless Post with media uses the media itself (see ADR 0008). -->
     <div class="post-card__open-target" aria-hidden="true"></div>
   }
 
   @if (post().postImages.length > 0) {
-    <!-- Tapping the media opens the Lightbox, so it must not reach the card's
-         openPost handler. -->
+    <!-- The media is the main tap surface: a deliberate tap on an image opens
+         the Post detail, like the rest of the card. The fullscreen viewer is
+         behind the explicit expand button. See ADR 0008 (supersedes ADR 0005). -->
     <figure class="post-card__media" (click)="$event.stopPropagation()">
       <app-post-media-carousel
         [images]="post().postImages"
         style="--post-carousel-height: 320px"
-        (imageTap)="openViewer($event)"
+        (imageTap)="activateMedia($event)"
       ></app-post-media-carousel>
+      <button
+        type="button"
+        class="post-card__media-expand"
+        (click)="$event.stopPropagation(); openViewerFromCarousel()"
+        aria-label="View images full screen"
+      >
+        <ion-icon name="expand-outline" aria-hidden="true"></ion-icon>
+      </button>
       @if (post().postImages.length > 1) {
         <figcaption class="post-card__media-count">
           <ion-icon name="images-outline" aria-hidden="true"></ion-icon>

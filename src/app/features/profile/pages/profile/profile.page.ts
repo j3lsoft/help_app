@@ -22,6 +22,7 @@ import { ProfileTabsComponent } from '@features/profile/components/profile-tabs/
 import { ProfileService } from '@features/profile/services/profile.service';
 import { RelationshipService } from '@features/profile/services/relationship.service';
 import { projectProfilePosts } from '@features/profile/utils/profile-post-projection';
+import { buildPostDetailUrl } from '@features/posts/utils/post-detail-url.util';
 import { PostsApiService } from '@features/posts/services/posts-api.service';
 import { ImageLightboxComponent } from '@shared/components/image-lightbox/image-lightbox.component';
 import {
@@ -238,9 +239,9 @@ export class ProfilePage implements ViewWillEnter, OnDestroy {
     this.feed.toggleSave(postId);
   }
 
-  goToPostDetail(postId: string) {
+  goToPostDetail(postId: string, imageIndex?: number) {
     if (postId) {
-      this.router.navigateByUrl(`post-detail/${postId}`);
+      this.router.navigateByUrl(buildPostDetailUrl(postId, imageIndex));
     }
   }
 

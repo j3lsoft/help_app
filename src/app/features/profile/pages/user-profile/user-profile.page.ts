@@ -47,6 +47,7 @@ import { ProfileService } from '../../services/profile.service';
 import { RelationshipService } from '../../services/relationship.service';
 import { PostsApiService } from '@features/posts/services/posts-api.service';
 import { projectProfilePosts } from '@features/profile/utils/profile-post-projection';
+import { buildPostDetailUrl } from '@features/posts/utils/post-detail-url.util';
 import { ProfileTab } from '../../models/profile-tab.model';
 import { createProfilePostsLoader } from '../../utils/profile-posts.loader';
 import { toProfileMedia } from '../../utils/profile-view.utils';
@@ -333,9 +334,9 @@ export class UserProfilePage implements ViewWillEnter, OnDestroy {
     this.feed.toggleSave(postId);
   }
 
-  goToPostDetail(postId: string) {
+  goToPostDetail(postId: string, imageIndex?: number) {
     if (postId) {
-      this.router.navigateByUrl(`post-detail/${postId}`);
+      this.router.navigateByUrl(buildPostDetailUrl(postId, imageIndex));
     }
   }
 

@@ -100,4 +100,12 @@ describe('PostMediaCarouselComponent', () => {
 
     expect(tapped).toBeUndefined();
   });
+
+  it('should start on the initialIndex', () => {
+    fixture.componentRef.setInput('images', ['a.png', 'b.png', 'c.png']);
+    fixture.componentRef.setInput('initialIndex', 2);
+    fixture.detectChanges();
+
+    expect(component.activeIndex()).toBe(2);
+  });
 });

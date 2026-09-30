@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { provideIonicAngular } from '@ionic/angular/standalone';
 import { signal } from '@angular/core';
 import { Subject, of } from 'rxjs';
@@ -76,6 +76,15 @@ describe('ProfilePage', () => {
 
   it('should handle post click navigation', () => {
     expect(() => component.goToPostDetail('123')).not.toThrow();
+  });
+
+  it('should navigate to the detail pinned to the tapped image', () => {
+    const router = TestBed.inject(Router);
+    spyOn(router, 'navigateByUrl');
+
+    component.goToPostDetail('p1', 2);
+
+    expect(router.navigateByUrl).toHaveBeenCalledWith('post-detail/p1?image=2');
   });
 
   it('should default to the posts tab', () => {
