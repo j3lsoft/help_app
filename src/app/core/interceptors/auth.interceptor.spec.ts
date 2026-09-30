@@ -16,7 +16,7 @@ import { LoggerService } from '../services/logger.service';
 describe('authInterceptor', () => {
   let http: HttpClient;
   let httpMock: HttpTestingController;
-  let currentToken: string;
+  let currentToken: string | null;
   let resolveRefresh: () => void;
   let rejectRefresh: (error: unknown) => void;
   let authState: jasmine.SpyObj<AuthState>;
@@ -170,6 +170,25 @@ describe('authInterceptor', () => {
       expect((error as AppError).status).toBe(status);
     }));
   });
+
+  it('does not refresh nor log out when the request carried no token', fakeAsync(() => {
+    currentToken = null;
+
+    let error: unknown;
+    http.get('/api/v1/users/me').subscribe({
+      error: (e) => (error = e),
+    });
+    flushMicrotasks();
+
+    const request = httpMock.expectOne('/api/v1/users/me');
+    expect(request.request.headers.has('Authorization')).toBeFalse();
+    request.flush({}, { status: 401, statusText: 'Unauthorized' });
+    flushMicrotasks();
+
+    expect(authState.refreshSession).not.toHaveBeenCalled();
+    expect(authState.logout).not.toHaveBeenCalled();
+    expect((error as { status: number }).status).toBe(401);
+  }));
 
   it('does not refresh on non-401 errors', fakeAsync(() => {
     http.get('/api/v1/users/me').subscribe({ error: () => undefined });

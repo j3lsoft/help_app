@@ -40,6 +40,7 @@ export const AUTH_ERROR_MAP: Record<AuthErrorContext, ErrorMapConfig> = {
         'Too many failed attempts. Please request a new code.',
     },
     byStatus: {
+      401: 'Invalid verification code. Please try again.',
       422: 'Invalid email address. Please check and try again.',
       400: 'Invalid request. Please try again.',
     },

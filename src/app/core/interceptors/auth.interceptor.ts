@@ -13,6 +13,12 @@ import { LoggerService } from '../services/logger.service';
 import { toAppError } from '../utils/app-error.utils';
 import { HTTP_STATUS } from '../utils/http.utils';
 
+/**
+ * Endpoints that must never trigger a refresh even when a token is attached:
+ * `refresh` itself, plus `login`/`logout`, which must not recursively heal.
+ * Every other unauthenticated endpoint is already excluded by the token gate
+ * below: no credentials were attached, so a refresh cannot help.
+ */
 const SKIP_REFRESH_URLS = [
   '/api/v1/auth/refresh',
   '/api/v1/auth/login',
@@ -63,7 +69,11 @@ export const authInterceptor: HttpInterceptorFn = (
 
       return next(authReq).pipe(
         catchError((error) => {
+          // A refresh can only heal a request that carried credentials. Auth
+          // screens run unauthenticated (`noAuthGuard`), so their 401s (e.g. a
+          // wrong OTP) must reach the caller instead of forcing a logout.
           if (
+            token &&
             error instanceof HttpErrorResponse &&
             error.status === 401 &&
             !isAuthBypassUrl(req.url)
