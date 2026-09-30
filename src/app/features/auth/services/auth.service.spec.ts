@@ -1,9 +1,10 @@
-import { TestBed } from '@angular/core/testing';
+import { TestBed, fakeAsync, flushMicrotasks, tick } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { AppStorageService } from '@core/services/storage/app-storage.service';
 import { SecureStorageService } from '@core/services/storage/secure-storage.service';
 import { STORAGE_KEYS } from '@core/services/storage/storage-keys';
-import { of, throwError } from 'rxjs';
+import { LoggerService } from '@core/services/logger.service';
+import { NEVER, of, throwError } from 'rxjs';
 import { AuthApiService } from './auth-api.service';
 import { AuthService } from './auth.service';
 
@@ -13,6 +14,7 @@ describe('AuthService', () => {
   let secureStorageMock: jasmine.SpyObj<SecureStorageService>;
   let authApiMock: jasmine.SpyObj<AuthApiService>;
   let routerMock: jasmine.SpyObj<Router>;
+  let loggerMock: jasmine.SpyObj<LoggerService>;
 
   beforeEach(() => {
     storageMock = jasmine.createSpyObj('AppStorageService', ['remove']);
@@ -21,6 +23,12 @@ describe('AuthService', () => {
     ]);
     authApiMock = jasmine.createSpyObj('AuthApiService', ['logout']);
     routerMock = jasmine.createSpyObj('Router', ['navigateByUrl']);
+    loggerMock = jasmine.createSpyObj('LoggerService', [
+      'debug',
+      'warn',
+      'error',
+      'info',
+    ]);
 
     storageMock.remove.and.returnValue(Promise.resolve());
     secureStorageMock.remove.and.returnValue(Promise.resolve());
@@ -34,6 +42,7 @@ describe('AuthService', () => {
         { provide: SecureStorageService, useValue: secureStorageMock },
         { provide: AuthApiService, useValue: authApiMock },
         { provide: Router, useValue: routerMock },
+        { provide: LoggerService, useValue: loggerMock },
       ],
     });
 
@@ -67,4 +76,23 @@ describe('AuthService', () => {
       STORAGE_KEYS.pendingChangePasswordToken
     );
   });
+
+  it('completes the local logout when session revocation hangs', fakeAsync(() => {
+    authApiMock.logout.and.returnValue(NEVER);
+
+    let resolved = false;
+    void service.logout().then(() => (resolved = true));
+
+    tick(3000);
+    flushMicrotasks();
+
+    expect(resolved).toBeTrue();
+    expect(secureStorageMock.remove).toHaveBeenCalledWith(
+      STORAGE_KEYS.accessToken
+    );
+    expect(routerMock.navigateByUrl).toHaveBeenCalledWith('/auth/sign-in', {
+      replaceUrl: true,
+    });
+    expect(loggerMock.warn).toHaveBeenCalled();
+  }));
 });

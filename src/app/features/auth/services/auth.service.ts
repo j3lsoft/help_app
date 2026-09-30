@@ -5,13 +5,20 @@ import { AuthState } from '@core/models/auth-state.interface';
 import { AppStorageService } from '@core/services/storage/app-storage.service';
 import { SecureStorageService } from '@core/services/storage/secure-storage.service';
 import { STORAGE_KEYS } from '@core/services/storage/storage-keys';
-import { firstValueFrom } from 'rxjs';
+import { LoggerService } from '@core/services/logger.service';
+import { firstValueFrom, timeout } from 'rxjs';
 import {
   AuthUserDto,
   LoginResponseDto,
   MeResponseDto,
 } from '../models/auth.dto';
 import { AuthApiService } from './auth-api.service';
+
+/**
+ * Upper bound for the server-side session revocation attempt. Local logout
+ * must always complete, so a hung request may not block it forever.
+ */
+const LOGOUT_REVOKE_TIMEOUT_MS = 3000;
 
 @Injectable({
   providedIn: 'root',
@@ -21,6 +28,7 @@ export class AuthService implements AuthState {
   private readonly secureStorage = inject(SecureStorageService);
   private readonly authApi = inject(AuthApiService);
   private readonly router = inject(Router);
+  private readonly logger = inject(LoggerService);
 
   private readonly _currentUser = signal<AuthUserDto | null>(null);
   readonly currentUser = this._currentUser.asReadonly();
@@ -60,9 +68,15 @@ export class AuthService implements AuthState {
 
   private async performLogout(): Promise<void> {
     try {
-      await firstValueFrom(this.authApi.logout());
-    } catch {
-      // Local logout must always succeed, even if revocation fails.
+      await firstValueFrom(
+        this.authApi.logout().pipe(timeout(LOGOUT_REVOKE_TIMEOUT_MS))
+      );
+    } catch (error) {
+      // Local logout must always succeed, even if revocation fails or hangs.
+      this.logger.warn('Session revocation failed; local logout proceeds', {
+        context: 'AuthService',
+        data: { reason: error instanceof Error ? error.message : String(error) },
+      });
     }
 
     await this.secureStorage.remove(STORAGE_KEYS.accessToken);
