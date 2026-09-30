@@ -20,8 +20,8 @@ export interface ProfilePostProjectionArgs {
 /**
  * Projects a profile's Posts: server pages plus the session-created Posts of
  * that author, with tombstones/caption/engagement applied so the list reacts to
- * mutations made anywhere else in the app (see ADR 0007). Session-created Posts
- * win over a server copy of the same id to avoid duplicates.
+ * mutations made anywhere else in the app. Session-created Posts win over a
+ * server copy of the same id to avoid duplicates.
  */
 export function projectProfilePosts({
   dtos,

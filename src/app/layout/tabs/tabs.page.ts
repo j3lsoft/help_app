@@ -139,7 +139,7 @@ export class TabsPage implements ViewWillEnter {
     this.showDialog.set(false);
     await this.popOverCtrl.dismiss();
     await this.menuCtrl.close();
-    // Drop tombstones/overrides so the next session starts clean (ADR 0007).
+    // Drop tombstones/overrides so the next session starts clean.
     this.feed.reset();
     await this.authService.logout();
   }

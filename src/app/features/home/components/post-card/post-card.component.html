@@ -57,14 +57,14 @@
     <app-expandable-text [text]="post().aboutPost" class="post-card__body" />
   } @else if (post().postImages.length === 0) {
     <!-- A Post with neither text nor media still needs a reachable spot; a
-         textless Post with media uses the media itself (see ADR 0008). -->
+         textless Post with media uses the media itself. -->
     <div class="post-card__open-target" aria-hidden="true"></div>
   }
 
   @if (post().postImages.length > 0) {
     <!-- The media is the main tap surface: a deliberate tap on an image opens
          the Post detail, like the rest of the card. The fullscreen viewer is
-         behind the explicit expand button. See ADR 0008 (supersedes ADR 0005). -->
+         behind the explicit expand button. -->
     <figure class="post-card__media" (click)="$event.stopPropagation()">
       <app-post-media-carousel
         [images]="post().postImages"

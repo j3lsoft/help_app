@@ -28,7 +28,7 @@ export interface CreatedPostEntry {
 
 /**
  * Read-only snapshot of every session-local mutation a list must apply on top
- * of its own server data. Produced by `FeedService.overrides` (see ADR 0007).
+ * of its own server data. Produced by `FeedService.overrides`.
  */
 export interface PostOverrides {
   removedIds: ReadonlySet<string>;

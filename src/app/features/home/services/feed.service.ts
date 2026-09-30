@@ -16,7 +16,6 @@ import {
  * It also owns the session-local mutation log (tombstones, caption patches,
  * engagement and created posts) that every list projects on its own server
  * data, so a delete/edit/like anywhere is visible everywhere immediately.
- * See `docs/adr/0007`.
  */
 @Injectable({
   providedIn: 'root',

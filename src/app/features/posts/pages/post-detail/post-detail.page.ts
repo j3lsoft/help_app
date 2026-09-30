@@ -149,7 +149,7 @@ export class PostDetailPage {
 
   /**
    * Image the detail carousel should start on, from the `?image=N` query the
-   * list sets when the user taps a specific image (see ADR 0008).
+   * list sets when the user taps a specific image.
    */
   readonly initialImageIndex = toSignal(
     (

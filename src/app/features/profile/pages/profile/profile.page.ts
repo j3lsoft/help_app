@@ -150,8 +150,8 @@ export class ProfilePage implements ViewWillEnter, OnDestroy {
   userProfile = computed(() => {
     const authUser = this.authService.currentUser();
     const fullProfile = this.profileService.currentProfile();
-    // `currentProfile` is the source of truth (see CONTEXT.md); `AuthUser` is
-    // only an optimistic fallback so the header renders while `/me` loads.
+    // `currentProfile` is the source of truth; `AuthUser` is only an
+    // optimistic fallback so the header renders while `/me` loads.
     const source = fullProfile ?? authUser;
 
     if (!source) return null;

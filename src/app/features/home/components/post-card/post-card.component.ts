@@ -66,7 +66,6 @@ export class PostCardComponent {
    * Lightbox state. The card owns it: the Post's own media is part of how the
    * card presents that Post, so the pages do not have to wire a fourth copy of
    * the viewer. Opened from the media's expand button, not from a media tap.
-   * See `docs/adr/0008` (supersedes `docs/adr/0005`).
    */
   readonly viewerOpen = signal(false);
   readonly viewerIndex = signal(0);

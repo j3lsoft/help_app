@@ -117,7 +117,7 @@
   }
 
   // Fallback tap area for a Post with neither text nor media. Textless Posts
-  // with images use the media itself instead (see ADR 0008).
+  // with images use the media itself instead.
   &__open-target {
     min-height: 44px;
   }
@@ -163,7 +163,7 @@
   }
 
   // Explicit viewer trigger: the media tap now opens the Post, so the
-  // fullscreen viewer gets its own control (see ADR 0008).
+  // fullscreen viewer gets its own control.
   &__media-expand {
     position: absolute;
     right: 10px;

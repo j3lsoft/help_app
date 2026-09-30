@@ -1,7 +1,7 @@
 /**
  * UI projection of a server Post, rendered by the post card and profile lists.
  * Kept deliberately close to the legacy template field names; renaming to the
- * `CONTEXT.md` vocabulary is a separate change.
+ * domain vocabulary is a separate change.
  */
 export interface Post {
   id: string;
