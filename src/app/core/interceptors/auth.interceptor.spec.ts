@@ -10,6 +10,7 @@ import {
 import { TestBed, fakeAsync, flushMicrotasks } from '@angular/core/testing';
 import { authInterceptor } from './auth.interceptor';
 import { AUTH_STATE_TOKEN, AuthState } from '../models/auth-state.interface';
+import { AppError } from '../models/app-error.model';
 import { LoggerService } from '../services/logger.service';
 
 describe('authInterceptor', () => {
@@ -121,19 +122,54 @@ describe('authInterceptor', () => {
     postsRetry.flush({});
   }));
 
-  it('logs out when the refresh fails', fakeAsync(() => {
-    http.get('/api/v1/users/me').subscribe({ error: () => undefined });
+  // Drives a request into a 401, makes the refresh reject with `rejection` and
+  // returns the error the original request finally emits.
+  function runFailedRefresh(rejection: unknown): unknown {
+    let receivedError: unknown;
+    http.get('/api/v1/users/me').subscribe({
+      error: (error) => (receivedError = error),
+    });
     flushMicrotasks();
 
-    const request = httpMock.expectOne('/api/v1/users/me');
-    request.flush({}, { status: 401, statusText: 'Unauthorized' });
+    httpMock
+      .expectOne('/api/v1/users/me')
+      .flush({}, { status: 401, statusText: 'Unauthorized' });
     flushMicrotasks();
 
-    rejectRefresh(new Error('refresh failed'));
+    rejectRefresh(rejection);
     flushMicrotasks();
 
-    expect(authState.logout).toHaveBeenCalledTimes(1);
-  }));
+    return receivedError;
+  }
+
+  const transientCases: Array<[string, unknown, number]> = [
+    ['status 0', { status: 0, handled: false } as AppError, 0],
+    ['a 5xx', { status: 500, handled: true } as AppError, 500],
+    ['a non-HTTP error', new Error('refresh failed'), 0],
+  ];
+
+  transientCases.forEach(([label, rejection, expectedStatus]) => {
+    it(`keeps the session when the refresh fails with ${label}`, fakeAsync(() => {
+      const error = runFailedRefresh(rejection);
+
+      expect(authState.logout).not.toHaveBeenCalled();
+      expect((error as AppError).status).toBe(expectedStatus);
+    }));
+  });
+
+  const invalidSessionCases: Array<[string, number]> = [
+    ['401', 401],
+    ['403', 403],
+  ];
+
+  invalidSessionCases.forEach(([label, status]) => {
+    it(`logs out when the refresh is rejected with ${label}`, fakeAsync(() => {
+      const error = runFailedRefresh({ status, handled: false } as AppError);
+
+      expect(authState.logout).toHaveBeenCalledTimes(1);
+      expect((error as AppError).status).toBe(status);
+    }));
+  });
 
   it('does not refresh on non-401 errors', fakeAsync(() => {
     http.get('/api/v1/users/me').subscribe({ error: () => undefined });

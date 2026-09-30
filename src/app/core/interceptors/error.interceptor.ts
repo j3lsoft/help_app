@@ -11,7 +11,7 @@ import { HttpErrorAdapter } from '../adapters/http-error.adapter';
 import { LoggerService } from '../services/logger.service';
 import { NetworkService } from '../services/network.service';
 import { NotificationService } from '../services/notification.service';
-import { markHandled } from '../utils/app-error.utils';
+import { isAppError, isHandled, markHandled } from '../utils/app-error.utils';
 import { classifyTechnicalError } from '../utils/error-handling.utils';
 import { getHttpErrorLogLevel, isTechnicalError } from '../utils/http.utils';
 
@@ -34,6 +34,12 @@ export const errorInterceptor: HttpInterceptorFn = (
       },
     }),
     catchError((error: HttpErrorResponse) => {
+      if (isAppError(error) && isHandled(error)) {
+        // Already surfaced by an inner interceptor (e.g. a failed token
+        // refresh). Re-adapting would reset `handled` and toast a duplicate.
+        return throwError(() => error);
+      }
+
       const appError = HttpErrorAdapter.adapt(error);
       const logLevel = getHttpErrorLogLevel(appError.status);
       const isOnline = network.isOnline();

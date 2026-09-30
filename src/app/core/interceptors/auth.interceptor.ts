@@ -10,6 +10,8 @@ import { Observable, catchError, from, of, switchMap, throwError } from 'rxjs';
 import { TokenRefreshService } from '../services/token-refresh.service';
 import { AUTH_STATE_TOKEN, AuthState } from '../models/auth-state.interface';
 import { LoggerService } from '../services/logger.service';
+import { toAppError } from '../utils/app-error.utils';
+import { HTTP_STATUS } from '../utils/http.utils';
 
 const SKIP_REFRESH_URLS = [
   '/api/v1/auth/refresh',
@@ -17,8 +19,27 @@ const SKIP_REFRESH_URLS = [
   '/api/v1/auth/logout',
 ];
 
+/** A refresh failure with one of these statuses means the session is unrecoverable. */
+const INVALID_SESSION_STATUSES: readonly number[] = [
+  HTTP_STATUS.UNAUTHORIZED,
+  HTTP_STATUS.FORBIDDEN,
+];
+
 function isAuthBypassUrl(url: string): boolean {
   return SKIP_REFRESH_URLS.some((path) => url.includes(path));
+}
+
+/**
+ * Resolves the HTTP status of an unknown rejection.
+ *
+ * `toAppError` understands `AppError`, `Error` and arbitrary values, but not a
+ * raw `HttpErrorResponse` (which is not an `Error` subclass), so unwrap that
+ * case first. Everything else is normalized as-is.
+ */
+function getErrorStatus(error: unknown): number {
+  return error instanceof HttpErrorResponse
+    ? error.status
+    : toAppError(error).status;
 }
 
 export const authInterceptor: HttpInterceptorFn = (
@@ -91,14 +112,27 @@ const handle401Error = (
     )
     .pipe(
       catchError((refreshError) => {
-        logger.warn('Session refresh failed, logging out', {
+        const appError = toAppError(refreshError);
+
+        if (INVALID_SESSION_STATUSES.includes(appError.status)) {
+          logger.warn('Session refresh rejected, logging out', {
+            context: 'AuthInterceptor',
+            data: { url: request.url, status: appError.status },
+          });
+
+          return from(authState.logout()).pipe(
+            switchMap(() => throwError(() => appError))
+          );
+        }
+
+        // Transient failure (0/429/5xx/unknown): keep the session and let the
+        // caller react. Logging out here would discard drafts and in-flight work.
+        logger.warn('Session refresh failed, keeping session', {
           context: 'AuthInterceptor',
-          data: { url: request.url },
+          data: { url: request.url, status: appError.status },
         });
 
-        return from(authState.logout()).pipe(
-          switchMap(() => throwError(() => refreshError))
-        );
+        return throwError(() => appError);
       }),
       switchMap((newToken) => retryWithToken(request, next, newToken, authState))
     );
@@ -117,7 +151,7 @@ const retryWithToken = (
     })
   ).pipe(
     catchError((error) => {
-      if (error instanceof HttpErrorResponse && error.status === 401) {
+      if (getErrorStatus(error) === HTTP_STATUS.UNAUTHORIZED) {
         return from(authState.logout()).pipe(
           switchMap(() => throwError(() => error))
         );
