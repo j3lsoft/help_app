@@ -91,4 +91,63 @@ describe('DeviceGalleryService', () => {
     expect(result[0].format).toBe('jpeg');
     expect(result[0].origin).toBe('web');
   });
+
+  describe('web picker', () => {
+    beforeEach(() => {
+      spyOn(Capacitor, 'isNativePlatform').and.returnValue(false);
+      spyOn(HTMLInputElement.prototype, 'click');
+    });
+
+    function pickerInput(): HTMLInputElement {
+      const input = document.querySelector<HTMLInputElement>('input[type="file"]');
+      if (!input) {
+        throw new Error('file input was not attached to the DOM');
+      }
+      return input;
+    }
+
+    function selectFiles(input: HTMLInputElement, files: File[]): void {
+      Object.defineProperty(input, 'files', { value: files, configurable: true });
+    }
+
+    it('should attach the input and read the selection on change', async () => {
+      const promise = service.pickFromGallery(3);
+      const input = pickerInput();
+      selectFiles(input, [new File(['a'], 'a.jpg', { type: 'image/jpeg' })]);
+
+      input.dispatchEvent(new Event('change'));
+      const result = await promise;
+
+      expect(result.length).toBe(1);
+      expect(result[0].origin).toBe('web');
+      expect(document.querySelector('input[type="file"]')).toBeNull();
+    });
+
+    it('should resolve empty when the picker is cancelled', async () => {
+      const promise = service.pickFromGallery(3);
+
+      pickerInput().dispatchEvent(new Event('cancel'));
+
+      expect(await promise).toEqual([]);
+    });
+
+    it('should recover the selection on window focus when change never fires', async () => {
+      const promise = service.pickFromGallery(3);
+      selectFiles(pickerInput(), [new File(['a'], 'a.png', { type: 'image/png' })]);
+
+      window.dispatchEvent(new Event('focus'));
+      const result = await promise;
+
+      expect(result.length).toBe(1);
+      expect(result[0].format).toBe('png');
+    });
+
+    it('should resolve empty on window focus when nothing was selected', async () => {
+      const promise = service.pickFromGallery(3);
+
+      window.dispatchEvent(new Event('focus'));
+
+      expect(await promise).toEqual([]);
+    });
+  });
 });

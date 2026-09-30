@@ -10,6 +10,12 @@ import { SelectedPostImage } from '../models/post-creation.model';
 import { LoggerService } from '@core/services/logger.service';
 
 /**
+ * How long to wait after the window regains focus before treating a closed
+ * picker as a cancellation. Gives a pending `change` event time to win.
+ */
+const WEB_PICKER_CLOSE_DELAY_MS = 400;
+
+/**
  * Seam for device photo selection.
  * Native: system gallery picker (Photo Picker / PHPicker) via @capacitor/camera,
  * no library permissions required. Web: <input type="file" multiple> fallback.
@@ -99,6 +105,16 @@ export class DeviceGalleryService {
       if (maxCount > 1) {
         input.multiple = true;
       }
+      // Keep the input off-screen but IN the DOM. A detached file input can lose
+      // its `change`/`input` event on Blink (the element may be collected while
+      // the native dialog is open), which silently drops the selection.
+      input.style.position = 'fixed';
+      input.style.left = '-9999px';
+      input.style.width = '1px';
+      input.style.height = '1px';
+      input.style.opacity = '0';
+      input.tabIndex = -1;
+      input.setAttribute('aria-hidden', 'true');
 
       let settled = false;
       let focusTimer: number | null = null;
@@ -125,25 +141,25 @@ export class DeviceGalleryService {
         resolve(images);
       };
 
-      const onChange = () => {
+      /** Reads whatever the control holds; empty means the user cancelled. */
+      const readSelection = (): SelectedPostImage[] => {
         const files = input.files;
-        if (!files || files.length === 0) {
-          finish([]);
-          return;
-        }
-        finish(this.fromFiles(files, maxCount));
+        return files && files.length > 0 ? this.fromFiles(files, maxCount) : [];
       };
+
+      const onChange = () => finish(readSelection());
 
       const onCancel = () => finish([]);
 
       // Older WebViews (notably iOS Safari) never fire `cancel`. Regaining
-      // window focus after the picker closes is the fallback dismissal signal;
-      // the short delay lets a `change` event win the race first.
+      // window focus after the picker closes is the fallback: wait a beat for a
+      // `change` to win, then read the control instead of assuming a cancel —
+      // some browsers set `files` without delivering `change` reliably.
       const onWindowFocus = () => {
         if (focusTimer !== null) {
           window.clearTimeout(focusTimer);
         }
-        focusTimer = window.setTimeout(() => finish([]), 300);
+        focusTimer = window.setTimeout(() => finish(readSelection()), WEB_PICKER_CLOSE_DELAY_MS);
       };
 
       input.addEventListener('change', onChange);
@@ -152,7 +168,16 @@ export class DeviceGalleryService {
         window.addEventListener('focus', onWindowFocus);
       }
 
-      input.click();
+      document.body.appendChild(input);
+      try {
+        input.click();
+      } catch (error) {
+        this.logger.warn('Could not open the file picker', {
+          context: 'DeviceGalleryService',
+          data: { message: String(error) },
+        });
+        finish([]);
+      }
     });
   }
 
