@@ -12,7 +12,7 @@ import {
 import { of, throwError } from 'rxjs';
 import { CameraService } from 'src/app/core/services/camera/camera.service';
 import { LoggerService } from 'src/app/core/services/logger.service';
-import { UploadFacade } from 'src/app/core/services/media/upload/services/upload-facade.service';
+import { MediaUpload } from 'src/app/core/services/media/upload/services/media-upload.service';
 import { NotificationService } from 'src/app/core/services/notification.service';
 import { MeResponseDto } from 'src/app/features/auth/models/auth.dto';
 import { AuthService } from 'src/app/features/auth/services/auth.service';
@@ -81,11 +81,18 @@ describe('EditProfilePage', () => {
       'warn',
     ]);
 
-    const uploadFacadeSpy = jasmine.createSpyObj('UploadFacade', [
-      'setUploadType',
-      'addFile',
+    const mediaUploadSpy = jasmine.createSpyObj('MediaUpload', [
+      'upload',
+      'remove',
     ]);
-    uploadFacadeSpy.queue = signal([]);
+    mediaUploadSpy.upload.and.resolveTo({
+      id: 'media-1',
+      key: 'uploads/avatar.jpg',
+      publicUrl: 'https://cdn.example.com/a.png',
+      mimeType: 'image/jpeg',
+      size: 1,
+      ownerId: 'u1',
+    });
 
     await TestBed.configureTestingModule({
       imports: [EditProfilePage],
@@ -103,7 +110,7 @@ describe('EditProfilePage', () => {
         { provide: ToastController, useValue: toastCtrlSpy },
         { provide: AlertController, useValue: alertCtrlSpy },
         { provide: LoggerService, useValue: loggerSpy },
-        { provide: UploadFacade, useValue: uploadFacadeSpy },
+        { provide: MediaUpload, useValue: mediaUploadSpy },
         { provide: ProfileErrorFacade, useValue: profileErrorFacadeSpy },
         {
           provide: CameraService,

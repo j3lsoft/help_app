@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing';
-import { Observable, of, throwError } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { LoggerService } from '@core/services/logger.service';
-import { UploadApiService } from '@core/services/media/upload/services/upload-api.service';
-import { MediaFileResponseDto } from '../../../core/services/media/upload/models';
+import { MediaUpload } from '@core/services/media/upload/services/media-upload.service';
+import { UploadResult } from '@core/services/media/upload/models';
 import { PostsApiService } from './posts-api.service';
 import {
   PostPublishError,
@@ -14,17 +14,8 @@ import { MediaItem, POST_EDIT_STATE_NEUTRAL } from '../models/post-creation.mode
 
 describe('PostPublishService', () => {
   let service: PostPublishService;
-  let uploadApiSpy: jasmine.SpyObj<UploadApiService>;
+  let mediaUploadSpy: jasmine.SpyObj<MediaUpload>;
   let postsApiSpy: jasmine.SpyObj<PostsApiService>;
-
-  const MEDIA: MediaFileResponseDto = {
-    id: 'media-1',
-    key: 'uploads/post.jpg',
-    publicUrl: 'https://storage.example.com/uploads/post.jpg',
-    mimeType: 'image/jpeg',
-    size: 1024,
-    ownerId: 'user-1',
-  };
 
   const POST_DTO: PostResponseDto = {
     id: 'post-1',
@@ -61,28 +52,40 @@ describe('PostPublishService', () => {
     };
   }
 
-  beforeEach(() => {
-    uploadApiSpy = jasmine.createSpyObj('UploadApiService', [
-      'getPresignedUrl',
-      'uploadToStorage',
-      'confirmUpload',
-      'deleteFile',
-    ]);
-    postsApiSpy = jasmine.createSpyObj('PostsApiService', ['createPost']);
+  function confirmedResult(file: File): UploadResult {
+    return {
+      id: `media-${file.name}`,
+      key: `uploads/${file.name}`,
+      publicUrl: `https://storage.example.com/uploads/${file.name}`,
+      mimeType: file.type,
+      size: file.size,
+      ownerId: 'user-1',
+    };
+  }
 
-    uploadApiSpy.getPresignedUrl.and.callFake(({ originalName }) =>
-      of({ id: `presigned-${originalName}`, key: `uploads/${originalName}`, uploadUrl: 'https://s3/put' })
+  /** Stubs the rasterizer to produce deterministic file names. */
+  function stubBake(): jasmine.Spy<PostPublishService['bakeImage']> {
+    let index = 0;
+    return spyOn(service, 'bakeImage').and.callFake(async () =>
+      new File(['x'], `post-${index++}.webp`, { type: 'image/webp' }),
     );
-    uploadApiSpy.uploadToStorage.and.returnValue(of(100));
-    uploadApiSpy.confirmUpload.and.callFake(({ fileId }) =>
-      of({ ...MEDIA, id: `media-${fileId}` })
+  }
+
+  beforeEach(() => {
+    mediaUploadSpy = jasmine.createSpyObj<MediaUpload>('MediaUpload', [
+      'upload',
+      'remove',
+    ]);
+    mediaUploadSpy.upload.and.callFake(async (file: File) =>
+      confirmedResult(file),
     );
+    postsApiSpy = jasmine.createSpyObj('PostsApiService', ['createPost']);
     postsApiSpy.createPost.and.returnValue(of(POST_DTO));
 
     TestBed.configureTestingModule({
       providers: [
         PostPublishService,
-        { provide: UploadApiService, useValue: uploadApiSpy },
+        { provide: MediaUpload, useValue: mediaUploadSpy },
         { provide: PostsApiService, useValue: postsApiSpy },
       ],
     });
@@ -90,7 +93,10 @@ describe('PostPublishService', () => {
     TestBed.inject(LoggerService);
   });
 
-  it('should bake, upload via presigned flow and create the post', async () => {
+  it('should bake, upload through MediaUpload and create the post', async () => {
+    spyOn(service, 'bakeImage').and.resolveTo(
+      new File(['x'], 'post.webp', { type: 'image/webp' }),
+    );
     const stages: PublishStage[] = [];
     const progress: number[] = [];
 
@@ -102,14 +108,16 @@ describe('PostPublishService', () => {
     });
 
     expect(result.post.id).toBe('post-1');
-    expect(result.mediaFileId).toBe('media-presigned-post.webp');
-    expect(result.mediaFileIds).toEqual(['media-presigned-post.webp']);
-    expect(uploadApiSpy.getPresignedUrl).toHaveBeenCalled();
-    expect(uploadApiSpy.uploadToStorage).toHaveBeenCalled();
-    expect(uploadApiSpy.confirmUpload).toHaveBeenCalled();
+    expect(result.mediaFileId).toBe('media-post.webp');
+    expect(result.mediaFileIds).toEqual(['media-post.webp']);
+    expect(mediaUploadSpy.upload).toHaveBeenCalled();
+    const uploadArg = mediaUploadSpy.upload.calls.mostRecent().args;
+    expect(uploadArg[1]).toEqual(
+      jasmine.objectContaining({ uploadType: 'post_image' }),
+    );
     expect(postsApiSpy.createPost).toHaveBeenCalledWith({
       content: 'hi',
-      mediaIds: ['media-presigned-post.webp'],
+      mediaIds: ['media-post.webp'],
     });
     expect(stages).toContain('baking');
     expect(stages).toContain('uploading');
@@ -137,7 +145,8 @@ describe('PostPublishService', () => {
     expect(filterArg).toContain('contrast(1.1)');
   });
 
-  it('should publish multiple MediaItem items in sequence', async () => {
+  it('should upload every MediaItem in the batch', async () => {
+    stubBake();
     const items: MediaItem[] = [
       {
         id: 'item-1',
@@ -161,7 +170,7 @@ describe('PostPublishService', () => {
     });
 
     expect(result.mediaFileIds.length).toBe(2);
-    expect(uploadApiSpy.getPresignedUrl).toHaveBeenCalledTimes(2);
+    expect(mediaUploadSpy.upload).toHaveBeenCalledTimes(2);
     expect(postsApiSpy.createPost).toHaveBeenCalledWith({
       content: 'multi image post',
       mediaIds: result.mediaFileIds,
@@ -169,11 +178,12 @@ describe('PostPublishService', () => {
   });
 
   it('should send null content when caption is empty', async () => {
+    stubBake();
     await service.publish({ items: [makeItem()], content: '   ' });
 
     expect(postsApiSpy.createPost).toHaveBeenCalledWith({
       content: null,
-      mediaIds: ['media-presigned-post.webp'],
+      mediaIds: ['media-post-0.webp'],
     });
   });
 
@@ -182,9 +192,7 @@ describe('PostPublishService', () => {
 
     expect(result.mediaFileId).toBeNull();
     expect(result.mediaFileIds).toEqual([]);
-    expect(uploadApiSpy.getPresignedUrl).not.toHaveBeenCalled();
-    expect(uploadApiSpy.uploadToStorage).not.toHaveBeenCalled();
-    expect(uploadApiSpy.confirmUpload).not.toHaveBeenCalled();
+    expect(mediaUploadSpy.upload).not.toHaveBeenCalled();
     expect(postsApiSpy.createPost).toHaveBeenCalledWith({
       content: 'hello text',
       mediaIds: [],
@@ -219,39 +227,24 @@ describe('PostPublishService', () => {
     });
 
     expect(result.mediaFileIds).toEqual(['confirmed-media-1']);
-    expect(uploadApiSpy.getPresignedUrl).not.toHaveBeenCalled();
+    expect(mediaUploadSpy.upload).not.toHaveBeenCalled();
   });
 
   it('should preserve mediaIds carousel order when uploads finish out of order', async () => {
     const delaysMs = [30, 5, 20];
-    let bakeIndex = 0;
-    spyOn(service, 'bakeImage').and.callFake(async () => {
-      const index = bakeIndex++;
-      return new File([new Blob(['x'])], `post-${index}.webp`, { type: 'image/webp' });
-    });
-    uploadApiSpy.uploadToStorage.and.callFake((_url, file) => {
+    stubBake();
+    mediaUploadSpy.upload.and.callFake((file: File) => {
       const match = /post-(\d+)\./.exec(file.name);
       const index = match ? Number(match[1]) : 0;
       const delay = delaysMs[index] ?? 0;
-      return new Observable<number>((subscriber) => {
-        const timerId = setTimeout(() => {
-          subscriber.next(100);
-          subscriber.complete();
-        }, delay);
-        return () => clearTimeout(timerId);
+      return new Promise<UploadResult>((resolve) => {
+        setTimeout(() => resolve(confirmedResult(file)), delay);
       });
     });
-    uploadApiSpy.confirmUpload.and.callFake(({ originalName }) =>
-      of({ ...MEDIA, id: `media-${originalName}` })
-    );
 
-    const items: MediaItem[] = delaysMs.map((_, index) => ({
-      id: `item-${index}`,
-      image: { src: TINY_PNG, format: 'png', origin: 'gallery' },
-      filter: '',
-      edits: { ...POST_EDIT_STATE_NEUTRAL },
-      pendingMediaId: null,
-    }));
+    const items: MediaItem[] = delaysMs.map((_, index) =>
+      makeItem({ id: `item-${index}` }),
+    );
 
     const result = await service.publish({ items, content: 'ordered carousel' });
 
@@ -267,28 +260,17 @@ describe('PostPublishService', () => {
   });
 
   it('should expose per-index uploadedMediaIds when a parallel upload fails', async () => {
-    let bakeIndex = 0;
-    spyOn(service, 'bakeImage').and.callFake(async () => {
-      const index = bakeIndex++;
-      return new File([new Blob(['x'])], `post-${index}.webp`, { type: 'image/webp' });
-    });
-    uploadApiSpy.uploadToStorage.and.callFake((_url, file) => {
+    stubBake();
+    mediaUploadSpy.upload.and.callFake((file: File) => {
       if (file.name.includes('post-1.')) {
-        return throwError(() => new Error('storage failed'));
+        return Promise.reject(new Error('storage failed'));
       }
-      return of(100);
+      return Promise.resolve(confirmedResult(file));
     });
-    uploadApiSpy.confirmUpload.and.callFake(({ originalName }) =>
-      of({ ...MEDIA, id: `media-${originalName}` })
-    );
 
-    const items: MediaItem[] = [0, 1, 2].map((index) => ({
-      id: `item-${index}`,
-      image: { src: TINY_PNG, format: 'png', origin: 'gallery' },
-      filter: '',
-      edits: { ...POST_EDIT_STATE_NEUTRAL },
-      pendingMediaId: null,
-    }));
+    const items: MediaItem[] = [0, 1, 2].map((index) =>
+      makeItem({ id: `item-${index}` }),
+    );
 
     try {
       await service.publish({ items, content: 'partial' });
@@ -304,8 +286,11 @@ describe('PostPublishService', () => {
   });
 
   it('should carry uploadedMediaIds when post creation fails', async () => {
+    spyOn(service, 'bakeImage').and.resolveTo(
+      new File(['x'], 'post.webp', { type: 'image/webp' }),
+    );
     postsApiSpy.createPost.and.returnValue(
-      throwError(() => ({ status: 422, message: 'domain error' }))
+      throwError(() => ({ status: 422, message: 'domain error' })),
     );
 
     try {
@@ -315,7 +300,7 @@ describe('PostPublishService', () => {
       expect(error).toBeInstanceOf(PostPublishError);
       const publishError = error as PostPublishError;
       expect(publishError.stage).toBe('creating');
-      expect(publishError.uploadedMediaIds).toEqual(['media-presigned-post.webp']);
+      expect(publishError.uploadedMediaIds).toEqual(['media-post.webp']);
     }
   });
 
@@ -328,13 +313,13 @@ describe('PostPublishService', () => {
     await service.publish({ items: [item], content: 'original' });
 
     expect(bakeSpy).not.toHaveBeenCalled();
-    expect(uploadApiSpy.getPresignedUrl).toHaveBeenCalled();
-    const presignedArg = uploadApiSpy.getPresignedUrl.calls.mostRecent()
-      .args[0];
-    expect(presignedArg.mimeType).toBe('image/jpeg');
+    expect(mediaUploadSpy.upload).toHaveBeenCalled();
+    const uploadedFile = mediaUploadSpy.upload.calls.mostRecent().args[0];
+    expect(uploadedFile.type).toBe('image/jpeg');
   });
 
   it('should not mutate input items with confirmed media ids', async () => {
+    stubBake();
     const item = makeItem();
 
     await service.publish({ items: [item], content: 'no mutation' });
@@ -343,25 +328,20 @@ describe('PostPublishService', () => {
   });
 
   it('should stop starting new uploads after the first failure', async () => {
-    let bakeIndex = 0;
-    spyOn(service, 'bakeImage').and.callFake(async () => {
-      const index = bakeIndex++;
-      return new File([new Blob(['x'])], `post-${index}.webp`, {
-        type: 'image/webp',
-      });
-    });
-    uploadApiSpy.uploadToStorage.and.callFake((_url, file) => {
+    stubBake();
+    // The failing file rejects immediately while the in-flight successes settle
+    // later, so a worker cannot grab a new slot before the first error is set.
+    mediaUploadSpy.upload.and.callFake((file: File) => {
       if (file.name.includes('post-1.')) {
-        return throwError(() => new Error('storage failed'));
+        return Promise.reject(new Error('storage failed'));
       }
-      return of(100);
+      return new Promise<UploadResult>((resolve) =>
+        setTimeout(() => resolve(confirmedResult(file)), 5),
+      );
     });
-    uploadApiSpy.confirmUpload.and.callFake(({ originalName }) =>
-      of({ ...MEDIA, id: `media-${originalName}` })
-    );
 
     const items = [0, 1, 2, 3, 4].map((index) =>
-      makeItem({ id: `item-${index}` })
+      makeItem({ id: `item-${index}` }),
     );
 
     try {
@@ -375,6 +355,6 @@ describe('PostPublishService', () => {
     }
 
     // Only the initial concurrency window is attempted; later slots never start.
-    expect(uploadApiSpy.getPresignedUrl).toHaveBeenCalledTimes(3);
+    expect(mediaUploadSpy.upload).toHaveBeenCalledTimes(3);
   });
 });

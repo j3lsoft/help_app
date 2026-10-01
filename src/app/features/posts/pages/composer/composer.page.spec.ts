@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { CameraService } from '@core/services/camera/camera.service';
 import { LoggerService } from '@core/services/logger.service';
 import { NotificationService } from '@core/services/notification.service';
-import { UploadApiService } from '@core/services/media/upload/services/upload-api.service';
+import { MediaUpload } from '@core/services/media/upload/services/media-upload.service';
 import { AuthService } from '@features/auth/services/auth.service';
 import { FeedService } from '@features/home/services/feed.service';
 import { of } from 'rxjs';
@@ -25,7 +25,7 @@ describe('ComposerPage', () => {
   let routerSpy: jasmine.SpyObj<Router>;
   let gallerySpy: jasmine.SpyObj<DeviceGalleryService>;
   let cameraSpy: jasmine.SpyObj<CameraService>;
-  let uploadApiSpy: jasmine.SpyObj<UploadApiService>;
+  let mediaUploadSpy: jasmine.SpyObj<MediaUpload>;
   let publishSpy: jasmine.SpyObj<PostPublishService>;
   let notificationSpy: jasmine.SpyObj<NotificationService>;
   let postCreationService: PostCreationService;
@@ -56,7 +56,8 @@ describe('ComposerPage', () => {
       'fromFiles',
     ]);
     cameraSpy = jasmine.createSpyObj('CameraService', ['takePhoto']);
-    uploadApiSpy = jasmine.createSpyObj('UploadApiService', ['deleteFile']);
+    mediaUploadSpy = jasmine.createSpyObj('MediaUpload', ['upload', 'remove']);
+    mediaUploadSpy.remove.and.resolveTo();
     publishSpy = jasmine.createSpyObj('PostPublishService', ['publish']);
     notificationSpy = jasmine.createSpyObj('NotificationService', [
       'showSuccess',
@@ -89,7 +90,7 @@ describe('ComposerPage', () => {
         { provide: Router, useValue: routerSpy },
         { provide: DeviceGalleryService, useValue: gallerySpy },
         { provide: CameraService, useValue: cameraSpy },
-        { provide: UploadApiService, useValue: uploadApiSpy },
+        { provide: MediaUpload, useValue: mediaUploadSpy },
         { provide: PostPublishService, useValue: publishSpy },
         { provide: NotificationService, useValue: notificationSpy },
         {
@@ -311,11 +312,11 @@ describe('ComposerPage', () => {
 
     expect(component.form.controls.caption.value).toBe('keep me');
     expect(postCreationService.pendingMediaId()).toBe('media-uploaded');
-    expect(uploadApiSpy.deleteFile).not.toHaveBeenCalled();
+    expect(mediaUploadSpy.remove).not.toHaveBeenCalled();
   });
 
   it('should clean up pending media when leaving without publishing', () => {
-    uploadApiSpy.deleteFile.and.returnValue(of({ success: true }));
+    mediaUploadSpy.remove.and.resolveTo();
     postCreationService.addImage({
       src: 'blob:x',
       format: 'jpeg',
@@ -325,7 +326,7 @@ describe('ComposerPage', () => {
 
     component.ionViewWillLeave();
 
-    expect(uploadApiSpy.deleteFile).toHaveBeenCalledWith('media-orphan');
+    expect(mediaUploadSpy.remove).toHaveBeenCalledWith('media-orphan');
     expect(postCreationService.pendingMediaId()).toBeNull();
   });
 
@@ -341,11 +342,11 @@ describe('ComposerPage', () => {
 
     expect(postCreationService.hasMedia()).toBeFalse();
     expect(component.form.controls.caption.value).toBe('');
-    expect(uploadApiSpy.deleteFile).not.toHaveBeenCalled();
+    expect(mediaUploadSpy.remove).not.toHaveBeenCalled();
   });
 
   it('should not clean up media after a successful publish', async () => {
-    uploadApiSpy.deleteFile.and.returnValue(of({ success: true }));
+    mediaUploadSpy.remove.and.resolveTo();
     postCreationService.addImage({
       src: 'blob:image-src',
       format: 'jpeg',
@@ -354,11 +355,11 @@ describe('ComposerPage', () => {
 
     await component.publish();
 
-    expect(uploadApiSpy.deleteFile).not.toHaveBeenCalled();
+    expect(mediaUploadSpy.remove).not.toHaveBeenCalled();
   });
 
   it('should clean up orphaned media and navigate home on exit', async () => {
-    uploadApiSpy.deleteFile.and.returnValue(of({ success: true }));
+    mediaUploadSpy.remove.and.resolveTo();
     postCreationService.addImage({
       src: 'blob:x',
       format: 'jpeg',
@@ -368,7 +369,7 @@ describe('ComposerPage', () => {
 
     await component.goHome();
 
-    expect(uploadApiSpy.deleteFile).toHaveBeenCalledWith('media-1');
+    expect(mediaUploadSpy.remove).toHaveBeenCalledWith('media-1');
     expect(routerSpy.navigateByUrl).toHaveBeenCalledWith('/tabs/home');
     expect(postCreationService.pendingMediaId()).toBeNull();
   });

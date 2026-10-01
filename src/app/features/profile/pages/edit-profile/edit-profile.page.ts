@@ -2,8 +2,6 @@ import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
-  DestroyRef,
-  Injector,
   computed,
   effect,
   inject,
@@ -11,9 +9,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { UploadStatus, UploadTask } from '@core/services/media/upload/models';
-import { UploadFacade } from '@core/services/media/upload/services/upload-facade.service';
+import { MediaUpload } from '@core/services/media/upload/services/media-upload.service';
 import { NotificationService } from '@core/services/notification.service';
 import { AuthService } from '@features/auth/services/auth.service';
 import {
@@ -26,7 +22,7 @@ import { BackHeaderComponent } from '@shared/components/back-header/back-header.
 import { dataUrlToFile } from '@shared/utils/file.utils';
 import { addIcons } from 'ionicons';
 import { checkmarkCircle, chevronBack } from 'ionicons/icons';
-import { filter, firstValueFrom, map, of, switchMap, take, tap } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { EditProfileAvatarComponent } from '../../components/edit-profile-avatar/edit-profile-avatar.component';
 import { EditProfileFormComponent } from '../../components/edit-profile-form/edit-profile-form.component';
 import { ProfileErrorFacade } from '../../errors/profile-error.facade';
@@ -58,9 +54,7 @@ export class EditProfilePage {
   private readonly notification = inject(NotificationService);
   private readonly loadingController = inject(LoadingController);
   private readonly alertController = inject(AlertController);
-  private readonly uploadFacade = inject(UploadFacade);
-  private readonly injector = inject(Injector);
-  private readonly destroyRef = inject(DestroyRef);
+  private readonly mediaUpload = inject(MediaUpload);
   private readonly profileErrorFacade = inject(ProfileErrorFacade);
 
   private readonly defaultProfile: ProfileFormData = {
@@ -224,36 +218,10 @@ export class EditProfilePage {
       throw new Error('Failed to process image file');
     }
 
-    return firstValueFrom(
-      of(file).pipe(
-        takeUntilDestroyed(this.destroyRef),
-        tap(() => this.uploadFacade.setUploadType('avatar')),
-        map((f) => this.uploadFacade.addFile(f)),
-        switchMap((taskId) => {
-          if (!taskId) throw new Error('Failed to start avatar upload');
-
-          return toObservable(this.uploadFacade.queue, {
-            injector: this.injector,
-          }).pipe(
-            map((queue) => queue.find((t) => t.id === taskId)),
-            filter(
-              (task): task is UploadTask =>
-                !!task &&
-                (task.status === UploadStatus.COMPLETED ||
-                  task.status === UploadStatus.FAILED)
-            ),
-            take(1),
-            takeUntilDestroyed(this.destroyRef),
-            map((task) => {
-              if (task.status === UploadStatus.FAILED) {
-                throw new Error(task.error?.message || 'Upload failed');
-              }
-              return task.result?.publicUrl || '';
-            })
-          );
-        })
-      )
-    );
+    const result = await this.mediaUpload.upload(file, {
+      uploadType: 'avatar',
+    });
+    return result.publicUrl;
   }
 
   private async performProfileUpdate(

@@ -5,12 +5,10 @@ export {
   MediaFileResponseDto,
   PresignedUrlResponseDto,
 } from './upload-api.dto';
-export { CompressionRule, UploadConfig } from './upload-config.model';
+export { UploadConfig, UploadLimit } from './upload-config.model';
 export {
-  UploadError,
-  UploadPhase,
+  MediaUploadError,
+  MediaUploadOptions,
   UploadResult,
-  UploadStatus,
-  UploadTask,
   UploadType,
-} from './upload-task.model';
+} from './media-upload.model';

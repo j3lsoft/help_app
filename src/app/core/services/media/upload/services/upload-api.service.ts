@@ -1,12 +1,7 @@
-import {
-  HttpClient,
-  HttpEvent,
-  HttpEventType,
-  HttpRequest,
-} from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { environment } from '@env/environment';
-import { Observable, filter, map } from 'rxjs';
+import { Observable } from 'rxjs';
 import { LoggerService } from '../../../logger.service';
 import {
   ConfirmUploadDto,
@@ -21,42 +16,6 @@ export class UploadApiService {
   private readonly baseUrl = `${environment.apiBaseUrl}/api/v1/media`;
   private readonly http = inject(HttpClient);
   private readonly logger = inject(LoggerService);
-
-  uploadDirect(
-    file: File,
-    onProgress?: (percent: number) => void,
-    signal?: AbortSignal,
-  ): Observable<MediaFileResponseDto> {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    const req = new HttpRequest('POST', `${this.baseUrl}/upload`, formData, {
-      reportProgress: true,
-      responseType: 'json',
-    });
-
-    return this.http.request(req).pipe(
-      filter(
-        (event): event is HttpEvent<MediaFileResponseDto> =>
-          event.type === HttpEventType.UploadProgress ||
-          event.type === HttpEventType.Response,
-      ),
-      map((event) => {
-        if (
-          event.type === HttpEventType.UploadProgress &&
-          onProgress &&
-          event.total
-        ) {
-          const percent = Math.round((event.loaded / event.total) * 100);
-          onProgress(percent);
-        }
-        if (event.type === HttpEventType.Response) {
-          return event.body as MediaFileResponseDto;
-        }
-        throw new Error('Unexpected event type');
-      }),
-    );
-  }
 
   getPresignedUrl(
     dto: GeneratePresignedUrlDto,

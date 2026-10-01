@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { firstValueFrom, lastValueFrom } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { LoggerService } from '../../../core/services/logger.service';
-import { UploadApiService } from '../../../core/services/media/upload/services/upload-api.service';
+import { MediaUpload } from '../../../core/services/media/upload/services/media-upload.service';
 import { MediaItem } from '../models/post-creation.model';
 import { CreatePostRequestDto, PostResponseDto } from '../models/post.dto';
 import {
@@ -58,7 +58,7 @@ export class PostPublishError extends Error {
   providedIn: 'root',
 })
 export class PostPublishService {
-  private readonly uploadApi = inject(UploadApiService);
+  private readonly mediaUpload = inject(MediaUpload);
   private readonly postsApi = inject(PostsApiService);
   private readonly logger = inject(LoggerService);
 
@@ -254,53 +254,14 @@ export class PostPublishService {
       throw new PostPublishError('Image processing failed', 'baking', error);
     }
 
-    let presigned;
-
     try {
-      presigned = await firstValueFrom(
-        this.uploadApi.getPresignedUrl({
-          mimeType: file.type,
-          originalName: file.name,
-          size: file.size,
-        }),
-      );
-    } catch (error) {
-      throw new PostPublishError(
-        'Could not request upload URL',
-        'uploading',
-        error,
-      );
-    }
-
-    try {
-      await lastValueFrom(
-        this.uploadApi.uploadToStorage(presigned.uploadUrl, file, onProgress),
-      );
-    } catch (error) {
-      throw new PostPublishError('Storage upload failed', 'uploading', error);
-    }
-
-    try {
-      const media = await firstValueFrom(
-        this.uploadApi.confirmUpload({
-          fileId: presigned.id,
-          key: presigned.key,
-          mimeType: file.type,
-          originalName: file.name,
-          size: file.size,
-        }),
-      );
-      return media.id;
-    } catch (error) {
-      this.logger.error('Upload confirmation failed', {
-        context: 'PostPublishService',
-        data: { fileId: presigned.id, key: presigned.key },
+      const result = await this.mediaUpload.upload(file, {
+        uploadType: 'post_image',
+        onProgress,
       });
-      throw new PostPublishError(
-        'Upload confirmation failed',
-        'uploading',
-        error,
-      );
+      return result.id;
+    } catch (error) {
+      throw new PostPublishError('Upload failed', 'uploading', error);
     }
   }
 }

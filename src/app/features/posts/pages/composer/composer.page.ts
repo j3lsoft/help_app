@@ -24,11 +24,10 @@ import {
   close,
   imageOutline,
 } from 'ionicons/icons';
-import { firstValueFrom } from 'rxjs';
 import { CameraService } from '@core/services/camera/camera.service';
 import { LoggerService } from '@core/services/logger.service';
 import { NotificationService } from '@core/services/notification.service';
-import { UploadApiService } from '@core/services/media/upload/services/upload-api.service';
+import { MediaUpload } from '@core/services/media/upload/services/media-upload.service';
 import { clearServerFieldErrors } from '@core/utils/server-validation-errors.utils';
 import { handleInlineFormError } from '@core/utils/form-error-handler.utils';
 import { AuthService } from '@features/auth/services/auth.service';
@@ -71,7 +70,7 @@ export class ComposerPage implements ViewWillLeave {
   private readonly logger = inject(LoggerService);
   private readonly deviceGallery = inject(DeviceGalleryService);
   private readonly camera = inject(CameraService);
-  private readonly uploadApi = inject(UploadApiService);
+  private readonly mediaUpload = inject(MediaUpload);
   readonly postCreation = inject(PostCreationService);
   private readonly postPublish = inject(PostPublishService);
   private readonly postErrorFacade = inject(PostErrorFacade);
@@ -363,7 +362,7 @@ export class ComposerPage implements ViewWillLeave {
   private async discardPendingMedias(mediaFileIds: string[]): Promise<void> {
     for (const id of mediaFileIds) {
       try {
-        await firstValueFrom(this.uploadApi.deleteFile(id));
+        await this.mediaUpload.remove(id);
       } catch (error) {
         this.logger.warn('Could not clean up orphaned media', {
           context: 'ComposerPage',

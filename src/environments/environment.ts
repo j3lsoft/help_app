@@ -7,29 +7,54 @@ export const environment = {
   apiBaseUrl: 'http://localhost:3000',
   minAgeYears: 13,
   upload: {
-    strategy: 'presigned',
-    maxFileSize: 10 * 1024 * 1024, // 10MB
-    allowedMimeTypes: [
-      'image/jpeg',
-      'image/png',
-      'image/gif',
-      'image/webp',
-      'video/mp4',
-      'video/webm',
-    ],
-    allowedExtensions: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4', 'webm'], // <== optional
-    maxConcurrentUploads: 3,
-    retryAttempts: 3,
-    retryDelay: 1000,
-    compression: {
-      enabled: true,
-      rules: {
-        avatar: { maxSizeMB: 0.3, maxWidthOrHeight: 512 },
-        post_image: { maxSizeMB: 2, maxWidthOrHeight: 2048 },
-        post_video: null,
-        story: { maxSizeMB: 0.8, maxWidthOrHeight: 1080 },
+    limits: {
+      avatar: {
+        maxBytes: 10 * 1024 * 1024,
+        allowedMimeTypes: [
+          'image/jpeg',
+          'image/png',
+          'image/gif',
+          'image/webp',
+        ],
+      },
+      post_image: {
+        maxBytes: 2 * 1024 * 1024,
+        allowedMimeTypes: [
+          'image/jpeg',
+          'image/png',
+          'image/gif',
+          'image/webp',
+        ],
+      },
+      post_video: {
+        maxBytes: 10 * 1024 * 1024,
+        allowedMimeTypes: ['video/mp4', 'video/webm'],
+      },
+      story: {
+        maxBytes: 10 * 1024 * 1024,
+        allowedMimeTypes: [
+          'image/jpeg',
+          'image/png',
+          'image/gif',
+          'image/webp',
+          'video/mp4',
+          'video/webm',
+        ],
+      },
+      generic: {
+        maxBytes: 10 * 1024 * 1024,
+        allowedMimeTypes: [
+          'image/jpeg',
+          'image/png',
+          'image/gif',
+          'image/webp',
+          'video/mp4',
+          'video/webm',
+        ],
       },
     },
+    retryAttempts: 3,
+    retryDelay: 1000,
   },
 };
 
