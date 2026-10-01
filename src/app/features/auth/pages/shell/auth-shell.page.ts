@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { IonRouterOutlet } from '@ionic/angular/standalone';
 
 @Component({
@@ -6,5 +6,6 @@ import { IonRouterOutlet } from '@ionic/angular/standalone';
   templateUrl: './auth-shell.page.html',
   styleUrls: ['./auth-shell.page.scss'],
   imports: [IonRouterOutlet],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AuthShellPage {}

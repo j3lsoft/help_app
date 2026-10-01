@@ -11,10 +11,8 @@ const SINGLE: Post = {
   aboutPost: 'hello',
   postLikes: '10k',
   postComments: '100',
-  postShares: '35',
   postSaves: '35',
   postSaved: false,
-  postImage: 'a.png',
   postImages: ['a.png'],
   postLike: false,
 };
@@ -25,7 +23,7 @@ const CAROUSEL: Post = {
   postImages: ['a.png', 'b.png', 'c.png'],
 };
 
-const TEXT_ONLY: Post = { ...SINGLE, id: 'p3', postImage: '', postImages: [] };
+const TEXT_ONLY: Post = { ...SINGLE, id: 'p3', postImages: [] };
 
 const TRUNCATED: Post = { ...SINGLE, id: 'p4', aboutPost: 'word '.repeat(80) };
 
@@ -33,7 +31,6 @@ const TEXTLESS: Post = {
   ...SINGLE,
   id: 'p5',
   aboutPost: '',
-  postImage: '',
   postImages: [],
 };
 
@@ -55,12 +52,6 @@ describe('PostCardComponent', () => {
     fixture = TestBed.createComponent(PostCardComponent);
     component = fixture.componentInstance;
   }));
-
-  it('should create', () => {
-    fixture.componentRef.setInput('post', SINGLE);
-    fixture.detectChanges();
-    expect(component).toBeTruthy();
-  });
 
   it('should render a single image without dots', () => {
     fixture.componentRef.setInput('post', SINGLE);

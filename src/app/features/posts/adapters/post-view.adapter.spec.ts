@@ -48,10 +48,8 @@ describe('post-view.adapter', () => {
       aboutPost: 'hello world',
       postLikes: '0',
       postComments: '0',
-      postShares: '0',
       postSaves: '0',
       postSaved: false,
-      postImage: 'https://storage.example.com/uploads/post.jpg',
       postImages: ['https://storage.example.com/uploads/post.jpg'],
       postLike: false,
       createdAt: '2026-08-25T00:00:00Z',
@@ -124,7 +122,6 @@ describe('post-view.adapter', () => {
   it('maps text-only posts with empty image url', () => {
     const textOnly = { ...POST_DTO, media: [] };
     const post = toPostView(textOnly, { author: AUTHOR, fallbackImageUrls: '' });
-    expect(post.postImage).toBe('');
     expect(post.postImages).toEqual([]);
     expect(post.aboutPost).toBe('hello world');
   });

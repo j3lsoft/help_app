@@ -28,7 +28,7 @@ import { TimeAgoPipe } from '@shared/pipes/time-ago.pipe';
 import { Post } from '@features/posts/models/post-view.model';
 
 /** Opens a Post from one of its images, carrying the tapped image index. */
-export interface PostMediaActivation {
+interface PostMediaActivation {
   postId: string;
   imageIndex: number;
 }

@@ -8,7 +8,7 @@ export interface ChatUser {
   isActive: boolean;
 }
 
-export type CallingType = 'missed' | 'incoming' | 'outgoing';
+type CallingType = 'missed' | 'incoming' | 'outgoing';
 
 export interface CallLog {
   id: string;

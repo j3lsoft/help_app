@@ -3,7 +3,7 @@ import { UpdateProfileDto } from '../models/update-profile.dto';
 import { normalizeWebsiteUrl } from './website-url.utils';
 
 /** Options for building profile update payload */
-export interface BuildUpdatePayloadOptions {
+interface BuildUpdatePayloadOptions {
   /** Current form data from user input */
   formData: UserProfileFormData;
   /** Initial data when form was loaded */

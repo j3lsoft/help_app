@@ -6,12 +6,12 @@ import { PaginatedListState } from '../state/paginated-list.state';
 import { LoggerService } from '../services/logger.service';
 import { toAppError } from './app-error.utils';
 
-export interface ScopeKeyHolder {
+interface ScopeKeyHolder {
   get(): string | null;
   set(key: string): void;
 }
 
-export interface LoadPaginatedPageConfig<TDto, TItem> {
+interface LoadPaginatedPageConfig<TDto, TItem> {
   reset: boolean;
   /**
    * With `reset`, keep the current items visible until the first page arrives

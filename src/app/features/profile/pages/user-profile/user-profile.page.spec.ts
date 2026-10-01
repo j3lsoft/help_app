@@ -116,10 +116,6 @@ describe('UserProfilePage', () => {
     fixture.detectChanges();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
-
   it('should navigate to the detail pinned to the tapped image', () => {
     const router = TestBed.inject(Router);
 

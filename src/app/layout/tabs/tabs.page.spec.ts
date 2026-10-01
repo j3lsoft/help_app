@@ -25,10 +25,6 @@ describe('TabsPage', () => {
     fixture.detectChanges();
   }));
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
-
   it('should propagate the enter lifecycle only when re-entering', () => {
     const element = document.createElement('div');
     const willEnter = jasmine.createSpy('ionViewWillEnter');

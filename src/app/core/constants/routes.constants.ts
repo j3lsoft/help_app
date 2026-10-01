@@ -1,7 +1,7 @@
 /**
  * Constants for application routes to avoid magic strings.
  */
-export const APP_ROUTES = {
+const APP_ROUTES = {
   AUTH: {
     LOGIN: '/auth/login',
     SIGN_IN: '/auth/sign-in',

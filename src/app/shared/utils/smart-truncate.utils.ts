@@ -6,7 +6,7 @@
  * of chopping mid-word.
  */
 
-export interface SmartTruncation {
+interface SmartTruncation {
   /** Visible preview text (without "…", the component adds it). */
   readonly preview: string;
   /** True when the original text was actually truncated. */

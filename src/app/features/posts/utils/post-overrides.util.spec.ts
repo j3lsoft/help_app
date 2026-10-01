@@ -13,10 +13,8 @@ const BASE: Post = {
   aboutPost: 'hello',
   postLikes: '10',
   postComments: '0',
-  postShares: '0',
   postSaves: '4',
   postSaved: false,
-  postImage: 'a.png',
   postImages: ['a.png'],
   postLike: false,
 };

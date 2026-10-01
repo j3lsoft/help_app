@@ -65,10 +65,6 @@ describe('ProfilePage', () => {
     fixture.detectChanges();
   }));
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
-
   it('should initialize with empty posts and zero count', () => {
     expect(component.profilePosts()).toEqual([]);
     expect(component.postsCount()).toBe('0');
@@ -207,10 +203,8 @@ describe('ProfilePage', () => {
       aboutPost: 'fresh',
       postLikes: '0',
       postComments: '0',
-      postShares: '0',
       postSaves: '0',
       postSaved: false,
-      postImage: '',
       postImages: [],
       postLike: false,
     };

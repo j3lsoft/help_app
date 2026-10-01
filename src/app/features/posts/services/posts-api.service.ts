@@ -10,7 +10,7 @@ import {
 } from '../models/post.dto';
 
 /** Options for listing a user's posts. */
-export interface GetUserPostsOptions {
+interface GetUserPostsOptions {
   /** Opaque base64 cursor from the previous page's nextCursor. */
   cursor?: string | null;
   /** Number of items per page. */

@@ -6,7 +6,7 @@ import {
   stripWebsiteProtocol,
 } from './website-url.utils';
 
-export interface ProfileHeaderViewModel {
+interface ProfileHeaderViewModel {
   username: string;
   name: string;
   description: string;
@@ -19,7 +19,7 @@ export interface ProfileHeaderViewModel {
 }
 
 /** Ordered media of every post, projected for the profile Media tab. */
-export interface ProfileMedia {
+interface ProfileMedia {
   /** Grid entries with a unique key per post+position for `@for` tracking. */
   items: ProfileMediaItem[];
   /** Same order as `items`, for the fullscreen lightbox. */

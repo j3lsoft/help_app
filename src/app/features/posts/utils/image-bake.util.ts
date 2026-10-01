@@ -147,7 +147,7 @@ async function exportAlphaBlob(
   return { blob, mime: blob.type || 'image/png' };
 }
 
-export interface BakeOptions {
+interface BakeOptions {
   maxDimension?: number;
   fileName?: string;
   quality?: number;

@@ -312,8 +312,6 @@ describe('PostDetailPage', () => {
       aboutPost: 'hello carousel',
       postLikes: '0',
       postComments: '0',
-      postShares: '0',
-      postImage: '',
       postImages: [],
       postLike: false,
     });
@@ -374,8 +372,6 @@ describe('PostDetailPage', () => {
       aboutPost: 'hello carousel',
       postLikes: '0',
       postComments: '0',
-      postShares: '0',
-      postImage: '',
       postImages: [],
       postLike: false,
     });
@@ -446,8 +442,6 @@ describe('PostDetailPage', () => {
       aboutPost: 'hello carousel',
       postLikes: '0',
       postComments: '0',
-      postShares: '0',
-      postImage: '',
       postImages: [],
       postLike: false,
     });
@@ -476,8 +470,6 @@ describe('PostDetailPage', () => {
       aboutPost: 'hello carousel',
       postLikes: '0',
       postComments: '0',
-      postShares: '0',
-      postImage: '',
       postImages: [],
       postLike: false,
     });
@@ -504,8 +496,6 @@ describe('PostDetailPage', () => {
       aboutPost: 'hello carousel',
       postLikes: '0',
       postComments: '0',
-      postShares: '0',
-      postImage: '',
       postImages: [],
       postLike: false,
     };

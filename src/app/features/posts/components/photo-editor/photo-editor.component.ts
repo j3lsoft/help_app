@@ -34,9 +34,9 @@ import { POST_FILTER_OPTIONS } from '../../data/posts.mock';
 import { PostEditKey, PostEditState } from '../../models/post-creation.model';
 import { PostCreationService } from '../../services/post-creation.service';
 
-export type PhotoEditorTab = 'filters' | 'adjust' | 'rotate';
+type PhotoEditorTab = 'filters' | 'adjust' | 'rotate';
 
-export interface AdjustControl {
+interface AdjustControl {
   key: PostEditKey;
   icon: string;
   label: string;

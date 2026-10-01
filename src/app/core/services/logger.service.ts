@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { environment } from '@env/environment';
 
-export enum LogLevel {
+enum LogLevel {
   DEBUG = 0,
   INFO = 1,
   WARN = 2,
@@ -9,7 +9,7 @@ export enum LogLevel {
   OFF = 4,
 }
 
-export interface LogEntry {
+interface LogEntry {
   timestamp: string;
   level: LogLevel;
   levelName: string;
@@ -23,7 +23,7 @@ export interface LogEntry {
   };
 }
 
-export interface LogOptions {
+interface LogOptions {
   context?: string;
   data?: Record<string, unknown>;
 }

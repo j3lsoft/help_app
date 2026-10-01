@@ -3,9 +3,9 @@
  * See POST /api/v1/posts and /api/v1/posts/{id} in the swagger spec.
  */
 
-export type PostStatus = 'published' | 'draft' | 'scheduled';
+type PostStatus = 'published' | 'draft' | 'scheduled';
 
-export interface MediaReferenceResponseDto {
+interface MediaReferenceResponseDto {
   id: string;
   mediaFileId: string;
   position: number;

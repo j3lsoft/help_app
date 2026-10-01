@@ -11,7 +11,7 @@ export interface ServerValidationErrorBody {
   errors?: Record<string, ServerValidationErrorFieldEntry[]>;
 }
 
-export type ServerValidationErrorFieldEntry =
+type ServerValidationErrorFieldEntry =
   | string
   | {
       message?: unknown;

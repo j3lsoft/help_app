@@ -1,16 +1,16 @@
 import { Location } from '@angular/common';
-import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { NavController, Platform } from '@ionic/angular';
 import { EdgeToEdgeService } from './core/services/edge-to-edge.service';
 import { AppComponent } from './app.component';
 
 describe('AppComponent', () => {
-  beforeEach(async () => {
+  it('should create the app', async () => {
     await TestBed.configureTestingModule({
       imports: [AppComponent],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
       providers: [
+        provideRouter([]),
         {
           provide: Platform,
           useValue: {
@@ -20,14 +20,8 @@ describe('AppComponent', () => {
             },
           },
         },
-        {
-          provide: Location,
-          useValue: { isCurrentPathEqualTo: () => false },
-        },
-        {
-          provide: NavController,
-          useValue: { back: () => undefined },
-        },
+        { provide: Location, useValue: { isCurrentPathEqualTo: () => false } },
+        { provide: NavController, useValue: { back: () => undefined } },
         {
           provide: EdgeToEdgeService,
           useValue: {
@@ -37,11 +31,8 @@ describe('AppComponent', () => {
         },
       ],
     }).compileComponents();
-  });
 
-  it('should create the app', () => {
     const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
+    expect(fixture.componentInstance).toBeTruthy();
   });
 });

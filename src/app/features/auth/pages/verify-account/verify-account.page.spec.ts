@@ -65,10 +65,6 @@ describe('VerifyAccountPage', () => {
     fixture.detectChanges();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
-
   it('should initialize email from route', () => {
     expect(component.email()).toBe('test@test.com');
   });

@@ -13,7 +13,7 @@ export interface ValidationErrorDetails {
   message?: string;
   fieldErrors: Record<string, ServerValidationErrorItem[]>;
 }
-export type AppErrorDetails = {
+type AppErrorDetails = {
   validation?: ValidationErrorDetails;
   [key: string]: unknown;
 };

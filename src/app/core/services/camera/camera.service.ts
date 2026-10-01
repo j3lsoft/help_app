@@ -7,31 +7,25 @@ import {
 } from '@capacitor/camera';
 import { LoggerService } from '../logger.service';
 
-export type CameraPermissionState =
+type CameraPermissionState =
   | 'prompt'
   | 'granted'
   | 'denied'
   | 'limited'
   | 'prompt-with-rationale';
 
-export interface CameraPermissionStatus {
+interface CameraPermissionStatus {
   camera: CameraPermissionState;
   photos: CameraPermissionState;
 }
 
-export interface CameraOptions {
+interface CameraOptions {
   quality?: number;
   allowEditing?: boolean;
   correctOrientation?: boolean;
 }
 
-export interface CameraErrorInterface {
-  message: string;
-  code?: string;
-  isPermissionDenied?: boolean;
-}
-
-export interface CameraResult {
+interface CameraResult {
   dataUrl: string;
   format: string;
   path?: string;

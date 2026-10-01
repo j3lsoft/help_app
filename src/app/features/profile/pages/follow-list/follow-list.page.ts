@@ -26,7 +26,7 @@ import { addIcons } from 'ionicons';
 import { peopleOutline } from 'ionicons/icons';
 import { finalize, map } from 'rxjs';
 
-export type FollowListMode = 'followers' | 'followings';
+type FollowListMode = 'followers' | 'followings';
 
 @Component({
   selector: 'app-follow-list',

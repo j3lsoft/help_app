@@ -2,14 +2,14 @@ import { PostResponseDto } from '../models/post.dto';
 import { Post, PostAuthor } from '../models/post-view.model';
 
 /** Author context and optional local fallbacks for one projection. */
-export interface PostViewOptions {
+interface PostViewOptions {
   author: PostAuthor | null;
   /** Per-index local media (e.g. composer blob urls) when the API has none. */
   fallbackImageUrls?: string | string[];
 }
 
 /** One media piece of one Post, in carousel position order. */
-export interface PostImageRef {
+interface PostImageRef {
   postId: string;
   image: string;
   index: number;
@@ -64,7 +64,6 @@ export function collectPostImages(posts: PostResponseDto[]): PostImageRef[] {
 export function toPostView(dto: PostResponseDto, options: PostViewOptions): Post {
   const { author } = options;
   const postImages = postImageUrls(dto, options.fallbackImageUrls);
-  const postImage = postImages[0] ?? '';
 
   return {
     id: dto.id,
@@ -75,10 +74,8 @@ export function toPostView(dto: PostResponseDto, options: PostViewOptions): Post
     createdAt: dto.createdAt,
     postLikes: '0',
     postComments: '0',
-    postShares: '0',
     postSaves: '0',
     postSaved: false,
-    postImage,
     postImages,
     postLike: false,
   };

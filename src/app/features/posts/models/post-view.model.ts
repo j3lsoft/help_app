@@ -12,11 +12,8 @@ export interface Post {
   aboutPost: string;
   postLikes: string;
   postComments: string;
-  postShares: string;
   postSaves?: string;
   postSaved?: boolean;
-  /** First image, or '' for text-only Posts. Deprecated: prefer postImages. */
-  postImage: string;
   /** Ordered carousel images. Empty for text-only Posts. */
   postImages: string[];
   postLike: boolean;

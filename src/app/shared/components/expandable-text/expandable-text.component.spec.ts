@@ -16,12 +16,6 @@ describe('ExpandableTextComponent', () => {
     fixture = TestBed.createComponent(ExpandableTextComponent);
   }));
 
-  it('should create', () => {
-    fixture.componentRef.setInput('text', 'Hi');
-    fixture.detectChanges();
-    expect(fixture.componentInstance).toBeTruthy();
-  });
-
   it('should render short text without toggle', () => {
     fixture.componentRef.setInput('text', 'Hello world');
     fixture.detectChanges();

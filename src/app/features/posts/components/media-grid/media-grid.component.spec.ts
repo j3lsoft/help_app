@@ -78,11 +78,6 @@ describe('MediaGridComponent', () => {
     return cell;
   }
 
-  it('should create', () => {
-    render([]);
-    expect(component).toBeTruthy();
-  });
-
   it('should map item count to the grid layout class', () => {
     render(makeItems(1));
     expect(component.gridClass).toBe('media-grid--1');

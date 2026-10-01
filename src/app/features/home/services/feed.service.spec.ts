@@ -23,8 +23,6 @@ describe('FeedService', () => {
       aboutPost: 'hi',
       postLikes: '0',
       postComments: '0',
-      postShares: '0',
-      postImage: 'blob:image-src',
       postImages: ['blob:image-src'],
       postLike: false,
       createdAt: '2026-09-13T00:00:00Z',

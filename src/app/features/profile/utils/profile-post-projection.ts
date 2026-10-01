@@ -7,7 +7,7 @@ import {
   applyPostOverrides,
 } from '@features/posts/utils/post-overrides.util';
 
-export interface ProfilePostProjectionArgs {
+interface ProfilePostProjectionArgs {
   /** Server posts accumulated by the paginated loader. */
   dtos: readonly PostResponseDto[];
   author: PostAuthor | null;

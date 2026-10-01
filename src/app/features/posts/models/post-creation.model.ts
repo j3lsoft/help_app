@@ -3,7 +3,7 @@ export interface PostFilterOption {
   filter: string;
 }
 
-export type PostImageSource = 'gallery' | 'camera' | 'web';
+type PostImageSource = 'gallery' | 'camera' | 'web';
 
 export interface SelectedPostImage {
   /** WebView-loadable URL: webPath, dataUrl or blob: URL. */

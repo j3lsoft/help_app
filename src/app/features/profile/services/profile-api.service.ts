@@ -7,7 +7,7 @@ import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { UpdateProfileDto } from '../models/update-profile.dto';
 
-export interface UserProfileResponseDto {
+interface UserProfileResponseDto {
   id: string;
   username: string;
   displayName: string;

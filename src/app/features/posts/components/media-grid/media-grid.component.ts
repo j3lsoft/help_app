@@ -33,7 +33,7 @@ const MOVE_TOLERANCE = 12;
 const SETTLE_DURATION = 200;
 
 /** Viewport-space state for the elevated ghost that follows the pointer. */
-export interface MediaDragPreview {
+interface MediaDragPreview {
   src: string;
   filter: string;
   transform: string;

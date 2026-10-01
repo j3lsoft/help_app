@@ -14,12 +14,6 @@ describe('PostMediaCarouselComponent', () => {
     component = fixture.componentInstance;
   }));
 
-  it('should create', () => {
-    fixture.componentRef.setInput('images', ['a.png']);
-    fixture.detectChanges();
-    expect(component).toBeTruthy();
-  });
-
   it('should render a single image without dots', () => {
     fixture.componentRef.setInput('images', ['a.png']);
     fixture.detectChanges();

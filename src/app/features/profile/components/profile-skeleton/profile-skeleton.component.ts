@@ -2,10 +2,10 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { ProfileTab } from '../../models/profile-tab.model';
 
 /** Region of the profile page a skeleton placeholder mirrors. */
-export type ProfileSkeletonRegion = 'header' | 'content';
+type ProfileSkeletonRegion = 'header' | 'content';
 
 /** Action buttons the header skeleton must reserve space for. */
-export type ProfileSkeletonActions = 'single' | 'double';
+type ProfileSkeletonActions = 'single' | 'double';
 
 /**
  * Layout-shaped placeholders for a profile page. Every shape mirrors the block

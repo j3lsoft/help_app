@@ -33,10 +33,8 @@ function created(id: string, authorId: string): CreatedPostEntry {
     aboutPost: 'fresh',
     postLikes: '0',
     postComments: '0',
-    postShares: '0',
     postSaves: '0',
     postSaved: false,
-    postImage: '',
     postImages: [],
     postLike: false,
   };

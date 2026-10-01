@@ -10,7 +10,7 @@ import {
 } from '@features/posts/models/post.dto';
 
 /** Dependencies required by the profile posts loader. */
-export interface ProfilePostsLoaderDeps {
+interface ProfilePostsLoaderDeps {
   /** Fetches one page of a user's posts; `cursor` is undefined for the first page. */
   fetchPage: (
     userId: string,
@@ -19,7 +19,7 @@ export interface ProfilePostsLoaderDeps {
   logger: LoggerService;
 }
 
-export interface ProfilePostsLoader {
+interface ProfilePostsLoader {
   /** Raw server posts, newest first, accumulated across pages. */
   readonly posts: Signal<PostResponseDto[]>;
   readonly isLoading: Signal<boolean>;
