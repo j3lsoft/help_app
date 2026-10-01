@@ -37,22 +37,21 @@ export class AuthService implements AuthState {
   private logoutPromise: Promise<void> | null = null;
 
   async login(response: LoginResponseDto): Promise<void> {
-    const transformedResponse =
-      AuthResponseAdapter.transformLoginResponse(response);
+    const user = await this.persistSession(response);
 
-    // Access token goes to secure storage (Keychain / Keystore)
-    await this.secureStorage.set(
-      STORAGE_KEYS.accessToken,
-      transformedResponse.accessToken
-    );
+    if (user) {
+      return;
+    }
 
-    if (transformedResponse.user) {
-      this._currentUser.set(transformedResponse.user);
-      // Non-sensitive user profile data stays in regular storage
-      await this.storage.setString(
-        STORAGE_KEYS.userData,
-        JSON.stringify(transformedResponse.user)
-      );
+    // The login contract allows a response without `user`. Complete the session
+    // from `GET /me`; otherwise `isAuthenticated()` stays false and authGuard
+    // would bounce a user that actually holds a valid token.
+    try {
+      const me = await firstValueFrom(this.authApi.getMe());
+      await this.persistUser(AuthResponseAdapter.transformMeResponseToAuth(me));
+    } catch (error) {
+      await this.rollbackSession();
+      throw error;
     }
   }
 
@@ -144,7 +143,46 @@ export class AuthService implements AuthState {
 
   async refreshSession(): Promise<void> {
     const response = await firstValueFrom(this.authApi.refresh());
-    await this.login(response);
+    // Deliberately no GET /me here: this runs inside the TokenRefreshService
+    // factory, and a 401 on that /me would join the same in-flight refresh and
+    // deadlock. Only update the user when the response carries one.
+    await this.persistSession(response);
+  }
+
+  /**
+   * Persists the access token and, when present, the user. Returns the user
+   * that travelled in the response (`null` when it was omitted).
+   */
+  private async persistSession(
+    response: LoginResponseDto
+  ): Promise<AuthUserDto | null> {
+    const transformedResponse =
+      AuthResponseAdapter.transformLoginResponse(response);
+
+    // Access token goes to secure storage (Keychain / Keystore)
+    await this.secureStorage.set(
+      STORAGE_KEYS.accessToken,
+      transformedResponse.accessToken
+    );
+
+    if (transformedResponse.user) {
+      await this.persistUser(transformedResponse.user);
+    }
+
+    return transformedResponse.user;
+  }
+
+  private async persistUser(user: AuthUserDto): Promise<void> {
+    this._currentUser.set(user);
+    // Non-sensitive user profile data stays in regular storage
+    await this.storage.setString(STORAGE_KEYS.userData, JSON.stringify(user));
+  }
+
+  /** Undoes a session that could not be completed (e.g. `GET /me` failed). */
+  private async rollbackSession(): Promise<void> {
+    await this.secureStorage.remove(STORAGE_KEYS.accessToken);
+    await this.storage.remove(STORAGE_KEYS.userData);
+    this._currentUser.set(null);
   }
 
   private static isUsableToken(token: string): boolean {

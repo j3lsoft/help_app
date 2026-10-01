@@ -14,7 +14,7 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { eyeOffOutline, eyeOutline } from 'ionicons/icons';
-import { catchError, EMPTY, finalize, tap } from 'rxjs';
+import { catchError, EMPTY, finalize, from, switchMap, tap } from 'rxjs';
 import { AppError } from 'src/app/core/models/app-error.model';
 import { handleInlineFormError } from 'src/app/core/utils/form-error-handler.utils';
 import { clearServerFieldErrors } from 'src/app/core/utils/server-validation-errors.utils';
@@ -98,11 +98,14 @@ export class LoginPage {
         password: value.password,
       })
       .pipe(
-        tap(async (response) => {
-          await this.authService.login(response);
-          this.form.reset();
-          await this.router.navigateByUrl('/tabs/home');
-        }),
+        switchMap((response) =>
+          from(this.authService.login(response)).pipe(
+            tap(() => {
+              this.form.reset();
+              void this.router.navigateByUrl('/tabs/home');
+            })
+          )
+        ),
         catchError((error: AppError) => {
           handleInlineFormError({
             error,

@@ -93,4 +93,23 @@ describe('LoginPage', () => {
     expect(authServiceMock.login).toHaveBeenCalledWith(loginResponse);
     expect(routerMock.navigateByUrl).toHaveBeenCalledWith('/tabs/home');
   });
+
+  it('surfaces the error and does not navigate when completing the session fails', async () => {
+    authApiMock.login.and.returnValue(
+      of({ accessToken: 'token', accessTokenExpiresAt: '' })
+    );
+    authServiceMock.login.and.returnValue(
+      Promise.reject(new Error('me failed'))
+    );
+
+    component.form.patchValue({
+      emailOrUsername: 'test@test.com',
+      password: 'password123',
+    });
+
+    await component.onSubmit();
+
+    expect(authErrorFacadeMock.handle).toHaveBeenCalled();
+    expect(routerMock.navigateByUrl).not.toHaveBeenCalled();
+  });
 });

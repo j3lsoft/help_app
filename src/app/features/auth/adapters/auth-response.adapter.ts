@@ -2,6 +2,7 @@ import {
   AuthUserDto,
   LoginResponseDto,
   LoginUserResponseDto,
+  MeResponseDto,
 } from '../models/auth.dto';
 
 /**
@@ -30,6 +31,22 @@ export class AuthResponseAdapter {
       displayName: loginUser.displayName,
       avatarUrl:
         typeof loginUser.avatarUrl === 'string' ? loginUser.avatarUrl : null,
+    };
+  }
+
+  /**
+   * Projects the `/me` response onto the minimal auth user kept in session.
+   * Used when a login/verify response omits `user` and the session has to be
+   * completed from `GET /me`.
+   */
+  static transformMeResponseToAuth(me: MeResponseDto): AuthUserDto {
+    return {
+      id: me.id,
+      email: me.email,
+      emailVerified: me.emailVerified,
+      username: me.username,
+      displayName: me.displayName,
+      avatarUrl: me.avatarUrl,
     };
   }
 }

@@ -13,7 +13,7 @@ import {
   NavController,
 } from '@ionic/angular/standalone';
 import { NgOtpInputConfig, NgOtpInputModule } from 'ng-otp-input';
-import { catchError, EMPTY, finalize } from 'rxjs';
+import { catchError, EMPTY, finalize, from, switchMap, tap } from 'rxjs';
 import { AppError } from 'src/app/core/models/app-error.model';
 import { AppStorageService } from 'src/app/core/services/storage/app-storage.service';
 import { STORAGE_KEYS } from 'src/app/core/services/storage/storage-keys';
@@ -119,6 +119,18 @@ export class VerifyAccountPage {
     this.authApi
       .verifyEmail({ email: this.email(), code })
       .pipe(
+        switchMap((response) =>
+          from(this.authService.login(response)).pipe(
+            switchMap(() =>
+              from(this.storage.remove(STORAGE_KEYS.pendingVerificationEmail))
+            ),
+            tap(() => {
+              setTimeout(() => {
+                void this.router.navigateByUrl('/tabs/home');
+              }, 300);
+            })
+          )
+        ),
         catchError((error: AppError) => {
           this.authErrorFacade.handle(error, 'verification');
           return EMPTY;
@@ -127,15 +139,6 @@ export class VerifyAccountPage {
           this.showLoadingDialog.set(false);
         })
       )
-      .subscribe({
-        next: async (response) => {
-          await this.authService.login(response);
-          await this.storage.remove(STORAGE_KEYS.pendingVerificationEmail);
-
-          setTimeout(() => {
-            void this.router.navigateByUrl('/tabs/home');
-          }, 300);
-        },
-      });
+      .subscribe();
   }
 }
