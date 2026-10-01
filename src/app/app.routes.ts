@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { noAuthGuard } from './core/guards/no-auth.guard';
 import { onboardingSeenGuard } from './core/guards/onboarding-seen.guard';
+import { SETTINGS_ROUTES } from './features/settings/settings.routes';
 
 export const routes: Routes = [
   {
@@ -221,20 +222,10 @@ export const routes: Routes = [
       ),
   },
   {
-    path: 'security',
+    path: 'settings',
     canMatch: [authGuard],
-    loadComponent: () =>
-      import('./features/settings/pages/security/security.page').then(
-        (m) => m.SecurityPage
-      ),
-  },
-  {
-    path: 'change-password',
-    canMatch: [authGuard],
-    loadComponent: () =>
-      import(
-        './features/settings/pages/change-password/change-password.page'
-      ).then((m) => m.ChangePasswordPage),
+    loadChildren: () =>
+      import('./features/settings/settings.routes').then((m) => m.SETTINGS_ROUTES),
   },
   {
     path: 'block-accounts',
