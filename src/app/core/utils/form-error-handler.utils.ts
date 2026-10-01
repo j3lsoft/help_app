@@ -1,4 +1,6 @@
 import { AbstractControl, FormGroup } from '@angular/forms';
+import { ErrorMapConfig } from '../errors/error-map.interface';
+import type { ErrorMessageFacade } from '../errors/facades/error.facade';
 import { AppError } from '../models/app-error.model';
 import { toAppError } from './app-error.utils';
 import {
@@ -7,18 +9,13 @@ import {
   isServerValidationError,
 } from './server-validation-errors.utils';
 
-type ErrorMessageFacade<TContext> = {
-  handle(error: AppError, context: TContext): void;
-};
-
 export function handleInlineFormError<
-  TControls extends Record<string, AbstractControl>,
-  TContext
+  TControls extends Record<string, AbstractControl>
 >(params: {
   error: unknown;
   form: FormGroup<TControls>;
-  context: TContext;
-  facade: ErrorMessageFacade<TContext>;
+  config: ErrorMapConfig;
+  facade: ErrorMessageFacade;
   validationOptions?: ApplyServerValidationErrorsOptions;
 }): void {
   const appError = toAppError(params.error);
@@ -31,5 +28,5 @@ export function handleInlineFormError<
     return;
   }
 
-  params.facade.handle(appError, params.context);
+  params.facade.handle(appError, params.config);
 }

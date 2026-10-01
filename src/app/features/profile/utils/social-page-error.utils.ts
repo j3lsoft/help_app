@@ -1,16 +1,16 @@
 import { EMPTY, catchError } from 'rxjs';
 import { toAppError } from '@core/utils/app-error.utils';
-import { SocialErrorContext } from '../errors/social-error.config';
-import { SocialErrorFacade } from '../errors/social-error.facade';
+import type { ErrorMessageFacade } from '@core/errors/facades/error.facade';
+import { SOCIAL_ERROR_MAP, SocialErrorContext } from '../errors/social-error.config';
 
 export function catchSocialError(
-  facade: SocialErrorFacade,
+  facade: ErrorMessageFacade,
   context: SocialErrorContext,
   onError?: (error: unknown) => void
 ) {
   return catchError((error: unknown) => {
     onError?.(error);
-    facade.handle(toAppError(error), context);
+    facade.handle(toAppError(error), SOCIAL_ERROR_MAP[context]);
     return EMPTY;
   });
 }

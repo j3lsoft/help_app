@@ -5,7 +5,7 @@ import {
   signal,
 } from '@angular/core';
 import { Router } from '@angular/router';
-import { SocialErrorFacade } from '@features/profile/errors/social-error.facade';
+import { ErrorFacade } from '@core/errors/facades/error.facade';
 import { FollowService } from '@features/profile/services/follow.service';
 import { RelationshipService } from '@features/profile/services/relationship.service';
 import {
@@ -49,7 +49,7 @@ export class HomePage implements ViewWillEnter {
   private router = inject(Router);
   private readonly followService = inject(FollowService);
   private readonly relationships = inject(RelationshipService);
-  private readonly socialErrorFacade = inject(SocialErrorFacade);
+  private readonly errorFacade = inject(ErrorFacade);
   private readonly feed = inject(FeedService);
 
   readonly usersStories = signal<UserStory[]>(MOCK_USERS_STORIES);
@@ -64,7 +64,7 @@ export class HomePage implements ViewWillEnter {
   ionViewWillEnter(): void {
     this.followService
       .refreshSuggestions()
-      .pipe(catchSocialError(this.socialErrorFacade, 'suggestions'))
+      .pipe(catchSocialError(this.errorFacade, 'suggestions'))
       .subscribe();
   }
 
@@ -98,7 +98,7 @@ export class HomePage implements ViewWillEnter {
       .toggle(userId)
       .pipe(
         catchSocialError(
-          this.socialErrorFacade,
+          this.errorFacade,
           followActionContext(isFollowing),
         ),
       )

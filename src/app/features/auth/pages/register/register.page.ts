@@ -42,7 +42,8 @@ import { environment } from 'src/environments/environment';
 import { AuthHeaderComponent } from '../../components/auth-header/auth-header.component';
 import { AuthPrimaryButtonComponent } from '../../components/auth-primary-button/auth-primary-button.component';
 import { AuthSocialButtonsComponent } from '../../components/auth-social-buttons/auth-social-buttons.component';
-import { AuthErrorFacade } from '../../errors/auth-error.facade';
+import { ErrorFacade } from 'src/app/core/errors/facades/error.facade';
+import { AUTH_ERROR_MAP } from '../../errors/auth-error.config';
 import { AuthApiService } from '../../services/auth-api.service';
 
 @Component({
@@ -73,7 +74,7 @@ export class RegisterPage {
   private readonly fb = inject(FormBuilder);
   private readonly authApi = inject(AuthApiService);
   private readonly storage = inject(AppStorageService);
-  private readonly authErrorFacade = inject(AuthErrorFacade);
+  private readonly errorFacade = inject(ErrorFacade);
 
   showPassword = signal(false);
   showConfirmPwd = signal(false);
@@ -176,8 +177,8 @@ export class RegisterPage {
           handleInlineFormError({
             error,
             form: this.form,
-            context: 'register',
-            facade: this.authErrorFacade,
+            config: AUTH_ERROR_MAP['register'],
+            facade: this.errorFacade,
             validationOptions: {
               messageFormatter: ({ serverField, item }) =>
                 this.getDynamicValidationMessage(serverField, item),

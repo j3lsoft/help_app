@@ -57,7 +57,8 @@ import { ShortNumberPipe } from '@shared/pipes/short-number.pipe';
 import { FeedService } from '@features/home/services/feed.service';
 import { PostCommentsComponent } from '../../components/post-comments/post-comments.component';
 import { createEngagementSeed } from '../../data/post-engagement.mock';
-import { PostErrorFacade } from '../../errors/post-error.facade';
+import { ErrorFacade } from 'src/app/core/errors/facades/error.facade';
+import { POST_ERROR_MAP } from '../../errors/post-error.config';
 import { PostsApiService } from '../../services/posts-api.service';
 
 @Component({
@@ -91,7 +92,7 @@ export class PostDetailPage {
   private readonly auth = inject(AuthService);
   private readonly feed = inject(FeedService);
   private readonly notification = inject(NotificationService);
-  private readonly postErrorFacade = inject(PostErrorFacade);
+  private readonly errorFacade = inject(ErrorFacade);
   private readonly logger = inject(LoggerService);
 
   constructor() {
@@ -226,7 +227,7 @@ export class PostDetailPage {
       return 'Post not found.';
     }
     return isAppError(error)
-      ? this.postErrorFacade.getMessage(error, 'post-detail')
+      ? this.errorFacade.getMessage(error, POST_ERROR_MAP['post-detail'])
       : 'Failed to load post. Please try again.';
   });
 
@@ -446,7 +447,7 @@ export class PostDetailPage {
         context: 'PostDetailPage',
         data: { postId: post.id },
       });
-      this.postErrorFacade.handle(appError, 'post-edit');
+      this.errorFacade.handle(appError, POST_ERROR_MAP['post-edit']);
       if (isAppError(appError) && appError.status === 404) {
         this.editing.set(false);
         this.postResource.reload();
@@ -494,7 +495,7 @@ export class PostDetailPage {
         context: 'PostDetailPage',
         data: { postId: post.id },
       });
-      this.postErrorFacade.handle(appError, 'post-delete');
+      this.errorFacade.handle(appError, POST_ERROR_MAP['post-delete']);
       if (isAppError(appError) && appError.status === 404) {
         // Already gone server-side: the optimistic removal was correct.
         this.goBack();

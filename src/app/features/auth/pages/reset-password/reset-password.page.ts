@@ -28,7 +28,8 @@ import {
 } from 'src/app/shared/validators/password.validators';
 import { AuthHeaderComponent } from '../../components/auth-header/auth-header.component';
 import { AuthPrimaryButtonComponent } from '../../components/auth-primary-button/auth-primary-button.component';
-import { AuthErrorFacade } from '../../errors/auth-error.facade';
+import { ErrorFacade } from 'src/app/core/errors/facades/error.facade';
+import { AUTH_ERROR_MAP } from '../../errors/auth-error.config';
 import { AuthApiService } from '../../services/auth-api.service';
 import { AuthService } from '../../services/auth.service';
 
@@ -57,7 +58,7 @@ export class ResetPasswordPage {
   private readonly storage = inject(AppStorageService);
   private readonly secureStorage = inject(SecureStorageService);
   private readonly notification = inject(NotificationService);
-  private readonly authErrorFacade = inject(AuthErrorFacade);
+  private readonly errorFacade = inject(ErrorFacade);
 
   showLoadingDialog = signal(false);
   email = signal('');
@@ -154,7 +155,7 @@ export class ResetPasswordPage {
           });
         }),
         catchError((error: AppError) => {
-          this.authErrorFacade.handle(error, 'password-change');
+          this.errorFacade.handle(error, AUTH_ERROR_MAP['password-change']);
           return EMPTY;
         }),
         finalize(() => {

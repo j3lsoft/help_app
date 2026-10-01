@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { NavController } from '@ionic/angular';
 import { of } from 'rxjs';
 import { VerifyAccountPage } from './verify-account.page';
-import { AuthErrorFacade } from '../../errors/auth-error.facade';
+import { ErrorFacade } from '@core/errors/facades/error.facade';
 import { AuthApiService } from '../../services/auth-api.service';
 import { AuthService } from '../../services/auth.service';
 import { AppStorageService } from 'src/app/core/services/storage/app-storage.service';
@@ -15,7 +15,7 @@ describe('VerifyAccountPage', () => {
   let authServiceMock: jasmine.SpyObj<AuthService>;
   let storageMock: jasmine.SpyObj<AppStorageService>;
   let routerMock: jasmine.SpyObj<Router>;
-  let authErrorFacadeMock: jasmine.SpyObj<AuthErrorFacade>;
+  let errorFacadeMock: jasmine.SpyObj<ErrorFacade>;
   let routeMock: any;
 
   beforeEach(async () => {
@@ -29,7 +29,7 @@ describe('VerifyAccountPage', () => {
       'remove',
     ]);
     routerMock = jasmine.createSpyObj('Router', ['navigateByUrl']);
-    authErrorFacadeMock = jasmine.createSpyObj('AuthErrorFacade', [
+    errorFacadeMock = jasmine.createSpyObj('ErrorFacade', [
       'handle',
       'getMessage',
     ]);
@@ -51,7 +51,7 @@ describe('VerifyAccountPage', () => {
         { provide: AuthService, useValue: authServiceMock },
         { provide: AppStorageService, useValue: storageMock },
         { provide: Router, useValue: routerMock },
-        { provide: AuthErrorFacade, useValue: authErrorFacadeMock },
+        { provide: ErrorFacade, useValue: errorFacadeMock },
         { provide: ActivatedRoute, useValue: routeMock },
         {
           provide: NavController,
@@ -83,7 +83,7 @@ describe('VerifyAccountPage', () => {
 
     await fixture.whenStable();
 
-    expect(authErrorFacadeMock.handle).toHaveBeenCalled();
+    expect(errorFacadeMock.handle).toHaveBeenCalled();
     expect(routerMock.navigateByUrl).not.toHaveBeenCalled();
   });
 });

@@ -19,7 +19,8 @@ import { STORAGE_KEYS } from 'src/app/core/services/storage/storage-keys';
 import { isInvalid } from 'src/app/shared/utils/form.utils';
 import { AuthHeaderComponent } from '../../components/auth-header/auth-header.component';
 import { AuthPrimaryButtonComponent } from '../../components/auth-primary-button/auth-primary-button.component';
-import { AuthErrorFacade } from '../../errors/auth-error.facade';
+import { ErrorFacade } from 'src/app/core/errors/facades/error.facade';
+import { AUTH_ERROR_MAP } from '../../errors/auth-error.config';
 import { AuthApiService } from '../../services/auth-api.service';
 
 @Component({
@@ -42,7 +43,7 @@ export class ForgotPasswordPage {
   private readonly fb = inject(FormBuilder);
   private readonly authApi = inject(AuthApiService);
   private readonly storage = inject(AppStorageService);
-  private readonly authErrorFacade = inject(AuthErrorFacade);
+  private readonly errorFacade = inject(ErrorFacade);
 
   isSubmitting = signal(false);
 
@@ -91,7 +92,7 @@ export class ForgotPasswordPage {
           });
         }),
         catchError((error: AppError) => {
-          this.authErrorFacade.handle(error, 'password-reset');
+          this.errorFacade.handle(error, AUTH_ERROR_MAP['password-reset']);
           return EMPTY;
         }),
         finalize(() => {

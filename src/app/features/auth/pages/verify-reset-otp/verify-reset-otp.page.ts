@@ -20,7 +20,8 @@ import { NgOtpInputConfig, NgOtpInputModule } from 'ng-otp-input';
 import { catchError, EMPTY, finalize, tap } from 'rxjs';
 import { AuthHeaderComponent } from '../../components/auth-header/auth-header.component';
 import { AuthPrimaryButtonComponent } from '../../components/auth-primary-button/auth-primary-button.component';
-import { AuthErrorFacade } from '../../errors/auth-error.facade';
+import { ErrorFacade } from 'src/app/core/errors/facades/error.facade';
+import { AUTH_ERROR_MAP } from '../../errors/auth-error.config';
 import { AuthApiService } from '../../services/auth-api.service';
 
 @Component({
@@ -45,7 +46,7 @@ export class VerifyResetOtpPage {
   private readonly authApi = inject(AuthApiService);
   private readonly storage = inject(AppStorageService);
   private readonly secureStorage = inject(SecureStorageService);
-  private readonly authErrorFacade = inject(AuthErrorFacade);
+  private readonly errorFacade = inject(ErrorFacade);
 
   showLoadingDialog = signal(false);
   otpValue = signal('');
@@ -105,7 +106,7 @@ export class VerifyResetOtpPage {
           );
         }),
         catchError((error: AppError) => {
-          this.authErrorFacade.handle(error, 'password-reset');
+          this.errorFacade.handle(error, AUTH_ERROR_MAP['password-reset']);
           return EMPTY;
         }),
         finalize(() => {
@@ -131,7 +132,7 @@ export class VerifyResetOtpPage {
       .verifyPasswordResetOtp({ email: this.email(), otp })
       .pipe(
         catchError((error: AppError) => {
-          this.authErrorFacade.handle(error, 'password-reset');
+          this.errorFacade.handle(error, AUTH_ERROR_MAP['password-reset']);
           return EMPTY;
         }),
         finalize(() => {

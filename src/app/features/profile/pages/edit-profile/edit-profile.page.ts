@@ -25,7 +25,7 @@ import { checkmarkCircle, chevronBack } from 'ionicons/icons';
 import { firstValueFrom } from 'rxjs';
 import { EditProfileAvatarComponent } from '../../components/edit-profile-avatar/edit-profile-avatar.component';
 import { EditProfileFormComponent } from '../../components/edit-profile-form/edit-profile-form.component';
-import { ProfileErrorFacade } from '../../errors/profile-error.facade';
+import { ErrorFacade } from '@core/errors/facades/error.facade';
 import { UserProfileFormData } from '../../models/profile-form.model';
 import { UpdateProfileDto } from '../../models/update-profile.dto';
 import { ProfileService } from '../../services/profile.service';
@@ -55,7 +55,7 @@ export class EditProfilePage {
   private readonly loadingController = inject(LoadingController);
   private readonly alertController = inject(AlertController);
   private readonly mediaUpload = inject(MediaUpload);
-  private readonly profileErrorFacade = inject(ProfileErrorFacade);
+  private readonly errorFacade = inject(ErrorFacade);
 
   private readonly defaultProfile: ProfileFormData = {
     displayName: '',
@@ -189,7 +189,7 @@ export class EditProfilePage {
       await this.notification.showSuccess('Profile updated successfully');
       this.navCtrl.back();
     } catch (error) {
-      this.formComponent()?.applyServerErrors(error, this.profileErrorFacade);
+      this.formComponent()?.applyServerErrors(error, this.errorFacade);
     } finally {
       this.isLoading.set(false);
       await loading?.dismiss();

@@ -12,8 +12,7 @@ import { AuthService } from '@features/auth/services/auth.service';
 import { FeedService } from '@features/home/services/feed.service';
 import { Post } from '@features/posts/models/post-view.model';
 import { LoggerService } from '@core/services/logger.service';
-import { ProfileErrorFacade } from '../../errors/profile-error.facade';
-import { SocialErrorFacade } from '../../errors/social-error.facade';
+import { ErrorFacade } from '@core/errors/facades/error.facade';
 import { ProfilePage } from './profile.page';
 
 describe('ProfilePage', () => {
@@ -54,8 +53,7 @@ describe('ProfilePage', () => {
         { provide: ProfileService, useValue: profileSpy },
         { provide: FollowApiService, useValue: followApiSpy },
         RelationshipService,
-        { provide: ProfileErrorFacade, useValue: jasmine.createSpyObj('ProfileErrorFacade', ['handle', 'getMessage']) },
-        { provide: SocialErrorFacade, useValue: jasmine.createSpyObj('SocialErrorFacade', ['handle']) },
+        { provide: ErrorFacade, useValue: jasmine.createSpyObj('ErrorFacade', ['handle', 'getMessage']) },
         { provide: LoggerService, useValue: jasmine.createSpyObj('LoggerService', ['error', 'debug', 'info', 'warn']) },
       ],
     }).compileComponents();

@@ -3,7 +3,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { AppError } from 'src/app/core/models/app-error.model';
-import { AuthErrorFacade } from '../../errors/auth-error.facade';
+import { ErrorFacade } from '@core/errors/facades/error.facade';
 import { AuthApiService } from '../../services/auth-api.service';
 import { AuthService } from '../../services/auth.service';
 import { LoginPage } from './login.page';
@@ -14,13 +14,13 @@ describe('LoginPage', () => {
   let authApiMock: jasmine.SpyObj<AuthApiService>;
   let authServiceMock: jasmine.SpyObj<AuthService>;
   let routerMock: jasmine.SpyObj<Router>;
-  let authErrorFacadeMock: jasmine.SpyObj<AuthErrorFacade>;
+  let errorFacadeMock: jasmine.SpyObj<ErrorFacade>;
 
   beforeEach(async () => {
     authApiMock = jasmine.createSpyObj('AuthApiService', ['login']);
     authServiceMock = jasmine.createSpyObj('AuthService', ['login']);
     routerMock = jasmine.createSpyObj('Router', ['navigateByUrl']);
-    authErrorFacadeMock = jasmine.createSpyObj('AuthErrorFacade', [
+    errorFacadeMock = jasmine.createSpyObj('ErrorFacade', [
       'handle',
       'getMessage',
     ]);
@@ -31,7 +31,7 @@ describe('LoginPage', () => {
         { provide: AuthApiService, useValue: authApiMock },
         { provide: AuthService, useValue: authServiceMock },
         { provide: Router, useValue: routerMock },
-        { provide: AuthErrorFacade, useValue: authErrorFacadeMock },
+        { provide: ErrorFacade, useValue: errorFacadeMock },
       ],
     }).compileComponents();
 
@@ -59,7 +59,7 @@ describe('LoginPage', () => {
 
     await component.onSubmit();
 
-    expect(authErrorFacadeMock.handle).toHaveBeenCalled();
+    expect(errorFacadeMock.handle).toHaveBeenCalled();
     expect(component.isSubmitting()).toBeFalse();
   });
 
@@ -105,7 +105,7 @@ describe('LoginPage', () => {
 
     await component.onSubmit();
 
-    expect(authErrorFacadeMock.handle).toHaveBeenCalled();
+    expect(errorFacadeMock.handle).toHaveBeenCalled();
     expect(routerMock.navigateByUrl).not.toHaveBeenCalled();
   });
 });

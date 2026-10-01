@@ -5,7 +5,7 @@ import { SecureStorageService } from '@core/services/storage/secure-storage.serv
 import { STORAGE_KEYS } from '@core/services/storage/storage-keys';
 import { NavController } from '@ionic/angular';
 import { of } from 'rxjs';
-import { AuthErrorFacade } from '../../errors/auth-error.facade';
+import { ErrorFacade } from '@core/errors/facades/error.facade';
 import { AuthApiService } from '../../services/auth-api.service';
 import { VerifyResetOtpPage } from './verify-reset-otp.page';
 
@@ -56,8 +56,8 @@ describe('VerifyResetOtpPage', () => {
         { provide: Router, useValue: routerMock },
         { provide: ActivatedRoute, useValue: routeMock },
         {
-          provide: AuthErrorFacade,
-          useValue: jasmine.createSpyObj('AuthErrorFacade', ['handle']),
+          provide: ErrorFacade,
+          useValue: jasmine.createSpyObj('ErrorFacade', ['handle']),
         },
         {
           provide: NavController,

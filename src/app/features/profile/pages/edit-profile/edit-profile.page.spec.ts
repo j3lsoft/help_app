@@ -16,7 +16,7 @@ import { MediaUpload } from 'src/app/core/services/media/upload/services/media-u
 import { NotificationService } from 'src/app/core/services/notification.service';
 import { MeResponseDto } from 'src/app/features/auth/models/auth.dto';
 import { AuthService } from 'src/app/features/auth/services/auth.service';
-import { ProfileErrorFacade } from '../../errors/profile-error.facade';
+import { ErrorFacade } from '@core/errors/facades/error.facade';
 import { ProfileService } from '../../services/profile.service';
 import { EditProfilePage } from './edit-profile.page';
 
@@ -25,7 +25,7 @@ describe('EditProfilePage', () => {
   let fixture: ComponentFixture<EditProfilePage>;
   let profileServiceSpy: jasmine.SpyObj<ProfileService>;
   let navCtrlSpy: jasmine.SpyObj<NavController>;
-  let profileErrorFacadeSpy: jasmine.SpyObj<ProfileErrorFacade>;
+  let errorFacadeSpy: jasmine.SpyObj<ErrorFacade>;
   let authUser: ReturnType<typeof signal<MeResponseDto | null>>;
 
   const mockUser: MeResponseDto = {
@@ -51,7 +51,7 @@ describe('EditProfilePage', () => {
     profileServiceSpy.getMyProfile.and.returnValue(of(mockUser));
     profileServiceSpy.hasCachedProfile.and.returnValue(true);
     navCtrlSpy = jasmine.createSpyObj('NavController', ['back']);
-    profileErrorFacadeSpy = jasmine.createSpyObj('ProfileErrorFacade', [
+    errorFacadeSpy = jasmine.createSpyObj('ErrorFacade', [
       'handle',
       'getMessage',
     ]);
@@ -111,7 +111,7 @@ describe('EditProfilePage', () => {
         { provide: AlertController, useValue: alertCtrlSpy },
         { provide: LoggerService, useValue: loggerSpy },
         { provide: MediaUpload, useValue: mediaUploadSpy },
-        { provide: ProfileErrorFacade, useValue: profileErrorFacadeSpy },
+        { provide: ErrorFacade, useValue: errorFacadeSpy },
         {
           provide: CameraService,
           useValue: jasmine.createSpyObj('CameraService', [
@@ -200,7 +200,7 @@ describe('EditProfilePage', () => {
     });
     await fixture.whenStable();
 
-    expect(profileErrorFacadeSpy.handle).toHaveBeenCalled();
+    expect(errorFacadeSpy.handle).toHaveBeenCalled();
     expect(component.isLoading()).toBeFalse();
   });
 });

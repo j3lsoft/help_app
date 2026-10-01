@@ -7,7 +7,8 @@ import { NotificationService } from 'src/app/core/services/notification.service'
 import { AppStorageService } from 'src/app/core/services/storage/app-storage.service';
 import { SecureStorageService } from 'src/app/core/services/storage/secure-storage.service';
 import { STORAGE_KEYS } from 'src/app/core/services/storage/storage-keys';
-import { AuthErrorFacade } from '../../errors/auth-error.facade';
+import { ErrorFacade } from '@core/errors/facades/error.facade';
+import { AUTH_ERROR_MAP } from '../../errors/auth-error.config';
 import { AuthApiService } from '../../services/auth-api.service';
 import { AuthService } from '../../services/auth.service';
 import { ResetPasswordPage } from './reset-password.page';
@@ -20,7 +21,7 @@ describe('ResetPasswordPage', () => {
   let storageMock: jasmine.SpyObj<AppStorageService>;
   let secureStorageMock: jasmine.SpyObj<SecureStorageService>;
   let routerMock: jasmine.SpyObj<Router>;
-  let authErrorFacadeMock: jasmine.SpyObj<AuthErrorFacade>;
+  let errorFacadeMock: jasmine.SpyObj<ErrorFacade>;
 
   beforeEach(async () => {
     authApiMock = jasmine.createSpyObj('AuthApiService', [
@@ -39,7 +40,7 @@ describe('ResetPasswordPage', () => {
     ]);
     routerMock = jasmine.createSpyObj('Router', ['navigateByUrl']);
 
-    authErrorFacadeMock = jasmine.createSpyObj('AuthErrorFacade', [
+    errorFacadeMock = jasmine.createSpyObj('ErrorFacade', [
       'handle',
       'getMessage',
     ]);
@@ -83,7 +84,7 @@ describe('ResetPasswordPage', () => {
             'showSuccess',
           ]),
         },
-        { provide: AuthErrorFacade, useValue: authErrorFacadeMock },
+        { provide: ErrorFacade, useValue: errorFacadeMock },
         {
           provide: NavController,
           useValue: jasmine.createSpyObj('NavController', ['back']),
@@ -111,9 +112,9 @@ describe('ResetPasswordPage', () => {
     component.onSubmit();
     await Promise.resolve();
 
-    expect(authErrorFacadeMock.handle).toHaveBeenCalledWith(
+    expect(errorFacadeMock.handle).toHaveBeenCalledWith(
       errorResponse,
-      'password-change'
+      AUTH_ERROR_MAP['password-change']
     );
   });
 

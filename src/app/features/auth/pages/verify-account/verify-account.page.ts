@@ -19,7 +19,8 @@ import { AppStorageService } from 'src/app/core/services/storage/app-storage.ser
 import { STORAGE_KEYS } from 'src/app/core/services/storage/storage-keys';
 import { AuthHeaderComponent } from '../../components/auth-header/auth-header.component';
 import { AuthPrimaryButtonComponent } from '../../components/auth-primary-button/auth-primary-button.component';
-import { AuthErrorFacade } from '../../errors/auth-error.facade';
+import { ErrorFacade } from 'src/app/core/errors/facades/error.facade';
+import { AUTH_ERROR_MAP } from '../../errors/auth-error.config';
 import { AuthApiService } from '../../services/auth-api.service';
 import { AuthService } from '../../services/auth.service';
 
@@ -45,7 +46,7 @@ export class VerifyAccountPage {
   private readonly authApi = inject(AuthApiService);
   private readonly authService = inject(AuthService);
   private readonly storage = inject(AppStorageService);
-  private readonly authErrorFacade = inject(AuthErrorFacade);
+  private readonly errorFacade = inject(ErrorFacade);
 
   showLoadingDialog = signal(false);
   otpValue = signal('0');
@@ -95,7 +96,7 @@ export class VerifyAccountPage {
       .resendVerification({ email: this.email() })
       .pipe(
         catchError((error: AppError) => {
-          this.authErrorFacade.handle(error, 'verification');
+          this.errorFacade.handle(error, AUTH_ERROR_MAP['verification']);
           return EMPTY;
         }),
         finalize(() => {
@@ -132,7 +133,7 @@ export class VerifyAccountPage {
           )
         ),
         catchError((error: AppError) => {
-          this.authErrorFacade.handle(error, 'verification');
+          this.errorFacade.handle(error, AUTH_ERROR_MAP['verification']);
           return EMPTY;
         }),
         finalize(() => {

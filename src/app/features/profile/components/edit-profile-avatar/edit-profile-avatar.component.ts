@@ -24,7 +24,8 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { cameraOutline, imageOutline, trashOutline } from 'ionicons/icons';
-import { ProfileErrorFacade } from '../../errors/profile-error.facade';
+import { ErrorFacade } from '@core/errors/facades/error.facade';
+import { PROFILE_ERROR_MAP } from '../../errors/profile-error.config';
 import { AppError } from '@core/models/app-error.model';
 import {
   getUserInitials,
@@ -47,7 +48,7 @@ export class EditProfileAvatarComponent implements OnDestroy {
   private platform = inject(Platform);
   private cameraService = inject(CameraService);
   private logger = inject(LoggerService);
-  private profileErrorFacade = inject(ProfileErrorFacade);
+  private errorFacade = inject(ErrorFacade);
 
   isLoading = signal(false);
   private modal: HTMLIonModalElement | null = null;
@@ -118,7 +119,7 @@ export class EditProfileAvatarComponent implements OnDestroy {
       appError = toAppError(error);
     }
 
-    this.profileErrorFacade.handle(appError, 'avatar-upload');
+    this.errorFacade.handle(appError, PROFILE_ERROR_MAP['avatar-upload']);
   }
 
   private async closeModal() {

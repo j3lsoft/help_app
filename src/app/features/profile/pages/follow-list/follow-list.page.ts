@@ -14,8 +14,11 @@ import {
 import { BackHeaderComponent } from '@shared/components/back-header/back-header.component';
 import { FollowerListComponent } from '../../components/follower-list/follower-list.component';
 import { FollowUserDto } from '../../models/follow.dto';
-import { SocialErrorContext } from '../../errors/social-error.config';
-import { SocialErrorFacade } from '../../errors/social-error.facade';
+import { ErrorFacade } from 'src/app/core/errors/facades/error.facade';
+import {
+  SOCIAL_ERROR_MAP,
+  SocialErrorContext,
+} from '../../errors/social-error.config';
 import { FollowService } from '../../services/follow.service';
 import { RelationshipService } from '../../services/relationship.service';
 import {
@@ -50,7 +53,7 @@ export class FollowListPage implements ViewWillEnter {
   private readonly navCtrl = inject(NavController);
   private readonly followService = inject(FollowService);
   private readonly relationships = inject(RelationshipService);
-  private readonly socialErrorFacade = inject(SocialErrorFacade);
+  private readonly errorFacade = inject(ErrorFacade);
 
   private readonly userId = toSignal(
     this.route.paramMap.pipe(map((p) => p.get('userId')))
@@ -100,7 +103,7 @@ export class FollowListPage implements ViewWillEnter {
         ? this.followService.followersError()
         : this.followService.followingsError();
     return error
-      ? this.socialErrorFacade.getMessage(error, this.errorContext())
+      ? this.errorFacade.getMessage(error, SOCIAL_ERROR_MAP[this.errorContext()])
       : null;
   });
 
@@ -125,7 +128,7 @@ export class FollowListPage implements ViewWillEnter {
       .toggle(user.id)
       .pipe(
         catchSocialError(
-          this.socialErrorFacade,
+          this.errorFacade,
           followActionContext(isFollowing)
         )
       )
@@ -157,7 +160,7 @@ export class FollowListPage implements ViewWillEnter {
 
     load$
       .pipe(
-        catchSocialError(this.socialErrorFacade, this.errorContext()),
+        catchSocialError(this.errorFacade, this.errorContext()),
         finalize(() => onComplete?.())
       )
       .subscribe();

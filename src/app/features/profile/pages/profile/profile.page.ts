@@ -40,8 +40,8 @@ import {
 } from '@ionic/angular/standalone';
 import { TopBarComponent } from '@shared/components/top-bar/top-bar.component';
 import { catchError } from 'rxjs';
-import { ProfileErrorFacade } from '../../errors/profile-error.facade';
-import { SocialErrorFacade } from '../../errors/social-error.facade';
+import { ErrorFacade } from 'src/app/core/errors/facades/error.facade';
+import { PROFILE_ERROR_MAP } from '../../errors/profile-error.config';
 import { ProfileTab } from '../../models/profile-tab.model';
 import { createProfilePostsLoader } from '../../utils/profile-posts.loader';
 import {
@@ -83,8 +83,7 @@ export class ProfilePage implements ViewWillEnter, OnDestroy {
   private relationships = inject(RelationshipService);
   private postsApi = inject(PostsApiService);
   private feed = inject(FeedService);
-  private readonly profileErrorFacade = inject(ProfileErrorFacade);
-  private readonly socialErrorFacade = inject(SocialErrorFacade);
+  private readonly errorFacade = inject(ErrorFacade);
 
   private readonly postsLoader = createProfilePostsLoader({
     fetchPage: (userId, cursor) =>
@@ -131,7 +130,7 @@ export class ProfilePage implements ViewWillEnter, OnDestroy {
         catchError((error: unknown) => {
           const appError = toAppError(error);
           this.profileLoadError.set(appError);
-          this.profileErrorFacade.handle(appError, 'profile');
+          this.errorFacade.handle(appError, PROFILE_ERROR_MAP['profile']);
           throw appError;
         }),
       );
@@ -143,7 +142,7 @@ export class ProfilePage implements ViewWillEnter, OnDestroy {
   profileErrorMessage = computed(() => {
     const error = this.profileLoadError();
     return error
-      ? this.profileErrorFacade.getMessage(error, 'profile')
+      ? this.errorFacade.getMessage(error, PROFILE_ERROR_MAP['profile'])
       : 'Failed to load profile. Please try again.';
   });
 
@@ -172,7 +171,7 @@ export class ProfilePage implements ViewWillEnter, OnDestroy {
 
     this.relationships
       .load(userId)
-      .pipe(catchSocialError(this.socialErrorFacade, 'follow-counts'))
+      .pipe(catchSocialError(this.errorFacade, 'follow-counts'))
       .subscribe();
 
     this.postsLoader.refresh(userId);
@@ -194,7 +193,7 @@ export class ProfilePage implements ViewWillEnter, OnDestroy {
     if (userId) {
       this.relationships
         .load(userId)
-        .pipe(catchSocialError(this.socialErrorFacade, 'follow-counts'))
+        .pipe(catchSocialError(this.errorFacade, 'follow-counts'))
         .subscribe();
       this.postsLoader.refresh(userId);
     }

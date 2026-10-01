@@ -41,8 +41,8 @@ import { FeedService } from '@features/home/services/feed.service';
 import { addIcons } from 'ionicons';
 import { chevronBack } from 'ionicons/icons';
 import { catchError, map, of, switchMap } from 'rxjs';
-import { ProfileErrorFacade } from '../../errors/profile-error.facade';
-import { SocialErrorFacade } from '../../errors/social-error.facade';
+import { ErrorFacade } from 'src/app/core/errors/facades/error.facade';
+import { PROFILE_ERROR_MAP } from '../../errors/profile-error.config';
 import { ProfileService } from '../../services/profile.service';
 import { RelationshipService } from '../../services/relationship.service';
 import { PostsApiService } from '@features/posts/services/posts-api.service';
@@ -85,8 +85,7 @@ export class UserProfilePage implements ViewWillEnter, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly logger = inject(LoggerService);
   private readonly profileService = inject(ProfileService);
-  private readonly profileErrorFacade = inject(ProfileErrorFacade);
-  private readonly socialErrorFacade = inject(SocialErrorFacade);
+  private readonly errorFacade = inject(ErrorFacade);
   private readonly relationships = inject(RelationshipService);
   private readonly postsApi = inject(PostsApiService);
   private readonly feed = inject(FeedService);
@@ -138,7 +137,7 @@ export class UserProfilePage implements ViewWillEnter, OnDestroy {
     }
     const error = this.profileError();
     return error
-      ? this.profileErrorFacade.getMessage(error, 'profile')
+      ? this.errorFacade.getMessage(error, PROFILE_ERROR_MAP['profile'])
       : 'Failed to load profile. Please try again.';
   });
 
@@ -233,7 +232,7 @@ export class UserProfilePage implements ViewWillEnter, OnDestroy {
         });
         this.relationships
           .load(profile.id)
-          .pipe(catchSocialError(this.socialErrorFacade, 'follow-counts'))
+          .pipe(catchSocialError(this.errorFacade, 'follow-counts'))
           .subscribe();
       });
     });
@@ -349,7 +348,7 @@ export class UserProfilePage implements ViewWillEnter, OnDestroy {
       .toggle(profile.id)
       .pipe(
         catchSocialError(
-          this.socialErrorFacade,
+          this.errorFacade,
           followActionContext(wasFollowing),
         ),
       )

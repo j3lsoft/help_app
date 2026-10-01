@@ -7,8 +7,7 @@ import { AppError } from '@core/models/app-error.model';
 import { LoggerService } from '@core/services/logger.service';
 import { AuthService } from '@features/auth/services/auth.service';
 import { FeedService } from '@features/home/services/feed.service';
-import { ProfileErrorFacade } from '../../errors/profile-error.facade';
-import { SocialErrorFacade } from '../../errors/social-error.facade';
+import { ErrorFacade } from '@core/errors/facades/error.facade';
 import { PublicProfileResponseDto } from '../../services/profile-api.service';
 import { ProfileService } from '../../services/profile.service';
 import { FollowApiService } from '../../services/follow-api.service';
@@ -32,7 +31,7 @@ describe('UserProfilePage', () => {
   let component: UserProfilePage;
   let fixture: ComponentFixture<UserProfilePage>;
   let profileServiceSpy: jasmine.SpyObj<ProfileService>;
-  let profileErrorFacadeSpy: jasmine.SpyObj<ProfileErrorFacade>;
+  let errorFacadeSpy: jasmine.SpyObj<ErrorFacade>;
   let followApiSpy: jasmine.SpyObj<FollowApiService>;
   let postsApiSpy: jasmine.SpyObj<PostsApiService>;
 
@@ -40,7 +39,7 @@ describe('UserProfilePage', () => {
     profileServiceSpy = jasmine.createSpyObj('ProfileService', [
       'getPublicProfile',
     ]);
-    profileErrorFacadeSpy = jasmine.createSpyObj('ProfileErrorFacade', [
+    errorFacadeSpy = jasmine.createSpyObj('ErrorFacade', [
       'handle',
       'getMessage',
     ]);
@@ -78,11 +77,7 @@ describe('UserProfilePage', () => {
           },
         },
         { provide: ProfileService, useValue: profileServiceSpy },
-        { provide: ProfileErrorFacade, useValue: profileErrorFacadeSpy },
-        {
-          provide: SocialErrorFacade,
-          useValue: jasmine.createSpyObj('SocialErrorFacade', ['handle']),
-        },
+        { provide: ErrorFacade, useValue: errorFacadeSpy },
         {
           provide: AuthService,
           useValue: {

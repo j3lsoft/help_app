@@ -20,7 +20,8 @@ import { AppError } from 'src/app/core/models/app-error.model';
 import { NotificationService } from 'src/app/core/services/notification.service';
 import { handleInlineFormError } from 'src/app/core/utils/form-error-handler.utils';
 import { clearServerFieldErrors } from 'src/app/core/utils/server-validation-errors.utils';
-import { AuthErrorFacade } from 'src/app/features/auth/errors/auth-error.facade';
+import { ErrorFacade } from 'src/app/core/errors/facades/error.facade';
+import { AUTH_ERROR_MAP } from 'src/app/features/auth/errors/auth-error.config';
 import { AuthApiService } from 'src/app/features/auth/services/auth-api.service';
 import { isInvalid } from 'src/app/shared/utils/form.utils';
 import {
@@ -47,7 +48,7 @@ export class ChangePasswordPage {
   private readonly fb = inject(FormBuilder);
   private readonly authApi = inject(AuthApiService);
   private readonly notifications = inject(NotificationService);
-  private readonly authErrorFacade = inject(AuthErrorFacade);
+  private readonly errorFacade = inject(ErrorFacade);
 
   isSubmitting = signal(false);
 
@@ -126,8 +127,8 @@ export class ChangePasswordPage {
           handleInlineFormError({
             error,
             form: this.form,
-            context: 'password-change',
-            facade: this.authErrorFacade,
+            config: AUTH_ERROR_MAP['password-change'],
+            facade: this.errorFacade,
           });
           return EMPTY;
         }),

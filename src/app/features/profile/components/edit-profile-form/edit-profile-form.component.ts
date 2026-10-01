@@ -12,7 +12,8 @@ import { DatePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { clearServerFieldErrors } from '@core/utils/server-validation-errors.utils';
 import { handleInlineFormError } from '@core/utils/form-error-handler.utils';
-import { ProfileErrorFacade } from '../../errors/profile-error.facade';
+import { ErrorMessageFacade } from '@core/errors/facades/error.facade';
+import { PROFILE_ERROR_MAP } from '../../errors/profile-error.config';
 import {
   IonButton,
   IonIcon,
@@ -106,11 +107,11 @@ export class EditProfileFormComponent {
   }
 
   /** Apply server validation errors to the appropriate form controls */
-  applyServerErrors(error: unknown, facade: ProfileErrorFacade): void {
+  applyServerErrors(error: unknown, facade: ErrorMessageFacade): void {
     handleInlineFormError({
       error,
       form: this.form,
-      context: 'update-profile',
+      config: PROFILE_ERROR_MAP['update-profile'],
       facade,
       validationOptions: {
         controlNameByServerField: { email: 'username' },

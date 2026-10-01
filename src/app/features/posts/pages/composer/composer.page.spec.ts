@@ -15,7 +15,7 @@ import {
   PublishParams,
   PublishResult,
 } from '../../services/post-publish.service';
-import { PostErrorFacade } from '../../errors/post-error.facade';
+import { ErrorFacade } from '@core/errors/facades/error.facade';
 import { PostResponseDto } from '../../models/post.dto';
 import { ComposerPage } from './composer.page';
 
@@ -94,8 +94,8 @@ describe('ComposerPage', () => {
         { provide: PostPublishService, useValue: publishSpy },
         { provide: NotificationService, useValue: notificationSpy },
         {
-          provide: PostErrorFacade,
-          useValue: jasmine.createSpyObj('PostErrorFacade', ['handle']),
+          provide: ErrorFacade,
+          useValue: jasmine.createSpyObj('ErrorFacade', ['handle']),
         },
         { provide: AuthService, useValue: authSpy },
       ],

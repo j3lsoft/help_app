@@ -12,7 +12,8 @@ import { LoggerService } from '@core/services/logger.service';
 import { NotificationService } from '@core/services/notification.service';
 import { AuthService } from '@features/auth/services/auth.service';
 import { FeedService } from '@features/home/services/feed.service';
-import { PostErrorFacade } from '../../errors/post-error.facade';
+import { ErrorFacade } from '@core/errors/facades/error.facade';
+import { POST_ERROR_MAP } from '../../errors/post-error.config';
 import { PostResponseDto } from '../../models/post.dto';
 import { PostsApiService } from '../../services/posts-api.service';
 import { PostDetailPage, parseImageIndex } from './post-detail.page';
@@ -50,7 +51,7 @@ describe('PostDetailPage', () => {
   let alertControllerSpy: jasmine.SpyObj<AlertController>;
   let notificationSpy: jasmine.SpyObj<NotificationService>;
   let postsApiSpy: jasmine.SpyObj<PostsApiService>;
-  let postErrorFacadeSpy: jasmine.SpyObj<PostErrorFacade>;
+  let errorFacadeSpy: jasmine.SpyObj<ErrorFacade>;
   let feedService: FeedService;
   let routeParamMap$: BehaviorSubject<ParamMap>;
 
@@ -74,12 +75,12 @@ describe('PostDetailPage', () => {
       'editPost',
       'deletePost',
     ]);
-    postErrorFacadeSpy = jasmine.createSpyObj('PostErrorFacade', [
+    errorFacadeSpy = jasmine.createSpyObj('ErrorFacade', [
       'handle',
       'getMessage',
     ]);
     postsApiSpy.getPostById.and.returnValue(of(POST_DTO));
-    postErrorFacadeSpy.getMessage.and.returnValue('Failed to load post.');
+    errorFacadeSpy.getMessage.and.returnValue('Failed to load post.');
 
     const authSpy = jasmine.createSpyObj<AuthService>('AuthService', [], [
       'currentUser',
@@ -117,7 +118,7 @@ describe('PostDetailPage', () => {
         { provide: NotificationService, useValue: notificationSpy },
         { provide: PostsApiService, useValue: postsApiSpy },
         { provide: AuthService, useValue: authSpy },
-        { provide: PostErrorFacade, useValue: postErrorFacadeSpy },
+        { provide: ErrorFacade, useValue: errorFacadeSpy },
         {
           provide: LoggerService,
           useValue: jasmine.createSpyObj('LoggerService', [
@@ -255,7 +256,7 @@ describe('PostDetailPage', () => {
 
     expect(component.isNotFound()).toBeTrue();
     expect(component.errorMessage()).toBe('Post not found.');
-    expect(postErrorFacadeSpy.handle).not.toHaveBeenCalled();
+    expect(errorFacadeSpy.handle).not.toHaveBeenCalled();
   });
 
   it('should show retryable error when loading fails', async () => {
@@ -268,7 +269,7 @@ describe('PostDetailPage', () => {
     await settle();
 
     expect(component.isNotFound()).toBeFalse();
-    expect(postErrorFacadeSpy.handle).not.toHaveBeenCalled();
+    expect(errorFacadeSpy.handle).not.toHaveBeenCalled();
     expect((fixture.nativeElement as HTMLElement).textContent).toContain(
       'Retry'
     );
@@ -340,9 +341,9 @@ describe('PostDetailPage', () => {
     component.draft.setValue('nope');
     await component.saveEdit();
 
-    expect(postErrorFacadeSpy.handle).toHaveBeenCalledWith(
+    expect(errorFacadeSpy.handle).toHaveBeenCalledWith(
       forbidden,
-      'post-edit'
+      POST_ERROR_MAP['post-edit']
     );
     expect(component.editing()).toBeTrue();
   });
@@ -402,9 +403,9 @@ describe('PostDetailPage', () => {
 
     await component.deletePost();
 
-    expect(postErrorFacadeSpy.handle).toHaveBeenCalledWith(
+    expect(errorFacadeSpy.handle).toHaveBeenCalledWith(
       jasmine.objectContaining({ status: 403 }),
-      'post-delete'
+      POST_ERROR_MAP['post-delete']
     );
     expect(navControllerSpy.back).not.toHaveBeenCalled();
   });
@@ -422,9 +423,9 @@ describe('PostDetailPage', () => {
     await component.saveEdit();
     await settle();
 
-    expect(postErrorFacadeSpy.handle).toHaveBeenCalledWith(
+    expect(errorFacadeSpy.handle).toHaveBeenCalledWith(
       jasmine.objectContaining({ status: 404 }),
-      'post-edit'
+      POST_ERROR_MAP['post-edit']
     );
     expect(component.editing()).toBeFalse();
     expect(component.isNotFound()).toBeTrue();
@@ -448,9 +449,9 @@ describe('PostDetailPage', () => {
 
     await component.deletePost();
 
-    expect(postErrorFacadeSpy.handle).toHaveBeenCalledWith(
+    expect(errorFacadeSpy.handle).toHaveBeenCalledWith(
       jasmine.objectContaining({ status: 404 }),
-      'post-delete'
+      POST_ERROR_MAP['post-delete']
     );
     expect(feedService.posts().some((p) => p.id === 'post-1')).toBeFalse();
     expect(
@@ -572,8 +573,8 @@ describe('PostDetailPage navigation', () => {
         { provide: PostsApiService, useValue: postsApiSpy },
         { provide: AuthService, useValue: authSpy },
         {
-          provide: PostErrorFacade,
-          useValue: jasmine.createSpyObj('PostErrorFacade', [
+          provide: ErrorFacade,
+          useValue: jasmine.createSpyObj('ErrorFacade', [
             'handle',
             'getMessage',
           ]),
@@ -666,8 +667,8 @@ describe('PostDetailPage as visitor', () => {
         { provide: PostsApiService, useValue: postsApiSpy },
         { provide: AuthService, useValue: authSpy },
         {
-          provide: PostErrorFacade,
-          useValue: jasmine.createSpyObj('PostErrorFacade', [
+          provide: ErrorFacade,
+          useValue: jasmine.createSpyObj('ErrorFacade', [
             'handle',
             'getMessage',
           ]),

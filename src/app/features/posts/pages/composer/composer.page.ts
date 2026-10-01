@@ -33,7 +33,8 @@ import { handleInlineFormError } from '@core/utils/form-error-handler.utils';
 import { AuthService } from '@features/auth/services/auth.service';
 import { FeedService } from '@features/home/services/feed.service';
 import { BackHeaderComponent } from '@shared/components/back-header/back-header.component';
-import { PostErrorFacade } from '../../errors/post-error.facade';
+import { ErrorFacade } from 'src/app/core/errors/facades/error.facade';
+import { POST_ERROR_MAP } from '../../errors/post-error.config';
 import { DeviceGalleryService } from '../../services/device-gallery.service';
 import { PostCreationService } from '../../services/post-creation.service';
 import {
@@ -73,7 +74,7 @@ export class ComposerPage implements ViewWillLeave {
   private readonly mediaUpload = inject(MediaUpload);
   readonly postCreation = inject(PostCreationService);
   private readonly postPublish = inject(PostPublishService);
-  private readonly postErrorFacade = inject(PostErrorFacade);
+  private readonly errorFacade = inject(ErrorFacade);
   private readonly notification = inject(NotificationService);
   private readonly auth = inject(AuthService);
   private readonly feed = inject(FeedService);
@@ -326,8 +327,8 @@ export class ComposerPage implements ViewWillLeave {
       handleInlineFormError({
         error,
         form: this.form,
-        context: 'publish',
-        facade: this.postErrorFacade,
+        config: POST_ERROR_MAP['publish'],
+        facade: this.errorFacade,
       });
     } finally {
       this.isPublishing.set(false);
