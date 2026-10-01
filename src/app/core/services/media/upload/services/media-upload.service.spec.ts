@@ -174,6 +174,57 @@ describe('MediaUpload', () => {
 
     expect(apiSpy.deleteFile).toHaveBeenCalledWith('media-9');
   });
+
+  it('should not retry a 401 or 403 from the storage PUT', async () => {
+    apiSpy.uploadToStorage.and.returnValue(
+      throwError(() => ({ status: 403, message: 'forbidden' })),
+    );
+
+    await expectRejection(
+      service.upload(jpeg(), { uploadType: 'post_image' }),
+      'storage_upload_failed',
+    );
+    expect(apiSpy.uploadToStorage).toHaveBeenCalledTimes(1);
+  });
+
+  it('should retry a transient storage failure', async () => {
+    let attempts = 0;
+    apiSpy.uploadToStorage.and.callFake(() => {
+      attempts++;
+      if (attempts === 1) {
+        return throwError(() => ({ status: 503, message: 'unavailable' }));
+      }
+      return of(100);
+    });
+
+    const result = await service.upload(jpeg(), { uploadType: 'post_image' });
+
+    expect(attempts).toBe(2);
+    expect(result.id).toBe('media-1');
+  });
+
+  it('should reject with the confirmation phase code when confirm fails', async () => {
+    apiSpy.confirmUpload.and.returnValue(
+      throwError(() => ({ status: 422, message: 'rejected' })),
+    );
+
+    await expectRejection(
+      service.upload(jpeg(), { uploadType: 'post_image' }),
+      'confirmation_failed',
+    );
+    expect(apiSpy.confirmUpload).toHaveBeenCalled();
+  });
+
+  it('should report the phase code even when the upstream error carries one', async () => {
+    apiSpy.getPresignedUrl.and.returnValue(
+      throwError(() => ({ status: 403, code: 'server_code', message: 'no' })),
+    );
+
+    await expectRejection(
+      service.upload(jpeg(), { uploadType: 'post_image' }),
+      'presigned_url_failed',
+    );
+  });
 });
 
 async function expectRejection(

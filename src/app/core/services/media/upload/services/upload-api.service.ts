@@ -11,6 +11,14 @@ import {
   PresignedUrlResponseDto,
 } from '../models';
 
+/**
+ * Carries the HTTP status of a failed storage PUT so callers can tell a
+ * conclusive credentials failure (401/403) from a retryable one.
+ */
+function storageError(message: string, status: number): Error {
+  return Object.assign(new Error(message), { status });
+}
+
 @Injectable({ providedIn: 'root' })
 export class UploadApiService {
   private readonly baseUrl = `${environment.apiBaseUrl}/api/v1/media`;
@@ -83,7 +91,7 @@ export class UploadApiService {
         } else {
           const errorMsg = `Upload failed with status ${xhr.status}: ${xhr.statusText}. Response: ${xhr.responseText}`;
           this.logger.error(errorMsg);
-          observer.error(new Error(errorMsg));
+          observer.error(storageError(errorMsg, xhr.status));
         }
       };
 
@@ -91,7 +99,7 @@ export class UploadApiService {
         cleanup();
         const errorMsg = `Upload failed - Network error. Status: ${xhr.status}, Response: ${xhr.responseText}`;
         this.logger.error(errorMsg);
-        observer.error(new Error(errorMsg));
+        observer.error(storageError(errorMsg, xhr.status));
       };
 
       xhr.onabort = () => {

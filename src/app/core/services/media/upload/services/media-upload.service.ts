@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom, lastValueFrom } from 'rxjs';
 import { LoggerService } from '../../../logger.service';
+import { isTechnicalError } from '../../../../utils/http.utils';
 import {
   MediaUploadError,
   MediaUploadOptions,
@@ -141,15 +142,29 @@ export class MediaUpload {
         if (!mediaError.retryable || attempt === retries) {
           throw mediaError;
         }
-        this.logger.warn('Upload failed; retrying', {
-          context: 'MediaUpload',
-          data: { uploadType, code: mediaError.code, attempt: attempt + 1 },
-        });
+        this.logRetry(mediaError, uploadType, attempt + 1);
         await delay(this.config.retryDelay * 2 ** attempt);
       }
     }
 
     throw lastError;
+  }
+
+  private logRetry(
+    error: MediaUploadError,
+    uploadType: UploadType,
+    attempt: number,
+  ): void {
+    const options = {
+      context: 'MediaUpload',
+      data: { uploadType, code: error.code, attempt },
+    };
+    // Network (0) and 5xx are technical failures → ERROR; the rest WARN.
+    if (isTechnicalError(error.statusCode)) {
+      this.logger.error('Upload failed; retrying', options);
+    } else {
+      this.logger.warn('Upload failed; retrying', options);
+    }
   }
 
   private toMediaUploadError(
@@ -162,12 +177,13 @@ export class MediaUpload {
     const source = error as {
       status?: number;
       statusCode?: number;
-      code?: string;
       message?: string;
     } | null;
     const statusCode = source?.status ?? source?.statusCode ?? 0;
+    // The phase code is this module's contract; a generic adapter code from
+    // upstream would overwrite it with something less specific.
     return new MediaUploadError(
-      source?.code ?? fallbackCode,
+      fallbackCode,
       source?.message ?? 'Upload failed',
       statusCode !== 401 && statusCode !== 403,
       statusCode,
