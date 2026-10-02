@@ -86,6 +86,24 @@ describe('ErrorFacade', () => {
     expect(notificationSpy.showError).not.toHaveBeenCalled();
   });
 
+  it("marks the caller's error as handled", () => {
+    const error = appError({ status: 404 });
+
+    facade.handle(error, config);
+
+    expect(error.handled).toBeTrue();
+  });
+
+  it('does not notify again when the same error is handled twice', () => {
+    const error = appError({ status: 404 });
+
+    facade.handle(error, config);
+    facade.handle(error, config);
+
+    expect(notificationSpy.showError).toHaveBeenCalledTimes(1);
+    expect(notificationSpy.showError).toHaveBeenCalledWith('Not found by status');
+  });
+
   it('getMessage returns the mapped message without toasting', () => {
     expect(facade.getMessage(appError({ status: 404 }), config)).toBe(
       'Not found by status',

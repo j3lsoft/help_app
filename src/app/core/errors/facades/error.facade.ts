@@ -2,7 +2,6 @@ import { Injectable, inject } from '@angular/core';
 import { AppError } from '../../models/app-error.model';
 import { NetworkService } from '../../services/network.service';
 import { NotificationService } from '../../services/notification.service';
-import { markHandled } from '../../utils/app-error.utils';
 import { classifyTechnicalError } from '../../utils/error-handling.utils';
 import { ErrorMapConfig } from '../error-map.interface';
 import { mapError } from '../error-mapper';
@@ -27,11 +26,11 @@ export class ErrorFacade {
   handle(error: AppError, config: ErrorMapConfig): void {
     if (error.handled) return;
 
-    void this.notification.showError(this.resolve(error, config));
-    // Parity with the previous facade: the return value is dropped, so `handled`
-    // is not set on the caller's object. Honouring it would change behaviour
-    // (fewer re-notifications) and is out of scope for this refactor.
-    markHandled(error);
+    const message = this.resolve(error, config);
+    // `handled` is cross-layer state, so set it in place. A copy would leave the
+    // caller's object unmarked and let `GlobalErrorHandler` re-notify later.
+    error.handled = true;
+    void this.notification.showError(message);
   }
 
   /** Returns the message without notifying or marking the error. */
