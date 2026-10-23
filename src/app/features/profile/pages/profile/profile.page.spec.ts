@@ -9,6 +9,7 @@ import { ProfileService } from '@features/profile/services/profile.service';
 import { FollowApiService } from '@features/profile/services/follow-api.service';
 import { RelationshipService } from '@features/profile/services/relationship.service';
 import { AuthService } from '@features/auth/services/auth.service';
+import { FeedApiService } from '@features/home/services/feed-api.service';
 import { FeedService } from '@features/home/services/feed.service';
 import { Post } from '@features/posts/models/post-view.model';
 import { LoggerService } from '@core/services/logger.service';
@@ -25,6 +26,9 @@ describe('ProfilePage', () => {
     postsApiSpy.getUserPosts.and.returnValue(
       of({ items: [], nextCursor: null, total: 0 }),
     );
+
+    const feedApiSpy = jasmine.createSpyObj('FeedApiService', ['getFeed']);
+    feedApiSpy.getFeed.and.returnValue(of({ items: [], nextCursor: null }));
 
     const authSpy = {
       currentUser: signal({ id: 'u1', username: 'test', displayName: 'Test', avatarUrl: null, email: 'a@b.com', emailVerified: true }),
@@ -49,6 +53,7 @@ describe('ProfilePage', () => {
         provideRouter([]),
         provideIonicAngular(),
         { provide: PostsApiService, useValue: postsApiSpy },
+        { provide: FeedApiService, useValue: feedApiSpy },
         { provide: AuthService, useValue: authSpy },
         { provide: ProfileService, useValue: profileSpy },
         { provide: FollowApiService, useValue: followApiSpy },

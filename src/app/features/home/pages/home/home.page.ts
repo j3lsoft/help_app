@@ -5,7 +5,9 @@ import {
   signal,
 } from '@angular/core';
 import { Router } from '@angular/router';
+import { ErrorMapConfig } from '@core/errors/error-map.interface';
 import { ErrorFacade } from '@core/errors/facades/error.facade';
+import { AppError } from '@core/models/app-error.model';
 import { FollowService } from '@features/profile/services/follow.service';
 import { RelationshipService } from '@features/profile/services/relationship.service';
 import {
@@ -16,11 +18,16 @@ import {
   IonContent,
   IonIcon,
   IonImg,
+  IonInfiniteScroll,
+  IonInfiniteScrollContent,
+  IonRefresher,
+  IonRefresherContent,
   ViewWillEnter,
 } from '@ionic/angular/standalone';
 import { TopBarComponent } from '@shared/components/top-bar/top-bar.component';
 import { addIcons } from 'ionicons';
 import { search } from 'ionicons/icons';
+import { catchError, EMPTY, finalize } from 'rxjs';
 import { PostCardComponent } from '../../components/post-card/post-card.component';
 import { buildPostDetailUrl } from '@features/posts/utils/post-detail-url.util';
 import {
@@ -30,6 +37,22 @@ import {
 import { SuggestionListComponent } from '../../components/suggestion-list/suggestion-list.component';
 import { MOCK_USERS_STORIES } from '../../data/home.mock';
 import { FeedService } from '../../services/feed.service';
+
+/** Feed failures outside the technical band (0/429/5xx, handled elsewhere). */
+const FEED_ERROR_MAP: ErrorMapConfig = {
+  byStatus: {
+    401: 'Your session has expired. Please sign in again.',
+  },
+  fallback: 'Could not load the feed. Please try again.',
+};
+
+function catchFeedError(errorFacade: ErrorFacade) {
+  return catchError((error: AppError) => {
+    errorFacade.handle(error, FEED_ERROR_MAP);
+    return EMPTY;
+  });
+}
+
 @Component({
   selector: 'app-home',
   templateUrl: './home.page.html',
@@ -38,6 +61,10 @@ import { FeedService } from '../../services/feed.service';
     IonContent,
     IonIcon,
     IonImg,
+    IonRefresher,
+    IonRefresherContent,
+    IonInfiniteScroll,
+    IonInfiniteScrollContent,
     TopBarComponent,
     StoryListComponent,
     PostCardComponent,
@@ -54,6 +81,7 @@ export class HomePage implements ViewWillEnter {
 
   readonly usersStories = signal<UserStory[]>(MOCK_USERS_STORIES);
   readonly postsList = this.feed.posts;
+  readonly hasMorePosts = this.feed.hasMore;
 
   readonly suggestionsList = this.followService.suggestions;
 
@@ -65,6 +93,35 @@ export class HomePage implements ViewWillEnter {
     this.followService
       .refreshSuggestions()
       .pipe(catchSocialError(this.errorFacade, 'suggestions'))
+      .subscribe();
+
+    this.feed.refresh().pipe(catchFeedError(this.errorFacade)).subscribe();
+  }
+
+  loadMorePosts(event: CustomEvent): void {
+    const complete = () =>
+      (event.target as unknown as { complete: () => void }).complete();
+
+    if (!this.feed.hasMore()) {
+      complete();
+      return;
+    }
+
+    this.feed
+      .loadMore()
+      .pipe(catchFeedError(this.errorFacade), finalize(complete))
+      .subscribe();
+  }
+
+  handleRefresh(event: CustomEvent): void {
+    this.feed
+      .refresh()
+      .pipe(
+        catchFeedError(this.errorFacade),
+        finalize(() =>
+          (event.target as unknown as { complete: () => void }).complete()
+        )
+      )
       .subscribe();
   }
 

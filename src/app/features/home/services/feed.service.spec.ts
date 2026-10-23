@@ -1,141 +1,176 @@
 import { TestBed } from '@angular/core/testing';
+import { of } from 'rxjs';
 import { FeedService } from './feed.service';
-import { MOCK_OLD_POSTS, MOCK_TODAY_POSTS } from '../data/home.mock';
+import { FeedApiService } from './feed-api.service';
+import {
+  FeedItemResponseDto,
+  PaginatedFeedResponseDto,
+} from '../models/feed.dto';
+
+function makeFeedItem(id: string, overrides: Partial<FeedItemResponseDto> = {}): FeedItemResponseDto {
+  return {
+    id,
+    content: `content ${id}`,
+    status: 'published',
+    createdAt: '2026-10-20T10:00:00Z',
+    updatedAt: '2026-10-20T10:00:00Z',
+    media: [
+      {
+        id: `m-${id}`,
+        mediaFileId: `f-${id}`,
+        position: 0,
+        publicUrl: `https://cdn.example.com/${id}.png`,
+        mimeType: 'image/png',
+      },
+    ],
+    author: {
+      id: 'u1',
+      username: 'alice',
+      displayName: 'Alice Sierra',
+      avatarUrl: null,
+    },
+    ...overrides,
+  };
+}
+
+function makePage(
+  items: FeedItemResponseDto[],
+  nextCursor: string | null = null
+): PaginatedFeedResponseDto {
+  return { items, nextCursor };
+}
 
 describe('FeedService', () => {
   let service: FeedService;
+  let api: jasmine.SpyObj<FeedApiService>;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    api = jasmine.createSpyObj('FeedApiService', ['getFeed']);
+    api.getFeed.and.returnValue(of(makePage([makeFeedItem('p1')])));
+
+    TestBed.configureTestingModule({
+      providers: [{ provide: FeedApiService, useValue: api }],
+    });
     service = TestBed.inject(FeedService);
   });
 
-  it('should be created with a single chronological seed list', () => {
-    expect(service.posts()).toEqual([...MOCK_TODAY_POSTS, ...MOCK_OLD_POSTS]);
+  it('should project feed items into view posts with the embedded author and no counters', () => {
+    service.refresh().subscribe();
+
+    const post = service.posts()[0];
+    expect(post.id).toBe('p1');
+    expect(post.username).toBe('alice');
+    expect(post.userName).toBe('Alice Sierra');
+    expect(post.aboutPost).toBe('content p1');
+    expect(post.postImages).toEqual(['https://cdn.example.com/p1.png']);
+    expect(post.postLikes).toBeUndefined();
+    expect(post.postComments).toBeUndefined();
+    expect(post.postSaves).toBeUndefined();
   });
 
-  it('should prepend a new post on top of the list', () => {
-    const newPost = {
-      id: 'new-post',
+  it('should request the first page without cursor and track the next one', () => {
+    api.getFeed.and.returnValue(of(makePage([makeFeedItem('p1')], 'cursor-2')));
+
+    service.refresh().subscribe();
+
+    expect(api.getFeed).toHaveBeenCalledWith({ limit: 20 });
+    expect(service.hasMore()).toBeTrue();
+
+    api.getFeed.and.returnValue(of(makePage([makeFeedItem('p2')])));
+    service.loadMore().subscribe();
+
+    expect(api.getFeed).toHaveBeenCalledWith({ limit: 20, cursor: 'cursor-2' });
+    expect(service.posts().map((p) => p.id)).toEqual(['p1', 'p2']);
+    expect(service.hasMore()).toBeFalse();
+  });
+
+  it('should not request more pages once the cursor is exhausted', () => {
+    service.refresh().subscribe();
+    api.getFeed.calls.reset();
+
+    service.loadMore().subscribe();
+
+    expect(api.getFeed).not.toHaveBeenCalled();
+  });
+
+  it('should merge session-created posts on top and collapse duplicates', () => {
+    const created = {
+      id: 'mine',
       userProfilePic: '',
-      userName: 'Tester',
-      username: 'tester',
-      aboutPost: 'hi',
-      postLikes: '0',
-      postComments: '0',
-      postImages: ['blob:image-src'],
+      userName: 'You',
+      username: 'me',
+      aboutPost: 'hello',
+      postImages: [],
       postLike: false,
-      createdAt: '2026-09-13T00:00:00Z',
     };
 
-    service.prependPost(newPost);
+    service.prependPost(created, 'u1');
+    expect(service.posts()[0].id).toBe('mine');
 
-    expect(service.posts()[0]).toEqual(newPost);
-    expect(service.posts().length).toBe(
-      MOCK_TODAY_POSTS.length + MOCK_OLD_POSTS.length + 1
+    api.getFeed.and.returnValue(
+      of(makePage([makeFeedItem('mine'), makeFeedItem('p1')]))
     );
+    service.refresh().subscribe();
+
+    expect(service.posts().map((p) => p.id)).toEqual(['mine', 'p1']);
+    expect(service.createdPosts()[0].authorId).toBe('u1');
   });
 
-  it('should toggle like for a specific post', () => {
-    const target = MOCK_TODAY_POSTS[0];
+  it('should toggle like and save through the engagement overlay', () => {
+    service.refresh().subscribe();
 
-    service.toggleLike(target.id);
-    expect(service.posts()[0].postLike).toBe(!target.postLike);
+    service.toggleLike('p1');
+    service.toggleSave('p1');
 
-    service.toggleLike(target.id);
-    expect(service.posts()[0].postLike).toBe(target.postLike);
-  });
+    expect(service.posts()[0].postLike).toBeTrue();
+    expect(service.posts()[0].postSaved).toBeTrue();
+    const engagement = service.overrides().engagement.get('p1');
+    expect(engagement?.likeDelta).toBe(1);
+    expect(engagement?.saveDelta).toBe(1);
 
-  it('should toggle save for a specific post', () => {
-    const target = MOCK_TODAY_POSTS[0];
-
-    service.toggleSave(target.id);
-    expect(service.posts()[0].postSaved).toBe(!target.postSaved);
-
-    service.toggleSave(target.id);
-    expect(service.posts()[0].postSaved).toBe(target.postSaved);
-  });
-
-  it('should update the content of a post in place', () => {
-    const target = MOCK_TODAY_POSTS[0];
-
-    service.updatePostContent(target.id, 'edited content');
-
-    expect(service.posts()[0].aboutPost).toBe('edited content');
-    expect(service.posts().length).toBe(
-      MOCK_TODAY_POSTS.length + MOCK_OLD_POSTS.length
-    );
-  });
-
-  it('should remove a post without touching the others', () => {
-    const target = MOCK_TODAY_POSTS[0];
-    const before = service.posts().length;
-
-    service.removePost(target.id);
-
-    expect(service.posts().length).toBe(before - 1);
-    expect(service.posts().some((p) => p.id === target.id)).toBeFalse();
-  });
-
-  it('should record a tombstone so every list can drop the post', () => {
-    const target = MOCK_TODAY_POSTS[0];
-
-    service.removePost(target.id);
-
-    expect(service.overrides().removedIds.has(target.id)).toBeTrue();
-  });
-
-  it('should restore a removed post at its original position on rollback', () => {
-    const target = MOCK_TODAY_POSTS[0];
-    const before = service.posts();
-
-    service.removePost(target.id);
-    service.restorePost(target.id);
-
-    expect(service.overrides().removedIds.has(target.id)).toBeFalse();
-    expect(service.posts()).toEqual(before);
+    service.toggleLike('p1');
+    expect(service.posts()[0].postLike).toBeFalse();
   });
 
   it('should expose edited content as an overlay for other lists', () => {
-    const target = MOCK_TODAY_POSTS[0];
+    service.refresh().subscribe();
 
-    service.updatePostContent(target.id, 'patched');
+    service.updatePostContent('p1', 'patched');
 
-    expect(service.overrides().contentPatches.get(target.id)).toBe('patched');
+    expect(service.posts()[0].aboutPost).toBe('patched');
+    expect(service.overrides().contentPatches.get('p1')).toBe('patched');
   });
 
-  it('should expose like/save as an engagement overlay', () => {
-    const target = MOCK_TODAY_POSTS[0];
+  it('should tombstone a removed post and restore it on rollback', () => {
+    api.getFeed.and.returnValue(
+      of(makePage([makeFeedItem('p1'), makeFeedItem('p2')], 'cursor-2'))
+    );
+    service.refresh().subscribe();
 
-    service.toggleLike(target.id);
-    service.toggleSave(target.id);
+    service.removePost('p1');
 
-    const engagement = service.overrides().engagement.get(target.id);
-    expect(engagement?.postLike).toBeTrue();
-    expect(engagement?.likeDelta).toBe(1);
-    expect(engagement?.postSaved).toBeTrue();
-    expect(engagement?.saveDelta).toBe(1);
+    expect(service.posts().map((p) => p.id)).toEqual(['p2']);
+    expect(service.overrides().removedIds.has('p1')).toBeTrue();
+
+    service.restorePost('p1');
+
+    expect(service.posts().map((p) => p.id)).toEqual(['p1', 'p2']);
+    expect(service.overrides().removedIds.has('p1')).toBeFalse();
   });
 
-  it('should track session-created posts by author', () => {
-    const newPost = { ...MOCK_TODAY_POSTS[0], id: 'mine' };
-
-    service.prependPost(newPost, 'u1');
-
-    expect(service.createdPosts().length).toBe(1);
-    expect(service.createdPosts()[0]).toEqual({ post: newPost, authorId: 'u1' });
-  });
-
-  it('should clear every session-local mutation on reset', () => {
-    const target = MOCK_TODAY_POSTS[0];
-    service.removePost(target.id);
-    service.updatePostContent(target.id, 'patched');
-    service.toggleLike(target.id);
-    service.prependPost({ ...target, id: 'mine' }, 'u1');
+  it('should clear the fetched pages and every mutation on reset', () => {
+    service.refresh().subscribe();
+    service.toggleLike('p1');
+    service.updatePostContent('p1', 'patched');
+    service.prependPost(
+      { id: 'mine', userProfilePic: '', userName: 'You', username: 'me', aboutPost: '', postImages: [], postLike: false },
+      'u1'
+    );
 
     service.reset();
 
-    expect(service.posts()).toEqual([...MOCK_TODAY_POSTS, ...MOCK_OLD_POSTS]);
+    expect(service.posts()).toEqual([]);
+    expect(service.hasMore()).toBeFalse();
     expect(service.overrides().removedIds.size).toBe(0);
     expect(service.overrides().contentPatches.size).toBe(0);
     expect(service.overrides().engagement.size).toBe(0);

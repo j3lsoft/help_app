@@ -5,6 +5,7 @@ import { LoggerService } from '@core/services/logger.service';
 import { NotificationService } from '@core/services/notification.service';
 import { MediaUpload } from '@core/services/media/upload/services/media-upload.service';
 import { AuthService } from '@features/auth/services/auth.service';
+import { FeedApiService } from '@features/home/services/feed-api.service';
 import { FeedService } from '@features/home/services/feed.service';
 import { of } from 'rxjs';
 import { PostCreationService } from '../../services/post-creation.service';
@@ -98,6 +99,10 @@ describe('ComposerPage', () => {
           useValue: jasmine.createSpyObj('ErrorFacade', ['handle']),
         },
         { provide: AuthService, useValue: authSpy },
+        {
+          provide: FeedApiService,
+          useValue: jasmine.createSpyObj('FeedApiService', ['getFeed']),
+        },
       ],
     }).compileComponents();
 

@@ -23,14 +23,14 @@ _Avoid_: photo, file, attachment
 Ordered references to the MediaFiles attached to a Post. The order defines position within the post.
 
 **Author**:
-The authenticated user who creates the Post. Always the current session user in v1.
+The user who owns the Post. Own Posts always come from the current session; the Home Feed also renders other users' Posts, whose author travels embedded in the feed item.
 _Avoid_: writer, poster
 
 **Hashtag**:
 A keyword preceded by `#` inside the Content. In v1 it is not its own entity: it travels as plain text.
 
 **Feed**:
-Chronological list of posts shown on Home. In v1 it is local client state, not read from the API. A distinct data source from Profile Posts (local mock vs. API), but session mutations (delete, edit, like, save, create) are propagated across lists through `FeedService`'s mutation log, so a change in one list shows in the others immediately (see `docs/adr/0007`).
+Chronological list of Posts shown on Home, read from `GET /api/v1/feed` (viewer plus followed users, published only, cursor-paginated). Its items carry no engagement totals, so like/save/comment counters stay hidden until the API exposes them; like/save are session-local. Session mutations (delete, edit, like, save, create) are propagated across lists through `FeedService`'s mutation log, so a change in one list shows in the others immediately (see `docs/adr/0007` and `docs/adr/0011`).
 _Avoid_: timeline, wall
 
 **Post status**:

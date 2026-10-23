@@ -10,8 +10,13 @@ export interface Post {
   /** Author handle without the leading `@`. */
   username: string;
   aboutPost: string;
-  postLikes: string;
-  postComments: string;
+  /**
+   * Engagement totals. Absent when the source endpoint does not expose them
+   * (the Home Feed, today); the card hides unknown counters instead of
+   * rendering fabricated numbers (see docs/adr/0011).
+   */
+  postLikes?: string;
+  postComments?: string;
   postSaves?: string;
   postSaved?: boolean;
   /** Ordered carousel images. Empty for text-only Posts. */

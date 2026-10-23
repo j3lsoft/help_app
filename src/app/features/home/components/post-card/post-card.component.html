@@ -110,12 +110,14 @@
           aria-hidden="true"
         ></ion-icon>
       </span>
-      <span
-        class="post-card__action-count"
-        [class.post-card__action-count--liked]="post().postLike"
-      >
-        {{ post().postLikes | shortNumber }}
-      </span>
+      @if (post().postLikes !== undefined) {
+        <span
+          class="post-card__action-count"
+          [class.post-card__action-count--liked]="post().postLike"
+        >
+          {{ post().postLikes | shortNumber }}
+        </span>
+      }
     </button>
     <button
       type="button"
@@ -131,9 +133,11 @@
           aria-hidden="true"
         ></ion-icon>
       </span>
-      <span class="post-card__action-count">
-        {{ post().postComments | shortNumber }}
-      </span>
+      @if (post().postComments !== undefined) {
+        <span class="post-card__action-count">
+          {{ post().postComments | shortNumber }}
+        </span>
+      }
     </button>
     <button
       type="button"
@@ -154,12 +158,14 @@
           aria-hidden="true"
         ></ion-icon>
       </span>
-      <span
-        class="post-card__action-count"
-        [class.post-card__action-count--saved]="post().postSaved"
-      >
-        {{ post().postSaves | shortNumber }}
-      </span>
+      @if (post().postSaves !== undefined) {
+        <span
+          class="post-card__action-count"
+          [class.post-card__action-count--saved]="post().postSaved"
+        >
+          {{ post().postSaves | shortNumber }}
+        </span>
+      }
     </button>
     <button
       type="button"

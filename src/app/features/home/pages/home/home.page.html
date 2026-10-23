@@ -18,6 +18,10 @@
 </app-top-bar>
 
 <ion-content class="home__content">
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
   <app-story-list
     [stories]="usersStories()"
     (shareStory)="goTo('create-story')"
@@ -44,4 +48,10 @@
     (seeAllClick)="goTo('search-detail')"
     (userClick)="goToUserProfile($event)"
   ></app-suggestion-list>
+
+  @if (hasMorePosts()) {
+    <ion-infinite-scroll threshold="30%" (ionInfinite)="loadMorePosts($event)">
+      <ion-infinite-scroll-content></ion-infinite-scroll-content>
+    </ion-infinite-scroll>
+  }
 </ion-content>

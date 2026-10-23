@@ -11,6 +11,7 @@ import { AppError } from '@core/models/app-error.model';
 import { LoggerService } from '@core/services/logger.service';
 import { NotificationService } from '@core/services/notification.service';
 import { AuthService } from '@features/auth/services/auth.service';
+import { FeedApiService } from '@features/home/services/feed-api.service';
 import { FeedService } from '@features/home/services/feed.service';
 import { ErrorFacade } from '@core/errors/facades/error.facade';
 import { POST_ERROR_MAP } from '../../errors/post-error.config';
@@ -117,6 +118,10 @@ describe('PostDetailPage', () => {
         },
         { provide: NotificationService, useValue: notificationSpy },
         { provide: PostsApiService, useValue: postsApiSpy },
+        {
+          provide: FeedApiService,
+          useValue: jasmine.createSpyObj('FeedApiService', ['getFeed']),
+        },
         { provide: AuthService, useValue: authSpy },
         { provide: ErrorFacade, useValue: errorFacadeSpy },
         {
@@ -571,6 +576,10 @@ describe('PostDetailPage navigation', () => {
           ]),
         },
         { provide: PostsApiService, useValue: postsApiSpy },
+        {
+          provide: FeedApiService,
+          useValue: jasmine.createSpyObj('FeedApiService', ['getFeed']),
+        },
         { provide: AuthService, useValue: authSpy },
         {
           provide: ErrorFacade,
@@ -665,6 +674,10 @@ describe('PostDetailPage as visitor', () => {
           ]),
         },
         { provide: PostsApiService, useValue: postsApiSpy },
+        {
+          provide: FeedApiService,
+          useValue: jasmine.createSpyObj('FeedApiService', ['getFeed']),
+        },
         { provide: AuthService, useValue: authSpy },
         {
           provide: ErrorFacade,

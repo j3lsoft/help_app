@@ -6,6 +6,7 @@ import { Subject, of, throwError } from 'rxjs';
 import { AppError } from '@core/models/app-error.model';
 import { LoggerService } from '@core/services/logger.service';
 import { AuthService } from '@features/auth/services/auth.service';
+import { FeedApiService } from '@features/home/services/feed-api.service';
 import { FeedService } from '@features/home/services/feed.service';
 import { ErrorFacade } from '@core/errors/facades/error.facade';
 import { PublicProfileResponseDto } from '../../services/profile-api.service';
@@ -59,6 +60,9 @@ describe('UserProfilePage', () => {
       of({ items: [], nextCursor: null, total: 0 }),
     );
 
+    const feedApiSpy = jasmine.createSpyObj('FeedApiService', ['getFeed']);
+    feedApiSpy.getFeed.and.returnValue(of({ items: [], nextCursor: null }));
+
     await TestBed.configureTestingModule({
       imports: [UserProfilePage],
       providers: [
@@ -94,6 +98,7 @@ describe('UserProfilePage', () => {
         { provide: FollowApiService, useValue: followApiSpy },
         RelationshipService,
         { provide: PostsApiService, useValue: postsApiSpy },
+        { provide: FeedApiService, useValue: feedApiSpy },
         {
           provide: LoggerService,
           useValue: jasmine.createSpyObj('LoggerService', [

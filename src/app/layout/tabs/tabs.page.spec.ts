@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { provideIonicAngular } from '@ionic/angular/standalone';
 import { AuthService } from '@features/auth/services/auth.service';
+import { FeedApiService } from '@features/home/services/feed-api.service';
 import { TabsPage } from './tabs.page';
 
 describe('TabsPage', () => {
@@ -16,6 +17,10 @@ describe('TabsPage', () => {
         {
           provide: AuthService,
           useValue: { logout: jasmine.createSpy('logout') },
+        },
+        {
+          provide: FeedApiService,
+          useValue: jasmine.createSpyObj('FeedApiService', ['getFeed']),
         },
       ],
     }).compileComponents();
