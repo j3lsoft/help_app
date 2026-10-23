@@ -15,6 +15,7 @@ import {
 import { NgOtpInputConfig, NgOtpInputModule } from 'ng-otp-input';
 import { catchError, EMPTY, finalize, from, switchMap, tap } from 'rxjs';
 import { AppError } from 'src/app/core/models/app-error.model';
+import { NotificationService } from 'src/app/core/services/notification.service';
 import { AppStorageService } from 'src/app/core/services/storage/app-storage.service';
 import { STORAGE_KEYS } from 'src/app/core/services/storage/storage-keys';
 import { AuthHeaderComponent } from '../../components/auth-header/auth-header.component';
@@ -46,6 +47,7 @@ export class VerifyAccountPage {
   private readonly authApi = inject(AuthApiService);
   private readonly authService = inject(AuthService);
   private readonly storage = inject(AppStorageService);
+  private readonly notification = inject(NotificationService);
   private readonly errorFacade = inject(ErrorFacade);
 
   showLoadingDialog = signal(false);
@@ -95,6 +97,13 @@ export class VerifyAccountPage {
     this.authApi
       .resendVerification({ email: this.email() })
       .pipe(
+        tap(() => {
+          // The backend always answers 200 to avoid account enumeration,
+          // so the same confirmation is shown regardless of the outcome.
+          void this.notification.showSuccess(
+            'If this email needs verification, a new code has been sent.'
+          );
+        }),
         catchError((error: AppError) => {
           this.errorFacade.handle(error, AUTH_ERROR_MAP['verification']);
           return EMPTY;
@@ -133,6 +142,13 @@ export class VerifyAccountPage {
           )
         ),
         catchError((error: AppError) => {
+          if (error.code === 'EMAIL_ALREADY_VERIFIED') {
+            void this.notification.showSuccess(
+              'This email is already verified. Please sign in.'
+            );
+            void this.router.navigate(['/auth/sign-in'], { replaceUrl: true });
+            return EMPTY;
+          }
           this.errorFacade.handle(error, AUTH_ERROR_MAP['verification']);
           return EMPTY;
         }),

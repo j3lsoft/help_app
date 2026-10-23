@@ -11,7 +11,6 @@ import {
   RegisterResponseDto,
   RequestPasswordResetDto,
   ResendVerificationDto,
-  ResetPasswordDto,
   VerifyEmailDto,
   VerifyPasswordResetOtpDto,
   VerifyPasswordResetOtpResponseDto,
@@ -39,7 +38,7 @@ export class AuthApiService {
   }
 
   resendVerification(dto: ResendVerificationDto) {
-    return this.http.post<void>(
+    return this.http.post<{ message: string }>(
       `${this.baseUrl}/api/v1/auth/resend-verification`,
       dto
     );
@@ -69,13 +68,6 @@ export class AuthApiService {
   changePassword(dto: ChangePasswordDto) {
     return this.http.patch<void>(
       `${this.baseUrl}/api/v1/auth/change-password`,
-      dto
-    );
-  }
-
-  resetPassword(dto: ResetPasswordDto) {
-    return this.http.post<void>(
-      `${this.baseUrl}/api/v1/auth/reset-password`,
       dto
     );
   }

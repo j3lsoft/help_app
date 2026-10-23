@@ -1,12 +1,13 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NavController } from '@ionic/angular';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { VerifyAccountPage } from './verify-account.page';
 import { ErrorFacade } from '@core/errors/facades/error.facade';
 import { AuthApiService } from '../../services/auth-api.service';
 import { AuthService } from '../../services/auth.service';
 import { AppStorageService } from 'src/app/core/services/storage/app-storage.service';
+import { NotificationService } from 'src/app/core/services/notification.service';
 
 describe('VerifyAccountPage', () => {
   let component: VerifyAccountPage;
@@ -16,6 +17,7 @@ describe('VerifyAccountPage', () => {
   let storageMock: jasmine.SpyObj<AppStorageService>;
   let routerMock: jasmine.SpyObj<Router>;
   let errorFacadeMock: jasmine.SpyObj<ErrorFacade>;
+  let notificationMock: jasmine.SpyObj<NotificationService>;
   let routeMock: any;
 
   beforeEach(async () => {
@@ -28,11 +30,15 @@ describe('VerifyAccountPage', () => {
       'getString',
       'remove',
     ]);
-    routerMock = jasmine.createSpyObj('Router', ['navigateByUrl']);
+    routerMock = jasmine.createSpyObj('Router', ['navigateByUrl', 'navigate']);
     errorFacadeMock = jasmine.createSpyObj('ErrorFacade', [
       'handle',
       'getMessage',
     ]);
+    notificationMock = jasmine.createSpyObj('NotificationService', [
+      'showSuccess',
+    ]);
+    notificationMock.showSuccess.and.returnValue(Promise.resolve());
     routeMock = {
       snapshot: {
         queryParamMap: {
@@ -52,6 +58,7 @@ describe('VerifyAccountPage', () => {
         { provide: AppStorageService, useValue: storageMock },
         { provide: Router, useValue: routerMock },
         { provide: ErrorFacade, useValue: errorFacadeMock },
+        { provide: NotificationService, useValue: notificationMock },
         { provide: ActivatedRoute, useValue: routeMock },
         {
           provide: NavController,
@@ -85,5 +92,43 @@ describe('VerifyAccountPage', () => {
 
     expect(errorFacadeMock.handle).toHaveBeenCalled();
     expect(routerMock.navigateByUrl).not.toHaveBeenCalled();
+  });
+
+  it('should show a generic confirmation after resending the code', async () => {
+    authApiMock.resendVerification.and.returnValue(
+      of({ message: 'If an account with this email exists...' })
+    );
+
+    await component.onResend();
+
+    expect(notificationMock.showSuccess).toHaveBeenCalledWith(
+      'If this email needs verification, a new code has been sent.'
+    );
+    expect(errorFacadeMock.handle).not.toHaveBeenCalled();
+  });
+
+  it('should route to sign-in when the email is already verified', async () => {
+    authApiMock.verifyEmail.and.returnValue(
+      throwError(() => ({
+        status: 400,
+        code: 'EMAIL_ALREADY_VERIFIED',
+        handled: false,
+      }))
+    );
+
+    component.email.set('test@test.com');
+    component.otpValue.set('123456');
+    component.onContinue();
+
+    await fixture.whenStable();
+
+    expect(notificationMock.showSuccess).toHaveBeenCalledWith(
+      'This email is already verified. Please sign in.'
+    );
+    expect(routerMock.navigate).toHaveBeenCalledWith(['/auth/sign-in'], {
+      replaceUrl: true,
+    });
+    expect(errorFacadeMock.handle).not.toHaveBeenCalled();
+    expect(authServiceMock.login).not.toHaveBeenCalled();
   });
 });

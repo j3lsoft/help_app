@@ -128,9 +128,10 @@ describe('AuthService', () => {
 
   const meResponse: MeResponseDto = {
     ...authUser,
-    birthDate: null,
+    birthDate: '1990-01-01',
     bio: null,
     website: null,
+    location: null,
   };
 
   const loginResponse = (

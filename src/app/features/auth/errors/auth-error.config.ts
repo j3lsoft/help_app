@@ -34,13 +34,13 @@ export const AUTH_ERROR_MAP: Record<AuthErrorContext, ErrorMapConfig> = {
   },
   'password-reset': {
     byCode: {
-      INVALID_OTP: 'Invalid verification code. Please try again.',
-      EXPIRED_OTP: 'Verification code has expired. Please request a new one.',
-      MAX_OTP_ATTEMPTS_EXCEEDED:
+      TOKEN_NOT_FOUND: 'Invalid or expired verification code. Please try again.',
+      TOKEN_EXPIRED: 'Verification code has expired. Please request a new one.',
+      TOKEN_MISMATCH: 'Verification code does not match. Please try again.',
+      TOKEN_MAX_ATTEMPTS_EXCEEDED:
         'Too many failed attempts. Please request a new code.',
     },
     byStatus: {
-      401: 'Invalid verification code. Please try again.',
       422: 'Invalid email address. Please check and try again.',
       400: 'Invalid request. Please try again.',
     },
@@ -50,9 +50,9 @@ export const AUTH_ERROR_MAP: Record<AuthErrorContext, ErrorMapConfig> = {
     byCode: {
       INVALID_CURRENT_PASSWORD: 'Current password is incorrect.',
       INVALID_NEW_PASSWORD: 'New password does not meet requirements.',
-      INVALID_CHANGE_PASSWORD_TOKEN:
+      TOKEN_NOT_FOUND:
         'Invalid or expired token. Please request a new password reset.',
-      EXPIRED_CHANGE_PASSWORD_TOKEN:
+      TOKEN_EXPIRED:
         'Token has expired. Please request a new password reset.',
     },
     byStatus: {
@@ -63,11 +63,13 @@ export const AUTH_ERROR_MAP: Record<AuthErrorContext, ErrorMapConfig> = {
   },
   verification: {
     byCode: {
-      INVALID_OTP: 'Invalid verification code. Please try again.',
-      EXPIRED_OTP: 'Verification code has expired. Please request a new one.',
-      MAX_OTP_ATTEMPTS_EXCEEDED:
+      TOKEN_NOT_FOUND: 'Invalid or expired verification code. Please try again.',
+      TOKEN_EXPIRED: 'Verification code has expired. Please request a new one.',
+      TOKEN_MISMATCH: 'Verification code does not match. Please try again.',
+      TOKEN_MAX_ATTEMPTS_EXCEEDED:
         'Too many failed attempts. Please request a new code.',
-      EMAIL_ALREADY_VERIFIED: 'This email has already been verified.',
+      EMAIL_ALREADY_VERIFIED:
+        'This email has already been verified. Please sign in.',
     },
     byStatus: {
       400: 'Invalid or expired verification code.',

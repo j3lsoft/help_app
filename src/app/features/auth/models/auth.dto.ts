@@ -51,12 +51,6 @@ export interface ChangePasswordDto {
   newPassword: string;
 }
 
-export interface ResetPasswordDto {
-  email: string;
-  code: string;
-  newPassword: string;
-}
-
 export interface LoginDto {
   emailOrUsername: string;
   password: string;
@@ -84,9 +78,10 @@ export interface MeResponseDto {
   username: string | null;
   displayName: string | null;
   avatarUrl: string | null;
-  birthDate: string | null;
+  birthDate: string;
   bio: string | null;
   website: string | null;
+  location: string | null;
 }
 
 /**

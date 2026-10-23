@@ -32,7 +32,7 @@ describe('ProfilePage', () => {
 
     const profileSpy = jasmine.createSpyObj('ProfileService', ['getMyProfile']);
     (profileSpy as unknown as { currentProfile: ReturnType<typeof signal> }).currentProfile = signal(null);
-    profileSpy.getMyProfile.and.returnValue(of({ id: 'u1', username: 'test', displayName: 'Test', avatarUrl: null, bio: null, website: null, email: 'a@b.com', emailVerified: true, birthDate: null }));
+    profileSpy.getMyProfile.and.returnValue(of({ id: 'u1', username: 'test', displayName: 'Test', avatarUrl: null, bio: null, website: null, email: 'a@b.com', emailVerified: true, birthDate: '1990-01-01', location: null }));
 
     const followApiSpy = jasmine.createSpyObj('FollowApiService', [
       'getSocialState',

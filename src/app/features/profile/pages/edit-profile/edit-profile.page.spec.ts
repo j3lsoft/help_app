@@ -38,6 +38,7 @@ describe('EditProfilePage', () => {
     birthDate: '1990-01-01',
     bio: 'Hello',
     website: null,
+    location: null,
   };
 
   beforeEach(async () => {
