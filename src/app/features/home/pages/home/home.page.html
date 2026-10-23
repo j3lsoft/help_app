@@ -38,6 +38,7 @@
       (saveClick)="handlePostSave(item.id)"
       (postClick)="goToPostDetail($event)"
       (mediaClick)="goToPostDetail($event.postId, $event.imageIndex)"
+      (hashtagClick)="goToHashtag($event)"
     ></app-post-card>
   </div>
   }

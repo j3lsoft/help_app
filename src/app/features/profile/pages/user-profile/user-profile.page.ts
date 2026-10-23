@@ -339,6 +339,10 @@ export class UserProfilePage implements ViewWillEnter, OnDestroy {
     }
   }
 
+  goToHashtag(tag: string) {
+    this.router.navigate(['/hashtag', tag]);
+  }
+
   toggleFollow() {
     const profile = this.profile();
     if (!profile || this.isTogglingFollow()) return;

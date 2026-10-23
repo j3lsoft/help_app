@@ -27,7 +27,8 @@ The user who owns the Post. Own Posts always come from the current session; the 
 _Avoid_: writer, poster
 
 **Hashtag**:
-A keyword preceded by `#` inside the Content. In v1 it is not its own entity: it travels as plain text.
+A token starting with `#` inside the Content, extracted by the backend at write time (lowercased, at most 10 per Post) and read back as the Post's `hashtags`. Rendered inline as a tappable token that opens the hashtag page; the composer autocompletes tags while typing. It is not its own entity beyond that listing.
+_Avoid_: tag, label
 
 **Feed**:
 Chronological list of Posts shown on Home, read from `GET /api/v1/feed` (viewer plus followed users, published only, cursor-paginated). Its items carry no engagement totals, so like/save/comment counters stay hidden until the API exposes them; like/save are session-local. Session mutations (delete, edit, like, save, create) are propagated across lists through `FeedService`'s mutation log, so a change in one list shows in the others immediately (see `docs/adr/0007` and `docs/adr/0011`).

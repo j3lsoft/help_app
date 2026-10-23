@@ -62,6 +62,32 @@
         </div>
       </div>
 
+      @if (hashtagSuggestions().length > 0) {
+        <div class="composer-hashtags" role="list" aria-label="Hashtag suggestions">
+          @for (tag of hashtagSuggestions(); track tag) {
+            <button
+              type="button"
+              class="composer-hashtags__chip"
+              role="listitem"
+              (click)="applyHashtagSuggestion(tag)"
+            >#{{ tag }}</button>
+          }
+        </div>
+      }
+
+      @if (hashtagCount() >= hashtagLimit) {
+        <ion-text
+          class="composer-hashtags__limit"
+          [class.composer-hashtags__limit--warn]="overHashtagLimit()"
+          aria-live="polite"
+        >
+          {{ hashtagCount() }}/{{ hashtagLimit }} hashtags
+          @if (overHashtagLimit()) {
+            · only the first {{ hashtagLimit }} are published
+          }
+        </ion-text>
+      }
+
       @if (postCreation.hasMedia()) {
         <div class="composer-media-wrapper">
           <app-media-grid

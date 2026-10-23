@@ -244,6 +244,10 @@ export class ProfilePage implements ViewWillEnter, OnDestroy {
     }
   }
 
+  goToHashtag(tag: string) {
+    this.router.navigate(['/hashtag', tag]);
+  }
+
   goBack() {
     this.navCtrl.back();
   }

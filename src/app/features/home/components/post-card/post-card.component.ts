@@ -61,6 +61,8 @@ export class PostCardComponent {
   postClick = output<string>();
   /** Tapping one image opens the post detail pinned to that image. */
   mediaClick = output<PostMediaActivation>();
+  /** Tapping a hashtag token in the content opens its tag page. */
+  hashtagClick = output<string>();
 
   /**
    * Lightbox state. The card owns it: the Post's own media is part of how the

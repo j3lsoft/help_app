@@ -200,7 +200,19 @@
           </div>
         </section>
       } @else if (hasContent()) {
-        <p class="detail__body">{{ post.content }}</p>
+        <p class="detail__body">
+          @for (segment of contentSegments(); track $index) {
+            @if (segment.hashtag) {
+              <button
+                type="button"
+                class="detail__hashtag"
+                (click)="$event.stopPropagation(); goToHashtag(segment.hashtag!)"
+              >{{ segment.text }}</button>
+            } @else {
+              {{ segment.text }}
+            }
+          }
+        </p>
       }
 
       @if (images().length > 0) {

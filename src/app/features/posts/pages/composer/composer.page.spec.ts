@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed, waitForAsync, fakeAsync, flush } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync, fakeAsync, flush, tick } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { CameraService } from '@core/services/camera/camera.service';
 import { LoggerService } from '@core/services/logger.service';
@@ -18,6 +18,7 @@ import {
 } from '../../services/post-publish.service';
 import { ErrorFacade } from '@core/errors/facades/error.facade';
 import { PostResponseDto } from '../../models/post.dto';
+import { PostsApiService } from '../../services/posts-api.service';
 import { ComposerPage } from './composer.page';
 
 describe('ComposerPage', () => {
@@ -29,6 +30,7 @@ describe('ComposerPage', () => {
   let mediaUploadSpy: jasmine.SpyObj<MediaUpload>;
   let publishSpy: jasmine.SpyObj<PostPublishService>;
   let notificationSpy: jasmine.SpyObj<NotificationService>;
+  let postsApiSpy: jasmine.SpyObj<PostsApiService>;
   let postCreationService: PostCreationService;
 
   const POST_DTO: PostResponseDto = {
@@ -44,6 +46,7 @@ describe('ComposerPage', () => {
         mimeType: 'image/jpeg',
       },
     ],
+    hashtags: [],
     status: 'published',
     createdAt: '2026-08-25T00:00:00Z',
     updatedAt: '2026-08-25T00:00:00Z',
@@ -60,6 +63,10 @@ describe('ComposerPage', () => {
     mediaUploadSpy = jasmine.createSpyObj('MediaUpload', ['upload', 'remove']);
     mediaUploadSpy.remove.and.resolveTo();
     publishSpy = jasmine.createSpyObj('PostPublishService', ['publish']);
+    postsApiSpy = jasmine.createSpyObj('PostsApiService', [
+      'getHashtagSuggestions',
+    ]);
+    postsApiSpy.getHashtagSuggestions.and.returnValue(of({ items: [] }));
     notificationSpy = jasmine.createSpyObj('NotificationService', [
       'showSuccess',
     ]);
@@ -103,6 +110,7 @@ describe('ComposerPage', () => {
           provide: FeedApiService,
           useValue: jasmine.createSpyObj('FeedApiService', ['getFeed']),
         },
+        { provide: PostsApiService, useValue: postsApiSpy },
       ],
     }).compileComponents();
 
@@ -378,4 +386,40 @@ describe('ComposerPage', () => {
     expect(routerSpy.navigateByUrl).toHaveBeenCalledWith('/tabs/home');
     expect(postCreationService.pendingMediaId()).toBeNull();
   });
+
+  it('should complete a typed hashtag from the suggestions', fakeAsync(() => {
+    postsApiSpy.getHashtagSuggestions.and.returnValue(
+      of({ items: ['travel'] })
+    );
+
+    component.form.setValue({ caption: 'hello #trav' });
+    tick(300);
+
+    expect(postsApiSpy.getHashtagSuggestions).toHaveBeenCalledWith('trav');
+    expect(component.hashtagSuggestions()).toEqual(['travel']);
+
+    component.applyHashtagSuggestion('travel');
+
+    expect(component.form.getRawValue().caption).toBe('hello #travel ');
+    expect(component.hashtagSuggestions()).toEqual([]);
+    tick(300);
+  }));
+
+  it('should not query suggestions for a partial tag shorter than 2 chars', fakeAsync(() => {
+    component.form.setValue({ caption: 'hello #t' });
+    tick(300);
+
+    expect(postsApiSpy.getHashtagSuggestions).not.toHaveBeenCalled();
+    expect(component.hashtagSuggestions()).toEqual([]);
+  }));
+
+  it('should count hashtags and flag the backend cap', fakeAsync(() => {
+    const caption = Array.from({ length: 11 }, (_, i) => `#tag${i}`).join(' ');
+
+    component.form.setValue({ caption });
+    tick(300);
+
+    expect(component.hashtagCount()).toBe(11);
+    expect(component.overHashtagLimit()).toBeTrue();
+  }));
 });

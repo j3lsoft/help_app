@@ -18,6 +18,7 @@ function dto(id: string, content = 'server'): PostResponseDto {
     authorId: 'u1',
     content,
     media: [],
+    hashtags: [],
     status: 'published',
     createdAt: '2026-09-01T00:00:00Z',
     updatedAt: '2026-09-01T00:00:00Z',

@@ -137,6 +137,10 @@ export class HomePage implements ViewWillEnter {
     this.router.navigateByUrl(buildPostDetailUrl(postId, imageIndex));
   }
 
+  goToHashtag(tag: string) {
+    this.router.navigate(['/hashtag', tag]);
+  }
+
   goToComments(postId: string) {
     this.router.navigateByUrl(`post-detail/${postId}`);
   }

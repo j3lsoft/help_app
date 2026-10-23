@@ -85,4 +85,30 @@ describe('ExpandableTextComponent', () => {
     fixture.detectChanges();
     expect(fixture.componentInstance.expanded()).toBeFalse();
   });
+
+  it('should render hashtags as tappable tokens and emit the tag', () => {
+    let tapped = '';
+    fixture.componentInstance.hashtagTap.subscribe((tag) => (tapped = tag));
+    fixture.componentRef.setInput('text', 'hello #Travel and #niño!');
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    const tokens = host.querySelectorAll('.expandable-text__hashtag');
+    expect(tokens.length).toBe(2);
+    expect(tokens[0].textContent).toBe('#Travel');
+
+    (tokens[1] as HTMLElement).click();
+    expect(tapped).toBe('niño');
+  });
+
+  it('should keep a hashtag cut by the truncation as plain text', () => {
+    fixture.componentRef.setInput('text', `${LONG_TEXT} #travel`);
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    const lastToken = host.querySelector('.expandable-text__hashtag');
+    // The preview may end mid-token, so nothing trailing is linked.
+    expect(lastToken).toBeNull();
+    expect(host.querySelector('.expandable-text__more')).not.toBeNull();
+  });
 });

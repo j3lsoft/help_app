@@ -24,6 +24,15 @@ import {
   close,
   imageOutline,
 } from 'ionicons/icons';
+import {
+  catchError,
+  debounceTime,
+  distinctUntilChanged,
+  EMPTY,
+  map,
+  Subject,
+  switchMap,
+} from 'rxjs';
 import { CameraService } from '@core/services/camera/camera.service';
 import { LoggerService } from '@core/services/logger.service';
 import { NotificationService } from '@core/services/notification.service';
@@ -33,8 +42,15 @@ import { handleInlineFormError } from '@core/utils/form-error-handler.utils';
 import { AuthService } from '@features/auth/services/auth.service';
 import { FeedService } from '@features/home/services/feed.service';
 import { BackHeaderComponent } from '@shared/components/back-header/back-header.component';
+import {
+  HASHTAG_LIMIT,
+  completeHashtagQuery,
+  countHashtags,
+  currentHashtagQuery,
+} from '@shared/utils/hashtag.utils';
 import { ErrorFacade } from 'src/app/core/errors/facades/error.facade';
 import { POST_ERROR_MAP } from '../../errors/post-error.config';
+import { PostsApiService } from '../../services/posts-api.service';
 import { DeviceGalleryService } from '../../services/device-gallery.service';
 import { PostCreationService } from '../../services/post-creation.service';
 import {
@@ -74,6 +90,7 @@ export class ComposerPage implements ViewWillLeave {
   private readonly mediaUpload = inject(MediaUpload);
   readonly postCreation = inject(PostCreationService);
   private readonly postPublish = inject(PostPublishService);
+  private readonly postsApi = inject(PostsApiService);
   private readonly errorFacade = inject(ErrorFacade);
   private readonly notification = inject(NotificationService);
   private readonly auth = inject(AuthService);
@@ -111,6 +128,18 @@ export class ComposerPage implements ViewWillLeave {
 
   private readonly contentSignal = signal(this.form.getRawValue());
 
+  /** Tag completions for the `#partial` being typed at the end of the caption. */
+  readonly hashtagSuggestions = signal<string[]>([]);
+  readonly hashtagLimit = HASHTAG_LIMIT;
+  readonly hashtagCount = computed(() =>
+    countHashtags(this.contentSignal().caption)
+  );
+  readonly overHashtagLimit = computed(
+    () => this.hashtagCount() > HASHTAG_LIMIT
+  );
+
+  private readonly hashtagQueryChange = new Subject<string | null>();
+
   readonly canPublish = computed(() => {
     if (this.isPublishing()) {
       return false;
@@ -130,7 +159,40 @@ export class ComposerPage implements ViewWillLeave {
     });
     this.form.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.contentSignal.set(this.form.getRawValue()));
+      .subscribe(() => {
+        const { caption } = this.form.getRawValue();
+        this.contentSignal.set(this.form.getRawValue());
+        this.hashtagQueryChange.next(currentHashtagQuery(caption));
+      });
+
+    // Ambient completions: a failed lookup clears the row instead of toasting.
+    this.hashtagQueryChange
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        switchMap((query) => {
+          if (!query || query.length < 2) {
+            this.hashtagSuggestions.set([]);
+            return EMPTY;
+          }
+          return this.postsApi.getHashtagSuggestions(query).pipe(
+            map((response) => response.items),
+            catchError(() => {
+              this.hashtagSuggestions.set([]);
+              return EMPTY;
+            })
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((items) => this.hashtagSuggestions.set(items));
+  }
+
+  /** Completes the trailing `#partial` with the picked tag. */
+  applyHashtagSuggestion(tag: string): void {
+    const { caption } = this.form.getRawValue();
+    this.form.setValue({ caption: completeHashtagQuery(caption, tag) });
+    this.hashtagSuggestions.set([]);
   }
 
   goHome(): void {

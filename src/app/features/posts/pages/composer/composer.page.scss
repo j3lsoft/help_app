@@ -154,3 +154,39 @@
     width: 100%;
   }
 }
+/* Inline hashtag autocomplete: a chip row under the caption, plus a subtle
+   counter once the backend cap (10) is reached — extras are dropped silently
+   server-side, so the limit is surfaced here. */
+.composer-hashtags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 16px 8px;
+
+  &__chip {
+    padding: 6px 12px;
+    font-size: 14px;
+    color: var(--primaryColor);
+    background: transparent;
+    border: 1px solid var(--primaryColor);
+    border-radius: 16px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+
+    &:focus-visible {
+      outline: 2px solid var(--primaryColor);
+      outline-offset: 2px;
+    }
+  }
+
+  &__limit {
+    display: block;
+    padding: 0 16px 8px;
+    font-size: 12px;
+    color: var(--grayColor);
+
+    &--warn {
+      color: var(--redColor, #d5303d);
+    }
+  }
+}

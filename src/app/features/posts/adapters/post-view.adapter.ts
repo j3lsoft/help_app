@@ -6,6 +6,8 @@ interface PostViewOptions {
   author: PostAuthor | null;
   /** Per-index local media (e.g. composer blob urls) when the API has none. */
   fallbackImageUrls?: string | string[];
+  /** Name shown when there is no author (default `You`, own new posts). */
+  fallbackName?: string;
 }
 
 /** One media piece of one Post, in carousel position order. */
@@ -68,7 +70,8 @@ export function toPostView(dto: PostResponseDto, options: PostViewOptions): Post
   return {
     id: dto.id,
     userProfilePic: author?.avatarUrl || '',
-    userName: author?.displayName || author?.username || 'You',
+    userName:
+      author?.displayName || author?.username || options.fallbackName || 'You',
     username: author?.username ?? '',
     aboutPost: dto.content ?? '',
     createdAt: dto.createdAt,

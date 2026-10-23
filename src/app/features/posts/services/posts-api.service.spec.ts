@@ -29,6 +29,7 @@ describe('PostsApiService', () => {
         mimeType: 'image/jpeg',
       },
     ],
+    hashtags: [],
     status: 'published',
     createdAt: '2026-08-25T00:00:00Z',
     updatedAt: '2026-08-25T00:00:00Z',
@@ -146,5 +147,30 @@ describe('PostsApiService', () => {
     );
     expect(req.request.params.get('includeTotal')).toBe('true');
     req.flush(PAGE);
+  });
+
+  it('should GET a hashtag page with the encoded tag', () => {
+    service.getPostsByHashtag('café trip').subscribe((result) => {
+      expect(result).toEqual(PAGE);
+    });
+
+    const req = httpMock.expectOne(
+      `${baseUrl}/posts/hashtags/caf%C3%A9%20trip?limit=20`
+    );
+    expect(req.request.method).toBe('GET');
+    expect(req.request.params.get('limit')).toBe('20');
+    req.flush(PAGE);
+  });
+
+  it('should GET hashtag suggestions with the q param', () => {
+    service.getHashtagSuggestions('tra').subscribe((result) => {
+      expect(result).toEqual({ items: ['travel', 'traveler'] });
+    });
+
+    const req = httpMock.expectOne(
+      `${baseUrl}/posts/hashtags/suggest?q=tra`
+    );
+    expect(req.request.method).toBe('GET');
+    req.flush({ items: ['travel', 'traveler'] });
   });
 });

@@ -162,6 +162,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'hashtag/:tag',
+    canMatch: [authGuard],
+    loadComponent: () =>
+      import('./features/hashtags/pages/hashtag-feed/hashtag-feed.page').then(
+        (m) => m.HashtagFeedPage
+      ),
+  },
+  {
     path: 'follow-requests',
     canMatch: [authGuard],
     loadComponent: () =>

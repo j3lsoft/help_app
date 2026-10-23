@@ -30,6 +30,7 @@ describe('PostPublishService', () => {
         mimeType: 'image/jpeg',
       },
     ],
+    hashtags: [],
     status: 'published',
     createdAt: '2026-08-25T00:00:00Z',
     updatedAt: '2026-08-25T00:00:00Z',

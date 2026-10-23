@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import {
   CreatePostRequestDto,
   EditPostRequestDto,
+  HashtagSuggestionsResponseDto,
   PaginatedPostsResponseDto,
   PostResponseDto,
 } from '../models/post.dto';
@@ -69,6 +70,33 @@ export class PostsApiService {
     }
     return this.http.get<PaginatedPostsResponseDto>(
       `${this.baseUrl}/api/v1/users/${userId}/posts`,
+      { params }
+    );
+  }
+
+  /**
+   * Published posts carrying `#tag`, newest first. Public endpoint (optional
+   * JWT), so an unknown tag answers an empty page instead of a 404.
+   */
+  getPostsByHashtag(
+    tag: string,
+    options: GetUserPostsOptions = {}
+  ): Observable<PaginatedPostsResponseDto> {
+    let params = new HttpParams().set('limit', options.limit ?? 20);
+    if (options.cursor) {
+      params = params.set('cursor', options.cursor);
+    }
+    return this.http.get<PaginatedPostsResponseDto>(
+      `${this.baseUrl}/api/v1/posts/hashtags/${encodeURIComponent(tag)}`,
+      { params }
+    );
+  }
+
+  /** Up to 10 published-tag completions for `q` (min 2 code points server-side). */
+  getHashtagSuggestions(q: string): Observable<HashtagSuggestionsResponseDto> {
+    const params = new HttpParams().set('q', q);
+    return this.http.get<HashtagSuggestionsResponseDto>(
+      `${this.baseUrl}/api/v1/posts/hashtags/suggest`,
       { params }
     );
   }

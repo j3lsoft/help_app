@@ -1,0 +1,32 @@
+<app-back-header [title]="'#' + tag" (backClick)="goBack()" />
+
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  @for (item of posts(); track item.id) {
+    <div class="hashtag-feed__post-wrapper">
+      <app-post-card
+        [post]="item"
+        (likeClick)="handleLike(item.id)"
+        (saveClick)="handleSave(item.id)"
+        (postClick)="goToPostDetail($event)"
+        (mediaClick)="goToPostDetail($event.postId, $event.imageIndex)"
+        (hashtagClick)="goToHashtag($event)"
+      ></app-post-card>
+    </div>
+  } @empty {
+    @if (loaded()) {
+      <ion-text class="hashtag-feed__empty grayColor14Regular">
+        No posts with #{{ tag }} yet.
+      </ion-text>
+    }
+  }
+
+  @if (hasMore()) {
+    <ion-infinite-scroll threshold="30%" (ionInfinite)="loadMore($event)">
+      <ion-infinite-scroll-content></ion-infinite-scroll-content>
+    </ion-infinite-scroll>
+  }
+</ion-content>

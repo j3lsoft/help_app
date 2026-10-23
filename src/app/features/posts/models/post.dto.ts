@@ -18,6 +18,8 @@ export interface PostResponseDto {
   authorId: string;
   content: string | null;
   media: MediaReferenceResponseDto[];
+  /** Hashtags extracted from the content at write time (lowercased, max 10). */
+  hashtags: string[];
   status: PostStatus;
   createdAt: string;
   updatedAt: string;
@@ -27,6 +29,11 @@ export interface PaginatedPostsResponseDto {
   items: PostResponseDto[];
   nextCursor: string | null;
   total?: number;
+}
+
+/** `GET /api/v1/posts/hashtags/suggest` — matching tags without the leading `#`. */
+export interface HashtagSuggestionsResponseDto {
+  items: string[];
 }
 
 export interface CreatePostRequestDto {

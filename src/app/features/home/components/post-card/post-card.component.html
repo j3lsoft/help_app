@@ -54,7 +54,11 @@
   </header>
 
   @if (post().aboutPost) {
-    <app-expandable-text [text]="post().aboutPost" class="post-card__body" />
+    <app-expandable-text
+      [text]="post().aboutPost"
+      class="post-card__body"
+      (hashtagTap)="hashtagClick.emit($event)"
+    />
   } @else if (post().postImages.length === 0) {
     <!-- A Post with neither text nor media still needs a reachable spot; a
          textless Post with media uses the media itself. -->

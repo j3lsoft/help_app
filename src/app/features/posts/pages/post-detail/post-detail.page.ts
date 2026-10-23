@@ -54,6 +54,7 @@ import { BackHeaderComponent } from '@shared/components/back-header/back-header.
 import { ImageLightboxComponent } from '@shared/components/image-lightbox/image-lightbox.component';
 import { PostMediaCarouselComponent } from '@shared/components/post-media-carousel/post-media-carousel.component';
 import { ShortNumberPipe } from '@shared/pipes/short-number.pipe';
+import { splitHashtagSegments } from '@shared/utils/hashtag.utils';
 import { FeedService } from '@features/home/services/feed.service';
 import { PostCommentsComponent } from '../../components/post-comments/post-comments.component';
 import { createEngagementSeed } from '../../data/post-engagement.mock';
@@ -268,10 +269,19 @@ export class PostDetailPage {
 
   readonly hasContent = computed(() => !!this.post()?.content?.trim());
 
+  /** Content split into plain and hashtag segments for inline rendering. */
+  readonly contentSegments = computed(() =>
+    splitHashtagSegments(this.post()?.content ?? '')
+  );
+
   readonly isEdited = computed(() => {
     const post = this.post();
     return !!post && post.createdAt !== post.updatedAt;
   });
+
+  goToHashtag(tag: string): void {
+    void this.router.navigate(['/hashtag', tag]);
+  }
 
   readonly authorAvatar = computed(() => {
     const post = this.post();
